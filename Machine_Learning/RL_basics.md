@@ -60,6 +60,8 @@ Remarks:
   \sum_a \pi(a \mid s) = 1
   $$
 
+* Both deterministic and stochastic policy are time-invariant. i.e. The distribution of $a$ given $s$ is always the same, regardless when we arrived at $s$.
+
 From now on, we stick to deterministic policy and we will answer the following quesitons
 
 1. How to quantify the goodness of a policy?  
@@ -351,7 +353,7 @@ where $\mathbf{I}$ is the $\vert \mathcal S \vert \times \vert \mathcal S \vert$
 
 Drawback of analytical solution: involves matrix inversion. High computational complexity when $\vert \mathcal S \vert$ is large.
 
-Numerical solution: The state values can be obtained from the following algorithm
+Numerical solution (fixed point iteration): The state values can be obtained from the following algorithm
 > Initialize $\mathbf v^{(0)}$ arbitrarily.  
 > For $i=0,1,\dots$, run until convergence:
 >
@@ -765,6 +767,7 @@ q_{\pi}(s,a)
 \quad \forall s\in\mathcal S, \forall a\in\mathcal A
 \end{align}
 $$
+
 Relation between Q-function and state value for the same $\pi$:
 
 * Interpretation: $q_{\pi}(s,a)$ represents the total reward of taking action $a$ at initial state $s$ and then following a policy $\pi$. vs. $v_{\pi}(s)$ represents the total reward of following $\pi$ from $s$ onward. Recall: the state value is defined as
@@ -777,32 +780,34 @@ Relation between Q-function and state value for the same $\pi$:
   $$
 
 * Compute $v_{\pi}(s)$ from $q_{\pi}(s,a)$: simply let $a=\pi(s)$, i.e.
-$$
-\begin{align}
-v_{\pi}(s) = q_{\pi}(s,a) \Big|_{a=\pi(s)}
-\end{align}
-$$
+  $$
+  \begin{align}
+  v_{\pi}(s) = q_{\pi}(s,a) \Big|_{a=\pi(s)}
+  \end{align}
+  $$
+
 * Compute $q_{\pi}(s,a)$ from $v_{\pi}(s)$: use recurisve structure (The same idea when deriving Bellman equation for a certain policy)
-$$
-\begin{align}
-q_{\pi}(s,a)
-&= r(s,a) + \gamma \mathbb E_{s' \sim p(\cdot \mid s, a)} [ v_{\pi}(s') ] \\
-&= r(s,a) + \gamma \sum_{s'\in\mathcal S} p(s' \mid s, a) v_{\pi}(s') & \text{if } \mathcal S \text{ is finite}\\
-\end{align}
-$$
+  $$
+  \begin{align}
+  q_{\pi}(s,a)
+  &= r(s,a) + \gamma \mathbb E_{s' \sim p(\cdot \mid s, a)} [ v_{\pi}(s') ] \\
+  &= r(s,a) + \gamma \sum_{s'\in\mathcal S} p(s' \mid s, a) v_{\pi}(s') & \text{if } \mathcal S \text{ is finite}\\
+  \end{align}
+  $$
+
 Similary, the optimal Q-function is defined as
 $$
 q^*(s,a) = q_{\pi^*}(s,a)
 $$
+
 Relation between optimal Q-function and optimal state value:
 
 * Compute $v^*(s)$ from $q^*(s,a)$: simply let $a=\pi^*(s)$, i.e.
-
-$$
-\begin{align}
-v^*(s) = q^*(s,a) \Big|_{a=\pi^*(s)}
-\end{align}
-$$
+  $$
+  \begin{align}
+  v^*(s) = q^*(s,a) \Big|_{a=\pi^*(s)}
+  \end{align}
+  $$
 
 * Compute $q^*(s,a)$ from $v^*(s)$: use recurisve structure
   $$
@@ -832,32 +837,90 @@ From previous sections, we knew that an optimal policy  $\pi^*$ exists. Now, we 
 
 ### Value Iteration
 
-The algorithm introduced to solve BOEs is called value iteration. For the sake of implementation, the algorithm can be unfolded element-wise as follows
+The algorithm introduced earlier to solve BOEs is called value iteration. For the sake of implementation, the algorithm can be unfolded element-wise as follows
 
 > Init $v^{(0)}(s)$ for all $s\in\mathcal S$ by random guessing  
 > For $i = 0,1,\dots$, do  
 > $\quad$ For each $s\in\mathcal S$, do  
 > $\quad\quad$ For each $a\in\mathcal A$, compute Q-function  
 > $\quad\quad\qquad q^{(i)}(s,a) = r(s, a) + \gamma \displaystyle\sum_{s'} p(s' \mid s, a) \cdot v^{(i)}(s')$  
-> $\quad\quad$ Policy update: $\pi^{(i+1)}(s) = \displaystyle\argmax_{a\in\mathcal A}\, q^{(i)}(s,a)$  
-> $\quad\quad$ Value update: $v^{(i+1)}(s) = \displaystyle\max_{a\in\mathcal A} q^{(i)}(s,a)$  
+> $\quad\quad$ **Policy update**: $\pi^{(i+1)}(s) = \displaystyle\argmax_{a\in\mathcal A}\, q^{(i)}(s,a)$  
+> $\quad\quad$ **Value update**: $v^{(i+1)}(s) = \displaystyle\max_{a\in\mathcal A} q^{(i)}(s,a)$  
 > until $\big\Vert \mathbf v^{(i+1)} - \mathbf v^{(i)} \big\Vert \le$ some threshold $\epsilon$. (i.e. $\mathbf v^{(i)}$ converges)  
 > Return $v^{(i_\text{stop})}(s)$ and $\pi^{(i_\text{stop})}(s)$ for all $s\in\mathcal S$
 
 Remarks:
 
 * In stopping condition, $\mathbf v^{(i)}$ is the vector containing all $v^{(i)}(s), s\in\mathcal S$. The norm can be infinity norm or any other norms.
-* Although $v^{(i)}(s)$ converges to $v^{*}(s)$ for all $s\in\mathcal S$, the intermediate values $v^{(i)}(s)$ do **not** generally satisfy Bellman equation for **any** policy. We interpret $v^{(i)}(s)$ as the approximation of $v^*(s)$ at $i$-th iteration rather than the state values under $\pi^{(i)}$ or $\pi^{(i+1)}$, i.e.
-$$
-  \begin{align*}
-  v^{(i)}(s)
-  &\ne r(s, \pi^{(i)}(s)) + \gamma \sum_{s'} p(s'\mid s, \pi^{(i)}(s)) v^{(i)}(s)
-  \\
-  v^{(i)}(s)
-  &\ne r(s, \pi^{(i+1)}(s)) + \gamma \sum_{s'} p(s'\mid s, \pi^{(i+1)}(s)) v^{(i)}(s)
-  \end{align*}
-$$
+* Although $v^{(i)}(s)$ converges to $v^{*}(s)$ for all $s\in\mathcal S$, the intermediate values $v^{(i)}(s)$ do **not** generally satisfy Bellman equation for **any** policy. We interpret $v^{(i)}(s)$ as the estimate of $v^*(s)$ at $i$-th iteration rather than the state values under $\pi^{(i)}$ or $\pi^{(i+1)}$, i.e.
+  $$
+    \begin{align*}
+    v^{(i)}(s)
+    &\ne r(s, \pi^{(i)}(s)) + \gamma \sum_{s'} p(s'\mid s, \pi^{(i)}(s)) v^{(i)}(s)
+    \\
+    v^{(i)}(s)
+    &\ne r(s, \pi^{(i+1)}(s)) + \gamma \sum_{s'} p(s'\mid s, \pi^{(i+1)}(s)) v^{(i)}(s)
+    \end{align*}
+  $$
+* Likewise, $q^{(i)}(s,a)$ represents the estimate of $q^{*}(s,a)$ at $i$-th iteration.
+
+In policy update step, the new policy $\pi^{(i+1)}(s)$ always picks the action maximizing the current estimtae of Q-function $q^{(i)}(s,a)$. Hence, it is called ***greedy*** policy update.
+
 ### Policy Iteration
+
+Policy iteration is another algorithm to compute optimal policy. It starts with abitrary policy and iteratively improves it. Formally:
+
+> Init $\pi^{(0)}$ by random guessing  
+> For $i=0,1,2,\dots$, run until convergence  
+> $\quad$ **Policy evaluation**: Solve $\mathbf v_{\pi^{(i)}} = \mathbf r_{\pi^{(i)}} + \gamma\mathbf P_{\pi^{(i)}} \mathbf v_{\pi^{(i)}}$ for state values $\mathbf v_{\pi^{(i)}}$  
+> $\quad$ **Policy improvement**: Solve $\pi^{(i+1)} = \displaystyle\argmax_{\pi}  \big\{ \mathbf r_{\pi} + \gamma\mathbf P_{\pi} \mathbf v_{\pi^{(i)}} \big\}$ for new policy $\pi^{(i+1)}$
+
+Remark:
+
+* The convergence will be proved later.
+* In policy evaluation, the state values can be computed either analytically using
+$\mathbf v_{\pi} = (\mathbf{I} - \gamma \mathbf{P}_{\pi})^{-1} \mathbf r_{\pi}$
+or numerically using fixed point iteration.
+* In policy improvement, the new policy maximizes the immediate reward plus the discounted future reward by following $\pi^{(i)}$. Element-wise, this breaks down to maximizing the Q-functions:
+    $$
+    \begin{align}
+    \pi^{(i+1)}(s)
+    &= \argmax_{a\in\mathcal A}  \left\{ r(s,a) + \gamma\sum_{s'\in\mathcal S} p(s'\mid s,a) \, v_{\pi^{(i)}}(s') \right\}, \quad \forall s\in\mathcal S \\
+    &= \argmax_{a\in\mathcal A} q_{\pi^{(i)}} (s,a)
+    \end{align}
+    $$
+* Each intermediate $\mathbf v_{\pi^{(i)}}$ satisfies the Bellman equation for policy $\pi^{(i)}$. vs. In value iteration, $\mathbf v^{(i)}$ does not generally satisfy Bellman equation for any policy!
+
+Element-wise formulation of policy iteration:
+
+> Init $\pi^{(0)}(s)$ for all $s\in\mathcal S$ by random guessing  
+> For $i=0,1,2,\dots$, do  
+> $\quad$ **Policy evaluation**: compute $v_{\pi^{(i)}}(s)$ for all $s\in\mathcal S$ by solving linear equations  
+> $\quad$ For each $s\in\mathcal S$, do  
+> $\quad\quad\;$ For each $a\in\mathcal A$, compute  
+> $\quad\quad\qquad$ Q-function: $q_{\pi^{(i)}} (s,a) = r(s,a) + \gamma\displaystyle\sum_{s'\in\mathcal S} p(s'\mid s,a) \, v_{\pi^{(i)}}(s')$  
+> $\quad\quad\;$ **Policy improvement**: $\pi^{(i+1)}(s) = \displaystyle\argmax_{a\in\mathcal A} q_{\pi^{(i)}} (s,a)$  
+> until $\Vert\mathbf v_{\pi^{(i+1)}} - \mathbf v_{\pi^{(i)}} \Vert < \epsilon$  
+> Return $v_{\pi^{(i)}}(s)$ and $\pi^{(i)}(s)$ for all $s\in\mathcal S$
+
+Policy iteratoin works because of following facts
+
+1. The policy improvement step indeed improves policy iteratively.
+    $$
+    \pi^{(i+1)}(s) = \displaystyle\argmax_{a\in\mathcal A} q_{\pi^{(i)}} (s,a)
+    \implies
+    v_{\pi^{(i+1)}}(s) \ge v_{\pi^{(i)}}(s),\: \forall s\in\mathcal S
+    $$
+1. The sequence of state values generated by policy iteration indeed converges to the optimal state values.
+    $$
+    \lim_{i\to\infty} v_{\pi^{(i+1)}}(s) = v^*(s),\: \forall s\in\mathcal S
+    $$
+
+Proof 1: For each $s\in\mathcal S$, $\pi^{(i+1)}(s)$ is the best action for maximizing the Q-function. In particular,
+$$
+q_{\pi^{(i)}} (s, \pi^{(i+1)}(s))
+\ge  q_{\pi^{(i)}} (s, \pi^{(i)}(s)) = v_{\pi^{(i)}}(s)
+$$
 
 ### Generalized Policy Iteration
 
@@ -880,6 +943,7 @@ $$
 \right]
 \end{align*}
 $$
+
 ### Row Stochastic Matrix
 
 A square matrix $\mathbf A \in\mathbb R^{n \times n}$ is called a ***row stochastic matrix*** iff each row of $\mathbf A$ is a probability vector. i.e.
@@ -891,15 +955,15 @@ Let $\mathbf A \in\mathbb R^{n \times n}$ be a state transition matrix. Then,
 
 1. $1$ is always an eigenvalue of $\mathbf A$.
 1. Multiplication with $\mathbf A$ does not increase the infinity norm. i.e.
-$$
+    $$
     \begin{align}
-    \Vert\mathbf{Ax}\Vert_{\infty} \le  \Vert\mathbf{x}\Vert_{\infty}, \forall \mathbf{x}\in\mathbb R^n
+      \Vert\mathbf{Ax}\Vert_{\infty} \le  \Vert\mathbf{x}\Vert_{\infty}, \forall \mathbf{x}\in\mathbb R^n
     \end{align}
-$$
+    $$
 1. The eigenvalues of $\mathbf A$ are at most $1$. i.e.
     $$
     \begin{align}
-    \vert \lambda \vert \le 1, \forall\lambda\in\operatorname{spec}(A)
+      \vert \lambda \vert \le 1, \forall\lambda\in\operatorname{spec}(A)
     \end{align}
     $$
 

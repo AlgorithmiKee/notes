@@ -916,11 +916,54 @@ Policy iteratoin works because of following facts
     \lim_{i\to\infty} v_{\pi^{(i+1)}}(s) = v^*(s),\: \forall s\in\mathcal S
     $$
 
-Proof 1: For each $s\in\mathcal S$, $\pi^{(i+1)}(s)$ is the best action for maximizing the Q-function. In particular,
+Proof 1: For each $s\in\mathcal S$, $\pi^{(i+1)}(s)$ is the maximizer of the Q-function $q_{\pi^{(i)}} (s,a)$. In particular,
 $$
 q_{\pi^{(i)}} (s, \pi^{(i+1)}(s))
-\ge  q_{\pi^{(i)}} (s, \pi^{(i)}(s)) = v_{\pi^{(i)}}(s)
+\ge q_{\pi^{(i)}} (s, \pi^{(i)}(s)) = v_{\pi^{(i)}}(s)
+\tag{$\star$}
 $$
+
+Hence, $\forall s\in\mathcal S$:
+
+$$
+\begin{align*}
+v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s)
+&\overset{(\star)}{\ge} v_{\pi^{(i+1)}}(s)  - q_{\pi^{(i)}} (s, \pi^{(i+1)}(s))
+\\
+&= r(s, \pi^{(i+1)}(s)) + \gamma\mathbb E[v_{\pi^{(i+1)}}(S')] -
+\left( r(s, \pi^{(i+1)}(s)) + \gamma\mathbb E[v_{\pi^{(i)}}(S')] \right)
+\\
+&= \gamma\mathbb E\left[ v_{\pi^{(i+1)}}(S') - v_{\pi^{(i)}}(S') \right]
+\end{align*}
+$$
+
+Recall the property of expectation: $\mathbb E[X] \ge x_{\min}$. Letting $X=v_{\pi^{(i+1)}}(S') - v_{\pi^{(i)}}(S')$, we get
+
+$$
+\forall s\in\mathcal S, \: v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s)
+\ge \gamma \min_{s'\in\mathcal S} \left\{ v_{\pi^{(i+1)}}(s') - v_{\pi^{(i)}}(s') \right\}
+\tag{$\star\star$}
+$$
+
+Taking $\displaystyle\min_{s\in\mathcal S}$ on the LHS, we get
+$$
+\min_{s\in\mathcal S} \left\{ v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s) \right\}
+\ge \gamma \min_{s'\in\mathcal S} \left\{ v_{\pi^{(i+1)}}(s') - v_{\pi^{(i)}}(s') \right\}
+$$
+
+Note that the optimization problem on both sides are the same. Hence,
+$$
+\begin{align*}
+(1-\gamma) \min_{s\in\mathcal S} \left\{ v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s) \right\} &\ge 0
+\\
+\min_{s\in\mathcal S} \left\{ v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s) \right\} &\ge 0
+&& \text{since } 0<\gamma<1 \\
+\forall s\in\mathcal S, \: v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s) &\ge 0
+&& \text{by } (\star\star)
+\end{align*}
+$$
+
+We concluded that the policy improvement does not decrease state value. $\qquad \square$
 
 ### Generalized Policy Iteration
 

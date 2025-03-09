@@ -1,5 +1,5 @@
 ---
-title: "Reinforcement Learning"
+title: "Intro to RL"
 author: "Ke Zhang"
 date: "2025"
 fontsize: 12pt
@@ -32,53 +32,14 @@ A Markov decision process (MDP) consists of
 
 In the following, we consider stationary MDP. i.e. Both the station transition probability and reward function are time-independent.
 
-### Policy
-
-In MDP, the agent performs actions determined by current state, according to a (deterministic) ***policy***
-$$
-\pi: \mathcal S \to \mathcal A, s\mapsto a=\pi(s)
-$$
-
-A policy can also be stochastic. i.e. instead of mapping the state to a fixed action, there are multiple possible actions with different probability. A stochastic policy is described by the conditional distribution
-
-$$
-\pi(a \mid s), a \in\mathcal A, s \in\mathcal S
-$$
-
-Remarks:
-
-* The determinstic policy can be seen as a special of stochastic policy by assigning $\pi(\hat a \mid s)$ to 1 for some $\hat a$.
-  $$
-  \pi(a \mid s) =
-  \begin{cases}
-    1 & a=\hat a\\
-    0 & \text{else}
-  \end{cases}
-  $$
-* For stochastic policy, it holds that
-  $$
-  \sum_a \pi(a \mid s) = 1
-  $$
-
-* Both deterministic and stochastic policy are time-invariant. i.e. The distribution of $a$ given $s$ is always the same, regardless when we arrived at $s$.
-
-From now on, we stick to deterministic policy and we will answer the following quesitons
-
-1. How to quantify the goodness of a policy?  
-    $\to$ state values, Bellman equations
-1. Which criterion should the optimal policy satisfy?  
-    $\to$ Bellman optimality equations.
-1. How to find the optimal policy?  
-    $\to$ value iteration, policy iteration
-
 ### Rewards
 
-Given the state $s_t$ at time $t$, the agent execute policy $a_t = \pi(s_t)$, which leads to
+Given the state $s_t$ at time $t$, the agent takes action $a_t$, which leads to
 
 * the new state $s_{t+1}$, sampled from $p(\cdot \mid s_t, a_t)$
 * and the reward $r_t$, determined by the reward function $r_t = r(s_t, a_t)$.
 
-Continue executing $\pi$, we get a state-action-reward trajectory
+Continue taking actions $a_{t+1}, a_{t+2}, \dots$, we get a state-action-reward trajectory
 $$
 s_t     \xrightarrow[r_t]    {a_t \:}
 s_{t+1} \xrightarrow[r_{t+1}]{a_{t+1} \:}
@@ -88,7 +49,7 @@ $$
 
 $\to$ Intuitive goal: Maximize the sum of all $r_t$.
 
-In the statistical setting, $s_t, s_{t+1}, \dots$ are instances of random variables $S_t, S_{t+1}, \dots$. Hence, the actions and rewards are also random. $\implies$ stochastic state-action-reward trajectory:
+In the stochastic setting, all states $S_{t}, S_{t+1}, \dots$ are random. Since the agent takes action based on current state, the action sequence is also random. Similary, the reward sequence is also random. $\implies$ stochastic state-action-reward trajectory:
 
 $$
 S_t     \xrightarrow[R_t]    {A_t \:}
@@ -124,11 +85,19 @@ G_t = R_t + \gamma G_{t+1}
 \end{align}
 $$
 
-## State Value & Bellman Equations
+### Policy
 
-### State Value
+In MDP, the agent performs actions determined by current state, according to a ***policy***
+$$
+\pi: \mathcal S \to \mathcal A, s\mapsto a=\pi(s)
+$$
 
-> The ***state value*** $v_{\pi}(s)$ is defined as the expected total reward by executing policy $\pi$ starting from state $s$.
+Remark: The policy defined here is **time-invariant** and **deterministic**, i.e. For a certain state $s$, the agent takes the **same** action **whenever** he arrives at $s$.
+
+### State Value Function
+
+> For a certain policy $\pi$, the corresponding ***state value function*** is mapping $v_{\pi}:\mathcal S\to\mathbb R, s\mapsto v_{\pi}(s)$.  
+> $v_{\pi}(s)$ is called ***state value***, defined as the expected total reward by executing policy $\pi$ starting from state $s$.
 >
 > $$
 > \begin{align}
@@ -140,15 +109,15 @@ $$
 
 Remarks:
 
-* The expectation is take over $\{S_k\}_{k \ge t+1}$
+* The expectation is take over $\{S_k\}_{k \ge t+1}$. The random variable $G_t$ depends implicity on policy $\pi$ as it represents the total reward by executing $\pi$.
 
 * State value $v_{\pi}(s)$ is defined for **ALL** possible states in space $\mathcal S$.
 
 * For a fixed policy $\pi$, $v_{\pi}(s)$ quantifies the goodness of state $s$.
 
-* For a fixed initial state $s$, $\mathbf v_{\pi}$ quantifies the goodness of policy $\pi$.
+* For a fixed initial state $s$, $v_{\pi}(s)$ quantifies the goodness of policy $\pi$.
 
-* For a stationanry MDP, $v_{\pi}(s)$ is independent of $t$. i.e. The state value of $s$ remains the same regardless of when the agents arrives at $s$. Hence, one can also define the state value as
+* For a stationanry MDP, $v_{\pi}(s)$ is independent of $t$. i.e. The state value of $s$ remains the same regardless of when the agents arrives at $s$. Hence, we can assume without loss of generality that the agent arrived at $s$ at $t=0$. The state value then becomes
 
   $$
   v_{\pi}(s) = \mathbb E
@@ -157,7 +126,39 @@ Remarks:
   \right]
   $$
 
-### Bellman Equations
+### Q-function (State-Action Value)
+
+The ***Q-function*** (or ***state action value***) for a certain policy $\pi$ as follows
+> $$
+> \begin{align}
+> q_{\pi}(s,a)
+> &= \mathbb E\left[ G_t \:\middle|\: S_t = s, A_t = a \right],
+> \quad \forall s\in\mathcal S, \forall a\in\mathcal A
+> \end{align}
+> $$
+
+Relation between Q-function and state value for the same $\pi$:
+
+* Interpretation: $q_{\pi}(s,a)$ represents the total reward of taking action $a$ at initial state $s$ and then following a policy $\pi$. vs. $v_{\pi}(s)$ represents the total reward of following $\pi$ from $s$ onward.
+* Compute $v_{\pi}(s)$ from $q_{\pi}(s,a)$: simply let $a=\pi(s)$, i.e.
+  $$
+  \begin{align}
+  v_{\pi}(s) = q_{\pi}(s,a) \Big|_{a=\pi(s)}
+  \end{align}
+  $$
+
+* Compute $q_{\pi}(s,a)$ from $v_{\pi}(s)$: use Bellman equation (will be proved later)
+  $$
+  \begin{align}
+  q_{\pi}(s,a)
+  &= r(s,a) + \gamma \mathbb E_{s' \sim p(\cdot \mid s, a)} [ v_{\pi}(s') ] \\[4pt]
+  &= r(s,a) + \gamma \sum_{s'\in\mathcal S} p(s' \mid s, a) v_{\pi}(s') & \text{if } \mathcal S \text{ is finite}\\
+  \end{align}
+  $$
+
+## Bellman Equations
+
+### Bellman Equations for State Value
 
 > Bellman Equations: The state values have the recursive structure
 > $$
@@ -284,6 +285,7 @@ v_{\pi}(\text{bull}) \\ v_{\pi}(\text{bear})  \\ v_{\pi}(\text{flat})
 v_{\pi}(\text{bull}) \\ v_{\pi}(\text{bear})  \\ v_{\pi}(\text{flat})
 \end {bmatrix}
 $$
+
 In general, let $\mathcal S = \{ \varsigma_1, \dots, \varsigma_n \}$. (To avoid confusion, we do not use $\{s_1, \dots, s_n\}$ to denote $\mathcal S$ because the indices of $s$ represent time.) Then, we can write $n$ Bellman equations into the vector form
 $$
 \underbrace{
@@ -336,11 +338,20 @@ Now, given the Bellman equations (either in element-wise or vector form), we ask
 1. Is there a policy which maximizes the state values? If so, how to find it?  
     $\to$ dynamic programming
 
-### Solving Bellman Equations
+### Bellman Equation for Q-function
 
-In this section, we assume finite state space. Then, computing the state values is essentially solving linear equations. c.f. Bellman equation in vector form.
+Similarly, Q-function also has recursive structure
+$$
+q_{\pi}(s,a) = r(s,a) + \gamma \mathbb E_{s' \sim p(\cdot \mid s, a)} [ q_{\pi}(s', \pi(s')) ]
+$$
 
-Analytical solution: Given policy $\pi$, the state values are
+## Policy Evaluation
+
+Given a policy $\pi$, computing its value function $v_{\pi}(\cdot)$ is called ***policy evaluation***. Effectively, we would like to evaluate how good $\pi$ is for each state $s$. This is equivelent to solving Bellman equations.
+
+### Solution in Finite State Space
+
+If $\mathcal S$ is fininte, policy evaluation boils down to solving a system of linear equations $\mathbf v_{\pi} = \mathbf r_{\pi} + \gamma \mathbf P_{\pi}\mathbf v_{\pi}$. It is easy to verify that the analytical solution to the Bellman equations is
 $$
 \begin{align}
 \mathbf v_{\pi} = (\mathbf{I} - \gamma \mathbf{P}_{\pi})^{-1} \mathbf r_{\pi}
@@ -348,8 +359,6 @@ $$
 $$
 
 where $\mathbf{I}$ is the $\vert \mathcal S \vert \times \vert \mathcal S \vert$ identity matrix.
-
-*Proof*: Follows directy from vector form of Bellman equation. $\quad\square$
 
 Drawback of analytical solution: involves matrix inversion. High computational complexity when $\vert \mathcal S \vert$ is large.
 
@@ -398,9 +407,105 @@ The last step follows from the fact that $\Vert \mathbf P_{\pi} \mathbf x \Vert_
 By contraction mapping theorem (c.f. separate notes), we conclude that
 
 1. $f(\cdot)$ has a unique fixed point. Since $\mathbf v_{\pi}  = f(\mathbf v_{\pi} )$ by Bellman equation, $\mathbf v_{\pi}$ is the unique fixed point.
-1. $\forall \mathbf v^{(0)} \in\mathbb R^n$, the sequence defined by $\mathbf v^{(i+1)} = f(\mathbf v^{(i)})$ converges to $\mathbf v_{\pi} $ in infnity norm
+2. $\forall \mathbf v^{(0)} \in\mathbb R^n$, the sequence defined by $\mathbf v^{(i+1)} = f(\mathbf v^{(i)})$ converges to $\mathbf v_{\pi} $ in infnity norm
 
 Since all $p$-norms in $\mathbb R^n$ are equivalent, convergence in infnity norm implies convergence in any $p$-norm. $\:\square$
+
+### Bellman Operator
+
+If $\mathcal S$ is a infinite set, there is generally no closed-form solution for $v_{\pi}(s)$ expect for a few special cases (not covered here). Here, we only show a theoretical study based on Bellman operator.
+
+Let $\mathcal V$ be the set of all **bounded** value functions. Then, $\mathcal V$ with the sup norm $\Vert\cdot\Vert_\infty$ is a metric space
+$$
+\mathcal V =
+\left\{
+v:\mathcal S\to\mathbb R \:\bigg|\: \Vert v \Vert_\infty = \max_{s\in\mathcal S} \vert v(s) \vert < \infty
+\right\}
+$$
+
+For a certain policy $\pi$, we define the corresponding Bellman operator $\mathcal B_{\pi}$ which maps a state value function $v(\cdot)$ to another value function $\mathcal B_{\pi}v(\cdot)$.
+> $$
+> \mathcal B_{\pi}: \mathcal V \to \mathcal V, v(\cdot) \mapsto \mathcal B_{\pi}v(\cdot)
+> $$
+
+The resulting value function is
+> $$
+> \mathcal B_{\pi} v(s) =
+> r(s, \pi(s)) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ v(s') ]
+> $$
+
+Properties of Bellman operator:
+
+> 1. $\mathcal B_{\pi}$  is monotonic, i.e.
+>    $$
+>    u(s) \le v(s), \forall s\in\mathcal S \implies
+>    \mathcal B_{\pi}u(s) \le \mathcal B_{\pi}v(s), \forall s\in\mathcal S
+>    $$
+> 1. $\mathcal B_{\pi}$  is a contractive mapping. i.e. 
+>    $$
+>    \forall u, v: \mathcal S \to \mathbb R,\:
+>    \Vert \mathcal B_{\pi}u - \mathcal B_{\pi}v \Vert_\infty \le \Vert u-v\Vert_\infty
+>    $$
+> 1. $v_{\pi}(\cdot)$ is the unique fixed point of $\mathcal B_{\pi}$, i.e.
+>    $$
+>    \mathcal B_{\pi} v_{\pi}(s) = v_{\pi}(s), \forall s\in\mathcal S
+>    $$
+
+*Proof 1*: By the monotonicity of expectation
+$\mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ u(s') ] \le \mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ v(s') ]$, we conclude. $\quad\square$
+
+*Proof 2*: Recall that the infinity norm of a function $f$ is defined as
+$$
+\Vert f \Vert_\infty \triangleq \max_x \vert f(x) \vert
+$$
+
+Consider $\vert \mathcal B_{\pi}u(s) - \mathcal B_{\pi}v(s) \vert$ for all $s\in\mathcal S$.
+$$
+\begin{align*}
+\vert \mathcal B_{\pi}u(s) - \mathcal B_{\pi}v(s) \vert
+&=\Big\vert
+    r(s, \pi(s)) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ u(s') ] -
+    r(s, \pi(s)) - \gamma\mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ v(s') ]
+  \Big\vert\\
+&=\vert\gamma\vert \cdot
+  \Big\vert
+    \mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ u(s') -v(s') ]
+  \Big\vert\\
+&\le \gamma \cdot
+    \mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} \big[\vert u(s') -v(s') \vert\big]\\
+&\le \gamma \cdot
+    \mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} \big[\Vert u-v\Vert_\infty\big]\\
+&\le \gamma \cdot \Vert u-v\Vert_\infty
+\end{align*}
+$$
+
+Hence, we conclude
+$$
+\Vert \mathcal B_{\pi}u - \mathcal B_{\pi}v \Vert_\infty
+=\displaystyle\max_{s\in\mathcal S} \vert \mathcal B_{\pi}u(s) - \mathcal B_{\pi}v(s) \vert
+\le \gamma \cdot \Vert u-v\Vert_\infty
+$$
+
+*Proof 3*: By Bellman equation, we know that $v_{\pi}$ is a fixed point of $\mathcal B_{\pi}$. By contraction mapping theorem, we conclude that $v_{\pi}$ is the unique fixed point.
+
+Followed by contraction mapping theorem, the state value function can be obtained through fixed point iteration
+
+> Starting from any $v^{(0)}(\cdot)\in\mathcal V$  
+> For $i=0,1,\dots$, run until $v^{(i)}(\cdot)$ converges  
+> $\quad$ For each $s\in\mathcal S$, do  
+> $$
+> v^{(i+1)}(s) = \mathcal B_{\pi} v(s) =
+> r(s, \pi(s)) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ v(s') ]
+> $$
+
+Mathematically, the resulting function sequence $\{ v^{(i)} \}_{i\ge0}$ converges to $v_{\pi}$ in the sup norm (and thus converges pointwise)
+$$
+\lim_{i\to\infty} \big\Vert v^{(i)} - v_{\pi} \big\Vert_\infty = 0
+\implies
+\lim_{i\to\infty} v^{(i)}(s) = v_{\pi}(s), \forall s\in\mathcal S
+$$
+
+However, above algorithm can not be directly implementend since we can not evaluate $v^{(i)}(s)$ for infinitely many $s$. In practice, we use approximation techniques to estimate $v_{\pi}(\cdot)$. (Not detailed here.)
 
 ## Bellman Optimality Equations
 
@@ -753,47 +858,7 @@ $$
 $$
 Expanding the expectation into a sum, we conclude. $\quad\square$
 
-### Q-function
-
-During derivation of the optimality conditions, we used the key fact that
-
-> At any time step, executing the optimal policy $\pi^*$ from that point onward is at least as good as taking any other action $a$ first and then following  $\pi^*$.
-
-This motivates us to define the ***Q-function*** (or ***state action value***) for a certain policy $\pi$ as follows
-$$
-\begin{align}
-q_{\pi}(s,a)
-&= \mathbb E\left[ G_t \:\middle|\: S_t = s, A_t = a \right],
-\quad \forall s\in\mathcal S, \forall a\in\mathcal A
-\end{align}
-$$
-
-Relation between Q-function and state value for the same $\pi$:
-
-* Interpretation: $q_{\pi}(s,a)$ represents the total reward of taking action $a$ at initial state $s$ and then following a policy $\pi$. vs. $v_{\pi}(s)$ represents the total reward of following $\pi$ from $s$ onward. Recall: the state value is defined as
-  $$
-  \begin{align*}
-  v_{\pi}(s)
-  &= \mathbb E\left[ G_t \:\middle|\: S_t = s \right],
-  \quad \forall s\in\mathcal S
-  \end{align*}
-  $$
-
-* Compute $v_{\pi}(s)$ from $q_{\pi}(s,a)$: simply let $a=\pi(s)$, i.e.
-  $$
-  \begin{align}
-  v_{\pi}(s) = q_{\pi}(s,a) \Big|_{a=\pi(s)}
-  \end{align}
-  $$
-
-* Compute $q_{\pi}(s,a)$ from $v_{\pi}(s)$: use recurisve structure (The same idea when deriving Bellman equation for a certain policy)
-  $$
-  \begin{align}
-  q_{\pi}(s,a)
-  &= r(s,a) + \gamma \mathbb E_{s' \sim p(\cdot \mid s, a)} [ v_{\pi}(s') ] \\
-  &= r(s,a) + \gamma \sum_{s'\in\mathcal S} p(s' \mid s, a) v_{\pi}(s') & \text{if } \mathcal S \text{ is finite}\\
-  \end{align}
-  $$
+### Optimal Q-function
 
 Similary, the optimal Q-function is defined as
 $$
@@ -899,13 +964,13 @@ Element-wise formulation of policy iteration:
 > $\quad$ For each $s\in\mathcal S$, do  
 > $\quad\quad\;$ For each $a\in\mathcal A$, compute  
 > $\quad\quad\qquad$ Q-function: $q_{\pi^{(i)}} (s,a) = r(s,a) + \gamma\displaystyle\sum_{s'\in\mathcal S} p(s'\mid s,a) \, v_{\pi^{(i)}}(s')$  
-> $\quad\quad\;$ **Policy improvement**: $\pi^{(i+1)}(s) = \displaystyle\argmax_{a\in\mathcal A} q_{\pi^{(i)}} (s,a)$  
+> $\quad\quad\;$ **Policy improvement**: $\pi^{(i+1)}(s) = \displaystyle\argmax_{a\in\mathcal A} \: q_{\pi^{(i)}} (s,a)$  
 > until $\Vert\mathbf v_{\pi^{(i+1)}} - \mathbf v_{\pi^{(i)}} \Vert < \epsilon$  
 > Return $v_{\pi^{(i)}}(s)$ and $\pi^{(i)}(s)$ for all $s\in\mathcal S$
 
 Policy iteratoin works because of following facts
 
-1. The policy improvement step indeed improves policy iteratively.
+1. Policy improvement theorem: the policy is indeed improved iteratively.
     $$
     \pi^{(i+1)}(s) = \displaystyle\argmax_{a\in\mathcal A} q_{\pi^{(i)}} (s,a)
     \implies
@@ -913,10 +978,10 @@ Policy iteratoin works because of following facts
     $$
 1. The sequence of state values generated by policy iteration indeed converges to the optimal state values.
     $$
-    \lim_{i\to\infty} v_{\pi^{(i+1)}}(s) = v^*(s),\: \forall s\in\mathcal S
+    \lim_{i\to\infty} v_{\pi^{(i)}}(s) = v^*(s),\: \forall s\in\mathcal S
     $$
 
-Proof 1: For each $s\in\mathcal S$, $\pi^{(i+1)}(s)$ is the maximizer of the Q-function $q_{\pi^{(i)}} (s,a)$. In particular,
+*Proof 1*: For each $s\in\mathcal S$, $\pi^{(i+1)}(s)$ is the maximizer of the Q-function $q_{\pi^{(i)}} (s,a)$. In particular,
 $$
 q_{\pi^{(i)}} (s, \pi^{(i+1)}(s))
 \ge q_{\pi^{(i)}} (s, \pi^{(i)}(s)) = v_{\pi^{(i)}}(s)
@@ -934,16 +999,13 @@ v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s)
 \left( r(s, \pi^{(i+1)}(s)) + \gamma\mathbb E[v_{\pi^{(i)}}(S')] \right)
 \\
 &= \gamma\mathbb E\left[ v_{\pi^{(i+1)}}(S') - v_{\pi^{(i)}}(S') \right]
+\\
+&\ge \gamma \min_{s'\in\mathcal S} \left\{ v_{\pi^{(i+1)}}(s') - v_{\pi^{(i)}}(s') \right\}
+\tag{$\star\star$}
 \end{align*}
 $$
 
-Recall the property of expectation: $\mathbb E[X] \ge x_{\min}$. Letting $X=v_{\pi^{(i+1)}}(S') - v_{\pi^{(i)}}(S')$, we get
-
-$$
-\forall s\in\mathcal S, \: v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s)
-\ge \gamma \min_{s'\in\mathcal S} \left\{ v_{\pi^{(i+1)}}(s') - v_{\pi^{(i)}}(s') \right\}
-\tag{$\star\star$}
-$$
+The last step follows by the property of expectation: $\mathbb E[X] \ge x_{\min}$ with $X=v_{\pi^{(i+1)}}(S') - v_{\pi^{(i)}}(S')$.
 
 Taking $\displaystyle\min_{s\in\mathcal S}$ on the LHS, we get
 $$
@@ -970,6 +1032,38 @@ We concluded that the policy improvement does not decrease state value. $\qquad 
 ## Generalization
 
 Stochastic policy and stochastic rewards.
+
+A policy can also be stochastic. i.e. instead of mapping the state to a fixed action, there are multiple possible actions with different probability. A stochastic policy is described by the conditional distribution
+
+$$
+\pi(a \mid s), a \in\mathcal A, s \in\mathcal S
+$$
+
+Remarks:
+
+* The determinstic policy can be seen as a special of stochastic policy by assigning $\pi(\hat a \mid s)$ to 1 for some $\hat a$.
+  $$
+  \pi(a \mid s) =
+  \begin{cases}
+    1 & a=\hat a\\
+    0 & \text{else}
+  \end{cases}
+  $$
+* For stochastic policy, it holds that
+  $$
+  \sum_a \pi(a \mid s) = 1
+  $$
+
+* Both deterministic and stochastic policy are time-invariant. i.e. The distribution of $a$ given $s$ is always the same, regardless when we arrived at $s$.
+
+From now on, we stick to deterministic policy and we will answer the following quesitons
+
+1. How to quantify the goodness of a policy?  
+    $\to$ state values, Bellman equations
+1. Which criterion should the optimal policy satisfy?  
+    $\to$ Bellman optimality equations.
+1. How to find the optimal policy?  
+    $\to$ value iteration, policy iteration
 
 ## Appendix
 

@@ -814,7 +814,8 @@ p(\varsigma_1 \mid \varsigma_n, \hat a_n) & \dots & p(\varsigma_n \mid \varsigma
 \implies
 f(\mathbf u) = \mathbf r_{\hat a} + \gamma \mathbf P_{\hat a}\mathbf u
 $$
-Likewise, for $f(\mathbf v)$, let $\hat b_k$ be the optimizer at $k$-row of $\mathbf r_a + \gamma \mathbf P_a\mathbf v $. (Note: $\hat b_k$ depends on $\mathbf v$. Hence, $\hat a_k \ne \hat b_k$ in general)
+
+Likewise, for $f(\mathbf v)$, let $\hat b_k$ be the optimizer at $k$-row of $\mathbf r_a + \gamma \mathbf P_a\mathbf v$. (Note: $\hat b_k$ depends on $\mathbf v$. Hence, $\hat a_k \ne \hat b_k$ in general)
 $$
 \hat b_k = \argmax_{a\in\mathcal A}
 \Big\{
@@ -1062,6 +1063,16 @@ From now on, we stick to deterministic policy and we will answer the following q
     $\to$ value iteration, policy iteration
 
 ## Appendix
+
+### Dealing with Max and Abs
+
+Let $f,g: \mathcal X \to \mathbb R$ be any two real-valued functions, where $\mathcal X$ can be any set. Then,
+$$
+\left\vert \max_{x\in\mathcal X} f(x) - \max_{x\in\mathcal X} g(x) \right\vert
+\le \max_{x\in\mathcal X} \left\vert f(x) -g(x) \right\vert
+$$
+
+*Proof*: **TBA**
 
 ### Cascade of Expectations
 

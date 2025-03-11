@@ -140,6 +140,7 @@ The ***Q-function*** (or ***state action value***) for a certain policy $\pi$ as
 Relation between Q-function and state value for the same $\pi$:
 
 * Interpretation: $q_{\pi}(s,a)$ represents the total reward of taking action $a$ at initial state $s$ and then following a policy $\pi$. vs. $v_{\pi}(s)$ represents the total reward of following $\pi$ from $s$ onward.
+* For fixed $\pi$ and $s$, if $q_{\pi}(s,a_1) > q_{\pi}(s,a_2)$, we say that $a_1$ is the better action to take over $a_2$ at state $s$.
 * Compute $v_{\pi}(s)$ from $q_{\pi}(s,a)$: simply let $a=\pi(s)$, i.e.
   $$
   \begin{align}
@@ -531,7 +532,7 @@ $$
 
 We haven't proved the existence of $\pi^*$. For now, let's assume its existence and discover what conditions have to be met for $\pi^*$ and $v^*(s)$. This will lead us to Bellman optimality equations,  from which we will derive an algorithm to find $\pi^*$ (and thus prove its existence).
 
-### Bellman Optimality Criterion
+### Optimal State Values
 
 Recall the Bellman equation for $v_{\pi}(s)$ holds for any policy. In particular, Bellman equations also hold for $\pi^*$:
 
@@ -698,9 +699,49 @@ $$
 \end{bmatrix}^\top
 $$
 
-### Solving Optimal State Values
+### Optimal Q-function
 
-Similar to the algorithm to solve the state values $\mathbf v_{\pi}$ for any given policy, we introduce the following algorithm to solve the optimal state values $\mathbf v^*$.
+Similary, the optimal Q-function is defined as
+$$
+q^*(s,a) = q_{\pi^*}(s,a)
+$$
+
+Relation between optimal Q-function and optimal state value:
+
+* Compute $v^*(s)$ from $q^*(s,a)$: simply let $a=\pi^*(s)$, i.e.
+  $$
+  \begin{align}
+  v^*(s) = q^*(s,a) \Big|_{a=\pi^*(s)}
+  \end{align}
+  $$
+
+* Compute $q^*(s,a)$ from $v^*(s)$: use recurisve structure
+  $$
+  \begin{align}
+  q^*(s,a)
+  &= r(s,a) + \gamma \mathbb E_{s' \sim p(\cdot \mid s, a)} [ v^*(s') ] \\
+  &= r(s,a) + \gamma \sum_{s'\in\mathcal S} p(s' \mid s, a) v^*(s') & \text{if } \mathcal S \text{ is finite}\\
+  \end{align}
+  $$
+
+The Bellman optimality criterion can also be formulated in terms of Q-function:
+$$
+\begin{align}
+v^*(s) &= \max_{a\in\mathcal A} q^*(s,a) \\
+\pi^*(s) &= \argmax_{a\in\mathcal A}\, q^*(s,a) 
+\end{align}
+$$
+
+## Dynamic Programming
+
+Throughout this section, we assume that both state space and action space are discrete. Given the parameters of an MDP:
+
+* state transition probabilities $p(s' \mid s,a)$ for all $s,s'\in\mathcal S, a\in\mathcal A $
+* state-action-rewards $r(s,a)$ for all $s\in\mathcal S, a\in\mathcal A $
+
+From previous sections, we discussed optimality conditions for optimal policy and optimal value functions. Now, we will derive algorithms to compute the optimal policy.
+
+### Value Iteration
 
 > Init $\mathbf v^{(0)}$ arbitrarily  
 > For $i=0,1,\dots$, run until convergence
@@ -858,51 +899,6 @@ $$
 $$
 Expanding the expectation into a sum, we conclude. $\quad\square$
 
-### Optimal Q-function
-
-Similary, the optimal Q-function is defined as
-$$
-q^*(s,a) = q_{\pi^*}(s,a)
-$$
-
-Relation between optimal Q-function and optimal state value:
-
-* Compute $v^*(s)$ from $q^*(s,a)$: simply let $a=\pi^*(s)$, i.e.
-  $$
-  \begin{align}
-  v^*(s) = q^*(s,a) \Big|_{a=\pi^*(s)}
-  \end{align}
-  $$
-
-* Compute $q^*(s,a)$ from $v^*(s)$: use recurisve structure
-  $$
-  \begin{align}
-  q^*(s,a)
-  &= r(s,a) + \gamma \mathbb E_{s' \sim p(\cdot \mid s, a)} [ v^*(s') ] \\
-  &= r(s,a) + \gamma \sum_{s'\in\mathcal S} p(s' \mid s, a) v^*(s') & \text{if } \mathcal S \text{ is finite}\\
-  \end{align}
-  $$
-
-The Bellman optimality criterion can also be formulated in terms of Q-function:
-$$
-\begin{align}
-v^*(s) &= \max_{a\in\mathcal A} q^*(s,a) \\
-\pi^*(s) &= \argmax_{a\in\mathcal A}\, q^*(s,a) 
-\end{align}
-$$
-
-## Dynamic Programming
-
-Throughout this section, we assume that both state space and action space are discrete. Given the parameters of an MDP:
-
-* state transition probabilities $p(s' \mid s,a)$ for all $s,s'\in\mathcal S, a\in\mathcal A $
-* state-action-rewards $r(s,a)$ for all $s\in\mathcal S, a\in\mathcal A $
-
-From previous sections, we knew that an optimal policy  $\pi^*$ exists. Now, we focus on designing algorithms to compute $\pi^*$.
-
-### Value Iteration
-
-The algorithm introduced earlier to solve BOEs is called value iteration. For the sake of implementation, the algorithm can be unfolded element-wise as follows
 
 > Init $v^{(0)}(s)$ for all $s\in\mathcal S$ by random guessing  
 > For $i = 0,1,\dots$, do  

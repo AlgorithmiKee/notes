@@ -416,7 +416,7 @@ Since all $p$-norms in $\mathbb R^n$ are equivalent, convergence in infnity norm
 
 If $\mathcal S$ is a infinite set, there is generally no closed-form solution for $v_{\pi}(s)$ expect for a few special cases (not covered here). Here, we only show a theoretical study based on Bellman operator.
 
-Let $\mathcal V$ be the set of all **bounded** value functions. Then, $\mathcal V$ with the sup norm $\Vert\cdot\Vert_\infty$ is a metric space
+Let $\mathcal V$ be the set of all **bounded** value functions. Man can verify that $\mathcal V$ with the sup norm $\Vert\cdot\Vert_\infty$ is a **complete** metric space.
 $$
 \mathcal V =
 \left\{
@@ -444,8 +444,8 @@ Properties of Bellman operator:
 >    $$
 > 1. $\mathcal B_{\pi}$  is a contractive mapping. i.e. 
 >    $$
->    \forall u, v: \mathcal S \to \mathbb R,\:
->    \Vert \mathcal B_{\pi}u - \mathcal B_{\pi}v \Vert_\infty \le \Vert u-v\Vert_\infty
+>    \forall u, v\in\mathcal V,\:
+>    \Vert \mathcal B_{\pi}u - \mathcal B_{\pi}v \Vert_\infty \le \gamma \Vert u-v\Vert_\infty
 >    $$
 > 1. $v_{\pi}(\cdot)$ is the unique fixed point of $\mathcal B_{\pi}$, i.e.
 >    $$
@@ -487,7 +487,7 @@ $$
 \le \gamma \cdot \Vert u-v\Vert_\infty
 $$
 
-*Proof 3*: By Bellman equation, we know that $v_{\pi}$ is a fixed point of $\mathcal B_{\pi}$. By contraction mapping theorem, we conclude that $v_{\pi}$ is the unique fixed point.
+*Proof 3*: By Bellman equation, we know that $v_{\pi}$ is a fixed point of $\mathcal B_{\pi}$. The uniqueness follows from contraction mapping theorem and completeness of $\mathcal V$.
 
 Followed by contraction mapping theorem, the state value function can be obtained through fixed point iteration
 
@@ -772,135 +772,6 @@ Remarks:
   > $$
 * Reminder: The iteration does **not** ensure that the intermediate result $\mathbf v^{(i)}$ satisfy Bellman equation **for any policy**. However, the limit of $\mathbf v^{(i)}$ satisfies BOEs, i.e. the Bellman equation for the optimal policy.
 
-*Proof of convergence*: In the following, all $\max(\cdot)$, $\vert\cdot\vert$ and inequalities are taken element-wise when acting on vectors. Let $\mathcal S = \{ \varsigma_1, \dots, \varsigma_n \}$ and
-$$
-f: \mathbb R^n \to \mathbb R^n, \mathbf v \mapsto
-f(\mathbf v) = \displaystyle\max_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v \right\}
-$$
-
-By BOE, $\mathbf v^*$ is a fixed point of $f(\cdot)$. To prove the convergence, it is sufficient to show that $f(\cdot)$ is contractive.  
-For any $\mathbf u, \mathbf v\in\mathbb R^n$, we have two optimization problems w.r.t. $a$. (The maximization is taken element-wise)
-$$
-\begin{align*}
-f(\mathbf u)
-&= \displaystyle\max_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf u \right\}
-\\
-f(\mathbf v)
-&= \displaystyle\max_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v \right\}
-\end{align*}
-$$
-For $f(\mathbf u)$, let $\hat a_k$ be the optimizer at $k$-row of $\mathbf r_a + \gamma \mathbf P_a\mathbf u $. (Note: $\hat a_k$ depends on $\mathbf u$)
-$$
-\hat a_k = \argmax_{a\in\mathcal A}
-\Big\{
-r(\varsigma_k, a) + \gamma \sum_{j} p(\varsigma_j \mid \varsigma_k, a) \cdot u_j
-\Big\}
-$$
-Then, we can express $f(\mathbf u)$ in with $\mathbf r_{\hat a}$ and $\mathbf P_{\hat a}$, defined as follows.
-$$
-\mathbf r_{\hat a} \triangleq
-\begin{bmatrix}
-  r(\varsigma_1, \hat a_1) \\
-  \vdots \\
-  r(\varsigma_n, \hat a_n)
-\end{bmatrix}
-,\:
-\mathbf P_{\hat a} \triangleq
-\begin{bmatrix}
-p(\varsigma_1 \mid \varsigma_1, \hat a_1) & \dots & p(\varsigma_n \mid \varsigma_1, \hat a_1)  \\
-\vdots & \ddots & \vdots \\
-p(\varsigma_1 \mid \varsigma_n, \hat a_n) & \dots & p(\varsigma_n \mid \varsigma_n, \hat a_n)
-\end{bmatrix}
-\implies
-f(\mathbf u) = \mathbf r_{\hat a} + \gamma \mathbf P_{\hat a}\mathbf u
-$$
-
-Likewise, for $f(\mathbf v)$, let $\hat b_k$ be the optimizer at $k$-row of $\mathbf r_a + \gamma \mathbf P_a\mathbf v$. (Note: $\hat b_k$ depends on $\mathbf v$. Hence, $\hat a_k \ne \hat b_k$ in general)
-$$
-\hat b_k = \argmax_{a\in\mathcal A}
-\Big\{
-r(\varsigma_k, a) + \gamma \sum_{j} p(\varsigma_j \mid \varsigma_k, a) \cdot v_j
-\Big\}
-$$
-Define $\mathbf r_{\hat b}$ and $\mathbf P_{\hat b}$ in the same way. $\implies f(\mathbf v) = \mathbf r_{\hat b}+ \gamma \mathbf P_{\hat b}\mathbf v$.
-
-By the optimality of $\{\hat a_1, \dots, \hat a_n\}$ and $\{\hat b_1, \dots, \hat b_n\}$,
-$$
-\begin{align*}
-f(\mathbf u)
-&= \mathbf r_{\hat a} + \gamma \mathbf P_{\hat a}\mathbf u
-\ge \mathbf r_{\hat b} + \gamma \mathbf P_{\hat b}\mathbf u
-\\
-f(\mathbf v)
-&= \mathbf r_{\hat b}+ \gamma \mathbf P_{\hat b}\mathbf v
-\ge \mathbf r_{\hat a}+ \gamma \mathbf P_{\hat a}\mathbf v
-\\
-\end{align*}
-$$
-Hence, $f(\mathbf u) - f(\mathbf v)$ is element-wise bounded as follows
-$$
-\begin{align*}
-f(\mathbf u) - f(\mathbf v)
-&= (\mathbf r_{\hat a} + \gamma \mathbf P_{\hat a}\mathbf u) -
-   (\mathbf r_{\hat b}+ \gamma \mathbf P_{\hat b}\mathbf v) \\
-&\ge(\mathbf r_{\hat b} + \gamma \mathbf P_{\hat b}\mathbf u) -
-    (\mathbf r_{\hat b}+ \gamma \mathbf P_{\hat b}\mathbf v)
-= \gamma \mathbf P_{\hat b}(\mathbf u - \mathbf v)
-\\[6pt]
-f(\mathbf u) - f(\mathbf v)
-&= (\mathbf r_{\hat a} + \gamma \mathbf P_{\hat a}\mathbf u) -
-   (\mathbf r_{\hat b}+ \gamma \mathbf P_{\hat b}\mathbf v) \\
-&\le(\mathbf r_{\hat a} + \gamma \mathbf P_{\hat a}\mathbf u) -
-    (\mathbf r_{\hat a}+ \gamma \mathbf P_{\hat a}\mathbf v)
-= \gamma \mathbf P_{\hat a}(\mathbf u - \mathbf v)
-\\[6pt]
-\implies
-\gamma \mathbf P_{\hat b}(\mathbf u - \mathbf v)
-\le
-f(\mathbf u) &- f(\mathbf v)
-\le \gamma \mathbf P_{\hat a}(\mathbf u - \mathbf v)
-\end{align*}
-$$
-Taking the absolute values of $f(\mathbf u) - f(\mathbf v)$ element-wise yields
-$$
-\begin{align*}
-\left\vert f(\mathbf u) - f(\mathbf v) \right\vert
-\le \max
-\left\{
-  \gamma \big\vert \mathbf P_{\hat b}(\mathbf u - \mathbf v) \big\vert ,
-  \gamma \big\vert \mathbf P_{\hat a}(\mathbf u - \mathbf v) \big\vert
-\right\}
-
-&\le \gamma \Vert \mathbf u - \mathbf v \Vert_{\infty} \cdot \mathbf 1
-\end{align*}
-$$
-* ⓘ The last inequality follows from the property of row-stochastic matrix (c.f. Appendix): If $\mathbf P\in\mathbb R^{n\times n}$ is a row-stochastic matrix, then
-$$
-  \forall \mathbf x\in\mathbb R^n:
-  \big\vert(\mathbf{Px})_{i}\big\vert \le \Vert \mathbf x \Vert_{\infty}
-  \iff
-  \big\vert(\mathbf{Px})\big\vert \le \Vert \mathbf x \Vert_{\infty}\cdot\mathbf 1
-$$
-Namely, all elements of $\left\vert f(\mathbf u) - f(\mathbf v) \right\vert$ is boudned by $\gamma \Vert \mathbf u - \mathbf v \Vert_{\infty}$. Hence,
-$$
-\left\Vert f(\mathbf u) - f(\mathbf v) \right\Vert_{\infty}
-\le \gamma \Vert \mathbf u - \mathbf v \Vert_{\infty}
-\iff
-f(\cdot) \text{ is contractive }\quad\square
-$$
-*Proof of optimal policy*: When deriving BOEs, we showed that
-$$
-\begin{align*}
-\pi^*(s) = \argmax_{a\in\mathcal A}
-\left\{
-  r(s, a) + \gamma \mathbb E_{s' \sim p(\cdot \mid s, a)} [ v^*(s') ]
-\right\},
-\quad \forall s\in\mathcal S
-\end{align*}
-$$
-Expanding the expectation into a sum, we conclude. $\quad\square$
-
-
 > Init $v^{(0)}(s)$ for all $s\in\mathcal S$ by random guessing  
 > For $i = 0,1,\dots$, do  
 > $\quad$ For each $s\in\mathcal S$, do  
@@ -927,6 +798,68 @@ Remarks:
 * Likewise, $q^{(i)}(s,a)$ represents the estimate of $q^{*}(s,a)$ at $i$-th iteration.
 
 In policy update step, the new policy $\pi^{(i+1)}(s)$ always picks the action maximizing the current estimtae of Q-function $q^{(i)}(s,a)$. Hence, it is called ***greedy*** policy update.
+
+Analogous to Bellman operator for a certain policy, we define the ***Bellman optimality operator*** $\mathcal B_{*}$ as
+> $$
+> \mathcal B_{*}: \mathcal V \to \mathcal V, v(\cdot) \mapsto \mathcal B_{*}v(\cdot)
+> $$
+
+where
+> $$
+> \mathcal B_{*} v(s) = \max_{a\in\mathcal A} \Big\{
+>    r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [ v(s') ]
+> \Big\}
+> $$
+
+Properties of Bellman operator:
+
+> 1. $\mathcal B_{*}$  is monotonic, i.e.
+>    $$
+>    u(s) \le v(s), \forall s\in\mathcal S \implies
+>    \mathcal B_{*}u(s) \le \mathcal B_{*}v(s), \forall s\in\mathcal S
+>    $$
+> 1. $\mathcal B_{*}$  is a contractive mapping. i.e. 
+>    $$
+>    \forall u, v \in\mathcal V,\:
+>    \Vert \mathcal B_{*}u - \mathcal B_{*}v \Vert_\infty \le \gamma\Vert u-v\Vert_\infty
+>    $$
+> 1. $v_{*}(\cdot)$ is the unique fixed point of $\mathcal B_{*}$, i.e.
+>    $$
+>    \mathcal B_{*} v_{*}(s) = v_{*}(s), \forall s\in\mathcal S
+>    $$
+
+*Proof 1*: follows from the monotonicity of expectation.
+
+*Proof 2*: We will show that $\forall s\in\mathcal S: \vert B_{*}u(s) - \mathcal B_{*}v(s) \vert \le \gamma\Vert u-v\Vert_\infty$ as follows
+$$
+\begin{align*}
+\vert B_{*}u(s) - \mathcal B_{*}v(s) \vert
+&= \left\vert
+      \max_{a\in\mathcal A} \Big\{r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [u(s')]\Big\} -
+      \max_{a\in\mathcal A} \Big\{r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [v(s')]\Big\}
+   \right\vert \\
+&\le \max_{a\in\mathcal A} \left\vert
+      \Big\{r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [u(s')]\Big\} -
+      \Big\{r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [v(s')]\Big\}
+     \right\vert \\
+&= \gamma\max_{a\in\mathcal A} \left\vert
+      \mathbb E_{s' \sim p(\cdot \mid s, a)} [u(s')-v(s')]
+     \right\vert \\
+&\le \gamma\max_{a\in\mathcal A}
+      \mathbb E_{s' \sim p(\cdot \mid s, a)} \left[ \vert u(s')-v(s')\vert \right] \\
+&\le \gamma\max_{a\in\mathcal A}
+      \mathbb E_{s' \sim p(\cdot \mid s, a)} \left[ \Vert u-v\Vert_\infty \right] \\
+&= \gamma\Vert u-v\Vert_\infty
+\end{align*}
+$$
+
+*Proof 3*: By BOE, $v_{*}(\cdot)$ is a fixed point of $\mathcal B_{*}$. Uniqueness follows from contraction mapping theorem.
+
+Hence, starting from any $v(\cdot)$ (which does not neccessarily need to satisfy Bellman equation for any policy). Iteratively applying $\mathcal B_{*}$ leads convergence to $v_{*}$.
+$$
+\forall v \in\mathcal V: \lim_{n\to\infty} \Vert B_{*}^n v - v_{*}\Vert_{\infty}
+\implies  \lim_{n\to\infty} B_{*}^n v(s) =  v_{*}(s)
+$$
 
 ### Policy Iteration
 
@@ -1072,7 +1005,23 @@ $$
 \le \max_{x\in\mathcal X} \left\vert f(x) -g(x) \right\vert
 $$
 
-*Proof*: **TBA**
+*Proof*: Let $M_f = \displaystyle\max_{x\in\mathcal X} f(x)$ and $M_g = \displaystyle\max_{x\in\mathcal X} g(x)$. It is sufficient to show that
+$$
+\exists x\in\mathcal X \text{ s.t. }
+\left\vert M_f - M_g \right\vert \le \left\vert f(x) -g(x) \right\vert
+$$
+
+Without loss of generality, assume that $M_f\ge M_g$. Then,
+
+$$
+\left\vert M_f - M_g \right\vert = M_f - M_g \le M_f - g(x),
+\:\forall x\in\mathcal X
+$$
+
+Let $x^*$ be the maximizer of $f$, i.e. $M_f=f(x^*)$. We conclude
+$$
+\left\vert M_f - M_g \right\vert \le f(x^*) - g(x^*) = \vert 
+$$
 
 ### Cascade of Expectations
 

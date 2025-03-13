@@ -212,7 +212,7 @@ v_{\pi}(s)
 \end{align*}
 $$
 
-The underbraced term is the expected total reward by executing policy $\pi$ starting from state $s_1$ which is by definition exactly the state value of $s_1s_1$. Hence, we conclude. $\quad\square$
+The underbraced term is the expected total reward by executing policy $\pi$ starting from state $s_1$ which is by definition exactly the state value of $s_1s_1$. Hence, we conclude. $\quad\blacksquare$
 
 For finite state space, the expected future reward in Bellman equation can be expressed in a sum. The Bellman equations become
 
@@ -348,11 +348,16 @@ $$
 
 ## Policy Evaluation
 
-Given a policy $\pi$, computing its value function $v_{\pi}(\cdot)$ is called ***policy evaluation***. Effectively, we would like to evaluate how good $\pi$ is for each state $s$. This is equivelent to solving Bellman equations.
+Given a policy $\pi$, computing its value function $v_{\pi}(\cdot)$ is called ***policy evaluation***. Effectively, we would like to evaluate how good $\pi$ is for each state $s$. This is equivelent to solving Bellman equations. We will see later:
 
-### Solution in Finite State Space
+* If $\mathcal S$ is a finite set, solving Bellman equations boils down to solving a system of linear equations.
+* If $\mathcal S$ is a infinite set, there is generally no closed-form solution for $v_{\pi}(s)$ expect for a few special cases (not covered here).
 
-If $\mathcal S$ is fininte, policy evaluation boils down to solving a system of linear equations $\mathbf v_{\pi} = \mathbf r_{\pi} + \gamma \mathbf P_{\pi}\mathbf v_{\pi}$. It is easy to verify that the analytical solution to the Bellman equations is
+### Computing State Values for Finite State Space
+
+#### Analytical Solution
+
+If $\mathcal S$ is fininte, policy evaluation boils down to solving $\mathbf v_{\pi} = \mathbf r_{\pi} + \gamma \mathbf P_{\pi}\mathbf v_{\pi}$ for $\mathbf v_{\pi}$. It is easy to verify that the analytical solution to the Bellman equations is
 $$
 \begin{align}
 \mathbf v_{\pi} = (\mathbf{I} - \gamma \mathbf{P}_{\pi})^{-1} \mathbf r_{\pi}
@@ -361,40 +366,59 @@ $$
 
 where $\mathbf{I}$ is the $\vert \mathcal S \vert \times \vert \mathcal S \vert$ identity matrix.
 
-Drawback of analytical solution: involves matrix inversion. High computational complexity when $\vert \mathcal S \vert$ is large.
+Remarks:
 
-Numerical solution (fixed point iteration): The state values can be obtained from the following algorithm
+* The analytical solution is useful for theoretical study. Only practical when $\vert \mathcal S \vert$ is small.
+* Drawback of analytical solution:
+  * Requires matrix inversion. High computational complexity (nearly $\mathcal O(\vert \mathcal S \vert^3)$) when $\vert \mathcal S \vert$ is large.
+  * No generalization to infinite state space as we can not pack pack all $v(s), s\in\mathcal S$ into a vector
+
+#### Numerical Solution: Bellman Update
+
+Algorithm to compute state values:
+
+> **Bellman Update (vector form)**  
 > Initialize $\mathbf v^{(0)}$ arbitrarily.  
-> For $i=0,1,\dots$, run until convergence:
+> For $n=0,1,\dots$, run until $\mathbf v^{(n)}$ converges
 >
 > $$
 > \begin{align}
-> \mathbf v^{(i+1)} = \mathbf r_{\pi} + \gamma \mathbf P_{\pi} \mathbf v^{(i)}
+> \mathbf v^{(n+1)} = \mathbf r_{\pi} + \gamma \mathbf P_{\pi} \mathbf v^{(n)}
 > \end{align}
+> $$
+
+The above algorithm can be reformulated element-wise as follows
+
+> **Bellman Update (element-wise form)**  
+> Init $v^{(0)}(s)$ for all $s\in\mathcal S$  
+> For $n=0,1,\dots$, run until $v^{(n)}(s)$ converges  
+> $\quad$ For each $s\in\mathcal S$, do  
+> $$
+> v^{(n+1)}(s) = r(s, \pi(s)) + \gamma\sum_{s'\in\mathcal S} p(s' \mid s, \pi(s)) [ v^{(n)}(s') ]
 > $$
 
 Remarks:
 
-* During iteration, $\mathbf v^{(i)}$ is not a true state value vector since $\mathbf v^{(i)}$ itself does not satisfy Bellman equation. There is no policy associated with $\mathbf v^{(i)}$.
-* The sequence $\mathbf v^{(0)}, \mathbf v^{(1)}, \dots$ obtained from above iteration converges to $\mathbf v_{\pi}$, i.e.
+* During iteration, $\mathbf v^{(n)}$ itself does not neccessarily satisfy Bellman equation for any policy.
+* The sequence $\mathbf v^{(0)}, \mathbf v^{(1)}, \dots$ obtained from Bellman update converges to $\mathbf v_{\pi}$, i.e.
   $$
   \begin{align}
-  \lim_{i\to\infty} \mathbf v^{(i)}
+  \lim_{n\to\infty} \mathbf v^{(n)}
   = \mathbf v_{\pi}
   = (\mathbf{I} - \gamma \mathbf{P}_{\pi})^{-1} \mathbf r_{\pi}
   \end{align}
   $$
 
-*Proof of convergence*: Let $n=\vert \mathcal S \vert$. From Bellman equation, we know that $\mathbf v_{\pi}$ is a fixed point of the affine function
+*Proof of convergence*: Define the affine function
 $$
-f: \mathbb R^n \to \mathbb R^n,
-\mathbf v \mapsto
-f(\mathbf v) = \mathbf r_{\pi} + \gamma \mathbf P_{\pi} \mathbf v
+f_{\pi}: \mathbb R^{\vert \mathcal S \vert} \to \mathbb R^{\vert \mathcal S \vert},
+\mathbf v \mapsto \mathbf r_{\pi} + \gamma \mathbf P_{\pi} \mathbf v
 $$
-We show that $f(\cdot)$ is a contractive mapping under infinity norm.
+
+We show that $f_{\pi}(\cdot)$ is a contractive mapping under infinity norm.
 $$
 \begin{align*}
-\Vert f(\mathbf u) - f(\mathbf v) \Vert_{\infty}
+\Vert f_{\pi}(\mathbf u) - f_{\pi}(\mathbf v) \Vert_{\infty}
 &= \left\Vert (\mathbf r_{\pi} + \gamma \mathbf P_{\pi} \mathbf u) - (\mathbf r_{\pi} + \gamma \mathbf P_{\pi} \mathbf v) \right\Vert_{\infty}
 \\
 &= \gamma \left\Vert  \mathbf P_{\pi} (\mathbf u - \mathbf v) \right\Vert_{\infty}
@@ -403,33 +427,45 @@ $$
 \end{align*}
 $$
 
-The last step follows from the fact that $\Vert \mathbf P_{\pi} \mathbf x \Vert_{\infty} \le \Vert \mathbf x \Vert_{\infty}, \forall x\in\mathbb R^n$, i.e. multiplication with row stochastic matrix does not increase infnity norm. (c.f. Appendix).
+The last step follows from the fact that $\Vert \mathbf P_{\pi} \mathbf x \Vert_{\infty} \le \Vert \mathbf x \Vert_{\infty}, \forall x\in\mathbb R^{\vert \mathcal S \vert}$, i.e. multiplication with row stochastic matrix does not increase infnity norm. (c.f. Appendix).
 
 By contraction mapping theorem (c.f. separate notes), we conclude that
 
-1. $f(\cdot)$ has a unique fixed point. Since $\mathbf v_{\pi}  = f(\mathbf v_{\pi} )$ by Bellman equation, $\mathbf v_{\pi}$ is the unique fixed point.
-2. $\forall \mathbf v^{(0)} \in\mathbb R^n$, the sequence defined by $\mathbf v^{(i+1)} = f(\mathbf v^{(i)})$ converges to $\mathbf v_{\pi} $ in infnity norm
+1. $f_{\pi}(\cdot)$ has a unique fixed point. Since $\mathbf v_{\pi}  = f_{\pi}(\mathbf v_{\pi} )$ by Bellman equation, $\mathbf v_{\pi}$ is the unique fixed point.
+2. $\forall \mathbf v\in\mathbb R^{\vert \mathcal S \vert}$, the sequence of vectors $f_{\pi}^n (\mathbf v)$ converges to $\mathbf v_{\pi} $ in infnity norm
 
-Since all $p$-norms in $\mathbb R^n$ are equivalent, convergence in infnity norm implies convergence in any $p$-norm. $\:\square$
+Since all $p$-norms in $\mathbb R^{\vert \mathcal S \vert}$ are equivalent, convergence in infnity norm implies convergence in any $p$-norm. $\:\blacksquare$
 
-### Bellman Operator
+### Bellman Operator for Infinite State Space
 
-If $\mathcal S$ is a infinite set, there is generally no closed-form solution for $v_{\pi}(s)$ expect for a few special cases (not covered here). Here, we only show a theoretical study based on Bellman operator.
+Generalization of Bellman update to any $\mathcal S$ (possibly an infinite set). Instead of considering state values $v_{\pi}(s), \forall s\in\mathcal S$ as a vector in $\mathbb R^{\vert \mathcal S \vert}$, we consider the state value function $v_{\pi}(\cdot)$ as a "point" in the following function space.
 
-Let $\mathcal V$ be the set of all **bounded** value functions. Man can verify that $\mathcal V$ with the sup norm $\Vert\cdot\Vert_\infty$ is a **complete** metric space.
+Let $\mathcal V$ be the set of all **bounded** value functions.
 $$
 \mathcal V =
 \left\{
-v:\mathcal S\to\mathbb R \:\bigg|\: \Vert v \Vert_\infty = \max_{s\in\mathcal S} \vert v(s) \vert < \infty
+v:\mathcal S\to\mathbb R \:\Big|\: \Vert v \Vert_\infty  < \infty
 \right\}
 $$
 
-For a certain policy $\pi$, we define the corresponding Bellman operator $\mathcal B_{\pi}$ which maps a state value function $v(\cdot)$ to another value function $\mathcal B_{\pi}v(\cdot)$.
+where the ***sup norm*** is defined as
+$$
+\Vert v \Vert_\infty \triangleq \max_{s\in\mathcal S} \vert v(s) \vert
+$$
+
+The ***sup norm metric*** $d: \mathcal V \times \mathcal V \to \mathbb R, (u,v) \mapsto d(u,v)$ is defined as
+$$
+d(u,v) = \Vert u-v \Vert_\infty = \max_{s\in\mathcal S} \vert u(s)-v(s) \vert
+$$
+
+One can verify that $d(\cdot,\cdot)$ satisfies the metric axioms and that $(\mathcal V, d)$ is a **complete** metric space.
+
+For a certain policy $\pi$, we define the corresponding Bellman operator $\mathcal B_{\pi}$ which maps a state value function $v(\cdot)$ to a new value function $\mathcal B_{\pi}v(\cdot)$.
 > $$
 > \mathcal B_{\pi}: \mathcal V \to \mathcal V, v(\cdot) \mapsto \mathcal B_{\pi}v(\cdot)
 > $$
 
-The resulting value function is
+where the new value function is defined as
 > $$
 > \mathcal B_{\pi} v(s) =
 > r(s, \pi(s)) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ v(s') ]
@@ -452,14 +488,11 @@ Properties of Bellman operator:
 >    \mathcal B_{\pi} v_{\pi}(s) = v_{\pi}(s), \forall s\in\mathcal S
 >    $$
 
-*Proof 1*: By the monotonicity of expectation
-$\mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ u(s') ] \le \mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ v(s') ]$, we conclude. $\quad\square$
+*Proof 1*:
+By the monotonicity of expectation
+$\mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ u(s') ] \le \mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ v(s') ]$, we conclude. $\:\blacksquare$
 
-*Proof 2*: Recall that the infinity norm of a function $f$ is defined as
-$$
-\Vert f \Vert_\infty \triangleq \max_x \vert f(x) \vert
-$$
-
+*Proof 2*:
 Consider $\vert \mathcal B_{\pi}u(s) - \mathcal B_{\pi}v(s) \vert$ for all $s\in\mathcal S$.
 $$
 \begin{align*}
@@ -485,28 +518,38 @@ $$
 \Vert \mathcal B_{\pi}u - \mathcal B_{\pi}v \Vert_\infty
 =\displaystyle\max_{s\in\mathcal S} \vert \mathcal B_{\pi}u(s) - \mathcal B_{\pi}v(s) \vert
 \le \gamma \cdot \Vert u-v\Vert_\infty
+\quad\blacksquare
 $$
 
-*Proof 3*: By Bellman equation, we know that $v_{\pi}$ is a fixed point of $\mathcal B_{\pi}$. The uniqueness follows from contraction mapping theorem and completeness of $\mathcal V$.
+*Proof 3*:
+By Bellman equation, we know that $v_{\pi}$ is a fixed point of $\mathcal B_{\pi}$. The uniqueness follows from contraction mapping theorem and completeness of $\mathcal V$. $\quad\blacksquare$
 
-Followed by contraction mapping theorem, the state value function can be obtained through fixed point iteration
-
-> Starting from any $v^{(0)}(\cdot)\in\mathcal V$  
-> For $i=0,1,\dots$, run until $v^{(i)}(\cdot)$ converges  
-> $\quad$ For each $s\in\mathcal S$, do  
-> $$
-> v^{(i+1)}(s) = \mathcal B_{\pi} v(s) =
-> r(s, \pi(s)) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ v(s') ]
-> $$
-
-Mathematically, the resulting function sequence $\{ v^{(i)} \}_{i\ge0}$ converges to $v_{\pi}$ in the sup norm (and thus converges pointwise)
+Hence, starting from any $v\in\mathcal V$ (which does not neccessarily need to satisfy Bellman equation for any policy). Repeatedly applying $\mathcal B_{\pi}$ on $v$ leads to convergence to $v_{\pi}$. Formally,
 $$
-\lim_{i\to\infty} \big\Vert v^{(i)} - v_{\pi} \big\Vert_\infty = 0
-\implies
-\lim_{i\to\infty} v^{(i)}(s) = v_{\pi}(s), \forall s\in\mathcal S
+\forall v \in\mathcal V: \lim_{n\to\infty} \Vert B_{\pi}^n v - v_{\pi}\Vert_{\infty} =0
 $$
 
-However, above algorithm can not be directly implementend since we can not evaluate $v^{(i)}(s)$ for infinitely many $s$. In practice, we use approximation techniques to estimate $v_{\pi}(\cdot)$. (Not detailed here.)
+Using the fact that convergence in sup norm implies point-wise convergence(c.f. Appendix), we get
+$$
+\forall v \in\mathcal V: \lim_{n\to\infty} B_{\pi}^n v(s) =  v_{\pi}(s), \forall s\in\mathcal S
+$$
+
+Let $v_n \triangleq \mathcal B_{\pi}^n v$. Then, the function sequence can be computed recursively
+$$
+\begin{align*}
+v_n(s)
+&= \mathcal B_{\pi} v_{n-1}(s) \\
+&= r(s, \pi(s)) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ v_{n-1}(s') ] \\
+\end{align*}
+$$
+
+For finite state space, the above equation reduces to Bellman updates shown in previous section
+$$
+\begin{align*}
+v_n(s)
+&= r(s, \pi(s)) + \gamma\sum_{s'\in\mathcal S} p(s' \mid s, \pi(s)) [ v_{n-1}(s') ]
+\end{align*}
+$$
 
 ## Bellman Optimality Equations
 
@@ -799,6 +842,10 @@ Remarks:
 
 In policy update step, the new policy $\pi^{(i+1)}(s)$ always picks the action maximizing the current estimtae of Q-function $q^{(i)}(s,a)$. Hence, it is called ***greedy*** policy update.
 
+#### Bellman Optimality Operator
+
+Recall the metric space $(\mathcal V, d)$ of bounded value functions equipped with sup norm metirc.
+
 Analogous to Bellman operator for a certain policy, we define the ***Bellman optimality operator*** $\mathcal B_{*}$ as
 > $$
 > \mathcal B_{*}: \mathcal V \to \mathcal V, v(\cdot) \mapsto \mathcal B_{*}v(\cdot)
@@ -828,7 +875,7 @@ Properties of Bellman operator:
 >    \mathcal B_{*} v_{*}(s) = v_{*}(s), \forall s\in\mathcal S
 >    $$
 
-*Proof 1*: follows from the monotonicity of expectation.
+*Proof 1 and 3*: Same as the proof for $\mathcal B_{\pi}$.
 
 *Proof 2*: We will show that $\forall s\in\mathcal S: \vert B_{*}u(s) - \mathcal B_{*}v(s) \vert \le \gamma\Vert u-v\Vert_\infty$ as follows
 $$
@@ -853,17 +900,67 @@ $$
 \end{align*}
 $$
 
-*Proof 3*: By BOE, $v_{*}(\cdot)$ is a fixed point of $\mathcal B_{*}$. Uniqueness follows from contraction mapping theorem.
-
-Hence, starting from any $v(\cdot)$ (which does not neccessarily need to satisfy Bellman equation for any policy). Iteratively applying $\mathcal B_{*}$ leads convergence to $v_{*}$.
+Once again, starting from any $v \in\mathcal V$ (which does not neccessarily need to satisfy Bellman equation for any policy), repeatedly applying $\mathcal B_{*}$ leads convergence to the optimal value function $v_{*}$.
 $$
 \forall v \in\mathcal V: \lim_{n\to\infty} \Vert B_{*}^n v - v_{*}\Vert_{\infty}
 \implies  \lim_{n\to\infty} B_{*}^n v(s) =  v_{*}(s)
 $$
 
+Let $v_n \triangleq \mathcal B_{*}^n v$. Then, the function sequence can be computed recursively
+$$
+\begin{align*}
+v_n(s)
+&= \mathcal B_{*} v_{n-1}(s) \\
+&= \max_{a\in\mathcal A} \Big\{r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [v_{n-1}(s')]\Big\} \\
+\end{align*}
+$$
+
+For finite state space, the above equation reduces to Bellman updates shown in previous section
+$$
+\begin{align*}
+v_n(s)
+&= \max_{a\in\mathcal A} \Big\{ r(s,a) + \gamma\sum_{s'\in\mathcal S} p(s' \mid s,a) [ v_{n-1}(s') ] \Big\}
+\end{align*}
+$$
+
 ### Policy Iteration
 
-Policy iteration is another algorithm to compute optimal policy. It starts with abitrary policy and iteratively improves it. Formally:
+Policy iteration is another algorithm to compute optimal policy. It starts with abitrary policy and iteratively improves it. The algorithm is backed by policy improvement theorem.
+
+#### Policy Improvement Theorem
+
+Let $\pi$ and $\pi'$ be two policies s.t.
+$$
+\forall s\in\mathcal S: q_{\pi}(s, \pi'(s)) \ge q_{\pi}(s, \pi(s))
+$$
+
+Then, $\pi'$ is an improvement of $\pi$, i.e.
+$$
+\forall s\in\mathcal S, v_{\pi'}(s) \ge v_{\pi}(s)
+$$
+
+*Proof*: Using the definition of Q-functions
+$$
+\begin{align*}
+q_{\pi}(s, \pi'(s)) &\ge q_{\pi}(s, \pi(s)) \\
+r(s, \pi'(s)) + \mathbb E_{s'\sim p(\cdot\mid s, \pi'(s))}[v_{\pi}(s')] &\ge v_{\pi}(s) \\
+\mathcal B_{\pi'} v_{\pi}(s) &\ge v_{\pi}(s)
+\end{align*}
+$$
+
+Then, we conclude
+$$
+v_{\pi}(s)
+\le \mathcal B_{\pi'} v_{\pi}(s)
+\le \mathcal B_{\pi'}^2 v_{\pi}(s)
+\le \cdots
+\le \mathcal B_{\pi'}^n v_{\pi}(s)
+\le \lim_{n\to\infty} \mathcal B_{\pi'}^n v_{\pi}(s)
+= v_{\pi'}(s)
+\quad\blacksquare
+$$
+
+---
 
 > Init $\pi^{(0)}$ by random guessing  
 > For $i=0,1,2,\dots$, run until convergence  
@@ -910,52 +1007,6 @@ Policy iteratoin works because of following facts
     $$
     \lim_{i\to\infty} v_{\pi^{(i)}}(s) = v^*(s),\: \forall s\in\mathcal S
     $$
-
-*Proof 1*: For each $s\in\mathcal S$, $\pi^{(i+1)}(s)$ is the maximizer of the Q-function $q_{\pi^{(i)}} (s,a)$. In particular,
-$$
-q_{\pi^{(i)}} (s, \pi^{(i+1)}(s))
-\ge q_{\pi^{(i)}} (s, \pi^{(i)}(s)) = v_{\pi^{(i)}}(s)
-\tag{$\star$}
-$$
-
-Hence, $\forall s\in\mathcal S$:
-
-$$
-\begin{align*}
-v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s)
-&\overset{(\star)}{\ge} v_{\pi^{(i+1)}}(s)  - q_{\pi^{(i)}} (s, \pi^{(i+1)}(s))
-\\
-&= r(s, \pi^{(i+1)}(s)) + \gamma\mathbb E[v_{\pi^{(i+1)}}(S')] -
-\left( r(s, \pi^{(i+1)}(s)) + \gamma\mathbb E[v_{\pi^{(i)}}(S')] \right)
-\\
-&= \gamma\mathbb E\left[ v_{\pi^{(i+1)}}(S') - v_{\pi^{(i)}}(S') \right]
-\\
-&\ge \gamma \min_{s'\in\mathcal S} \left\{ v_{\pi^{(i+1)}}(s') - v_{\pi^{(i)}}(s') \right\}
-\tag{$\star\star$}
-\end{align*}
-$$
-
-The last step follows by the property of expectation: $\mathbb E[X] \ge x_{\min}$ with $X=v_{\pi^{(i+1)}}(S') - v_{\pi^{(i)}}(S')$.
-
-Taking $\displaystyle\min_{s\in\mathcal S}$ on the LHS, we get
-$$
-\min_{s\in\mathcal S} \left\{ v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s) \right\}
-\ge \gamma \min_{s'\in\mathcal S} \left\{ v_{\pi^{(i+1)}}(s') - v_{\pi^{(i)}}(s') \right\}
-$$
-
-Note that the optimization problem on both sides are the same. Hence,
-$$
-\begin{align*}
-(1-\gamma) \min_{s\in\mathcal S} \left\{ v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s) \right\} &\ge 0
-\\
-\min_{s\in\mathcal S} \left\{ v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s) \right\} &\ge 0
-&& \text{since } 0<\gamma<1 \\
-\forall s\in\mathcal S, \: v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s) &\ge 0
-&& \text{by } (\star\star)
-\end{align*}
-$$
-
-We concluded that the policy improvement does not decrease state value. $\qquad \square$
 
 ### Generalized Policy Iteration
 
@@ -1060,7 +1111,7 @@ Let $\mathbf A \in\mathbb R^{n \times n}$ be a state transition matrix. Then,
     \end{align}
     $$
 
-*Proof 1*: Let $\mathbf u = [1,\dots,1]^\top \in\mathbb R^n$ be all-one vector. It is easy to verify that $\mathbf{Au} = \mathbf{u}$. Hence, $\mathbf u$ is an eigenvector of $\mathbf A$ with eigen value $1$. $\:\square$
+*Proof 1*: Let $\mathbf u = [1,\dots,1]^\top \in\mathbb R^n$ be all-one vector. It is easy to verify that $\mathbf{Au} = \mathbf{u}$. Hence, $\mathbf u$ is an eigenvector of $\mathbf A$ with eigen value $1$. $\:\blacksquare$
 
 *Proof 2:* Recall the infinity norm is defined by
 
@@ -1085,7 +1136,7 @@ $$
 \Vert \mathbf y \Vert_{\infty}
 = \max_{i=1,\dots,n} \vert y_i \vert
 \le \Vert \mathbf x \Vert_{\infty}
-\quad\quad\quad \square
+\quad\quad\quad \blacksquare
 $$
 
 *Proof 3*: Let $\lambda$ be any eigenvalue of $\mathbf A$ and $\mathbf v$ be the corresponding eigenvector. Using the fact that $\Vert\mathbf{Av}\Vert_{\infty} \le  \Vert\mathbf{v}\Vert_{\infty}$, we conclude
@@ -1097,4 +1148,44 @@ $$
 \le \vert\mathbf{v}\Vert_{\infty}
 $$
 
-Eigenvector $\mathbf v$ is nonzero $\implies \vert\lambda\vert \le 1$. $\quad\square$
+Eigenvector $\mathbf v$ is nonzero $\implies \vert\lambda\vert \le 1$. $\quad\blacksquare$
+
+### Convergence of Sequence of Functions
+
+Let $\mathcal X$ be any set and $(f_n)_{n\in\mathbb N}:\mathcal X \to \mathbb R$ be a sequence of bounded functions. Then, we say that
+
+$(f_n)_{n\in\mathbb N}$ converges to $f$ **point-wise** iff
+$$
+\begin{align}
+\forall x\in\mathcal X, &\lim_{n\to\infty} f_n(x) = f(x) \\
+&\qquad \Updownarrow \nonumber \\
+\forall x\in\mathcal X, &\forall\epsilon>0, \exists N\in\mathbb N, \text{ s.t. }
+\forall n \ge N, \vert f_n(x) - f(x) \vert < \epsilon
+\end{align}
+$$
+
+$(f_n)_{n\in\mathbb N}$ converges to $f$ **uniformly** iff
+$$
+\begin{align}
+\forall\epsilon>0, \exists N\in\mathbb N, \text{ s.t. }
+\forall n \ge N, \forall x\in\mathcal X, \vert f_n(x) - f(x) \vert < \epsilon
+\end{align}
+$$
+
+$(f_n)_{n\in\mathbb N}$ converges to $f$ **in sup norm** iff
+$$
+\begin{align}
+\lim_{n\to\infty} &\Vert f_n(x) - f(x) \Vert_\infty = 0  \\
+&\qquad\Updownarrow \nonumber \\
+\forall\epsilon>0, &\exists N\in\mathbb N, \text{ s.t. }
+\forall n \ge N, \sup_{x\in\mathcal X}\vert f_n(x) - f(x) \vert < \epsilon
+\end{align}
+$$
+
+Relation between different types of convergence:
+$$
+\begin{align*}
+\text{uniform convg.} \iff \text{convg. in sup norm}
+\implies \text{point-wise convg.}
+\end{align*}
+$$

@@ -128,7 +128,7 @@ Remarks:
 
 ### Q-function (State-Action Value)
 
-The ***Q-function*** (or ***state action value***) for a certain policy $\pi$ as follows
+The ***Q-function*** (or ***state action value***, or simply ***action value***) for a certain policy $\pi$ as follows
 > $$
 > \begin{align}
 > q_{\pi}(s,a)
@@ -156,6 +156,8 @@ Relation between Q-function and state value for the same $\pi$:
   &= r(s,a) + \gamma \sum_{s'\in\mathcal S} p(s' \mid s, a) v_{\pi}(s') & \text{if } \mathcal S \text{ is finite}\\
   \end{align}
   $$
+
+Depending on the context, the term ***value function*** may refer to state value function or Q-function.
 
 ## Bellman Equations
 
@@ -332,18 +334,15 @@ Remarks:
 * $\mathbf P_{\pi}$ comprises all state transition probabilities under policy $\pi$
 * All state values, immediate rewards and state transition probabilities depend on policy $\pi$.
 
-Now, given the Bellman equations (either in element-wise or vector form), we ask two questions
-
-1. Given the policy $\pi$, how to compute the state values? This is called ***policy evaluation***  
-    $\to$ analytical solution or fixed point iteration
-1. Is there a policy which maximizes the state values? If so, how to find it?  
-    $\to$ dynamic programming
-
 ### Bellman Equation for Q-function
 
 Similarly, Q-function also has recursive structure
 $$
-q_{\pi}(s,a) = r(s,a) + \gamma \mathbb E_{s' \sim p(\cdot \mid s, a)} [ q_{\pi}(s', \pi(s')) ]
+\begin{align}
+q_{\pi}(s,a)
+&= r(s,a) + \gamma \mathbb E_{s' \sim p(\cdot \mid s, a)} [ v_{\pi}(s') ] \\
+&= r(s,a) + \gamma \mathbb E_{s' \sim p(\cdot \mid s, a)} [ q_{\pi}(s', \pi(s')) ] \\
+\end{align}
 $$
 
 ## Policy Evaluation
@@ -377,33 +376,33 @@ Remarks:
 
 Algorithm to compute state values:
 
-> **Bellman Update (vector form)**  
-> Initialize $\mathbf v^{(0)}$ arbitrarily.  
-> For $n=0,1,\dots$, run until $\mathbf v^{(n)}$ converges
+> **BELLMAN UPDATE (vector form)**  
+> Initialize $\mathbf v_{0}$ arbitrarily.  
+> For $n=0,1,\dots$, run until $\mathbf v_{n}$ converges
 >
 > $$
 > \begin{align}
-> \mathbf v^{(n+1)} = \mathbf r_{\pi} + \gamma \mathbf P_{\pi} \mathbf v^{(n)}
+> \mathbf v_{n+1} = \mathbf r_{\pi} + \gamma \mathbf P_{\pi} \mathbf v_{n}
 > \end{align}
 > $$
 
 The above algorithm can be reformulated element-wise as follows
 
-> **Bellman Update (element-wise form)**  
-> Init $v^{(0)}(s)$ for all $s\in\mathcal S$  
-> For $n=0,1,\dots$, run until $v^{(n)}(s)$ converges  
+> **BELLMAN UPDATE (element-wise form)**  
+> Init $v_{0}(s)$ for all $s\in\mathcal S$  
+> For $n=0,1,\dots$, run until $v_{n}(s)$ converges  
 > $\quad$ For each $s\in\mathcal S$, do  
 > $$
-> v^{(n+1)}(s) = r(s, \pi(s)) + \gamma\sum_{s'\in\mathcal S} p(s' \mid s, \pi(s)) [ v^{(n)}(s') ]
+> v_{n+1}(s) = r(s, \pi(s)) + \gamma\sum_{s'\in\mathcal S} p(s' \mid s, \pi(s)) [ v_{n}(s') ]
 > $$
 
 Remarks:
 
-* During iteration, $\mathbf v^{(n)}$ itself does not neccessarily satisfy Bellman equation for any policy.
-* The sequence $\mathbf v^{(0)}, \mathbf v^{(1)}, \dots$ obtained from Bellman update converges to $\mathbf v_{\pi}$, i.e.
+* During iteration, $\mathbf v_{n}$ itself does not neccessarily satisfy Bellman equation for any policy.
+* The sequence $\mathbf v_{0}, \mathbf v_{1}, \dots$ obtained from Bellman update converges to $\mathbf v_{\pi}$, i.e.
   $$
   \begin{align}
-  \lim_{n\to\infty} \mathbf v^{(n)}
+  \lim_{n\to\infty} \mathbf v_{n}
   = \mathbf v_{\pi}
   = (\mathbf{I} - \gamma \mathbf{P}_{\pi})^{-1} \mathbf r_{\pi}
   \end{align}
@@ -558,7 +557,7 @@ $$
 
 ## Bellman Optimality Equations
 
-A policy $\pi$ outperforms another policy $\tilde\pi$ iff the state values $v_{\pi}(s)$ outperforms $v_{\tilde\pi}(s)$ for **ALL** states $s\in\mathcal S$. i.e.
+A policy $\pi$ outperforms (or improves) another policy $\tilde\pi$ iff the state values $v_{\pi}(s)$ is nonless than $v_{\tilde\pi}(s)$ for **ALL** states $s\in\mathcal S$. i.e.
 
 $$
 \forall s \in\mathcal S, \, v_{\pi}(s) \ge v_{\tilde\pi}(s)
@@ -578,7 +577,7 @@ v^*(s) \triangleq v_{\pi^*}(s) = \max_{\pi} v_{\pi}(s)
 \end{align}
 $$
 
-We haven't proved the existence of $\pi^*$. For now, let's assume its existence and discover what conditions have to be met for $\pi^*$ and $v^*(s)$. This will lead us to Bellman optimality equations,  from which we will derive an algorithm to find $\pi^*$ (and thus prove its existence).
+We haven't proved the existence of $\pi^*$. For now, let's assume its existence and discover what conditions have to be met for $\pi^*$ and $v^*(\cdot)$. This will lead us to Bellman optimality equations,  from which we will derive an algorithm to compute $\pi^*$ (and thus prove its existence).
 
 ### Optimal State Values
 
@@ -635,7 +634,7 @@ where the equality holds iff $a=\pi^*(s)$. Namely, the optimal action at state $
 Remarks:
 
 * This equation holds for all $s\in\mathcal S$.
-* Suppose we solved all optimal state values $\{ v^*(s') \mid s'\in\mathcal S \}$, plugging them into this equation yields the optimal policy.
+* Suppose we solved optimal values functoin $v^*(\cdot)$, plugging them into this equation yields the optimal policy.
 
 The optimal state value $v^*(s)$ thus satisfies the ***Bellman optimality equations (BOE)***:
 
@@ -782,68 +781,17 @@ $$
 
 ## Dynamic Programming
 
-Throughout this section, we assume that both state space and action space are discrete. Given the parameters of an MDP:
+Given the parameters of an MDP:
 
 * state transition probabilities $p(s' \mid s,a)$ for all $s,s'\in\mathcal S, a\in\mathcal A $
 * state-action-rewards $r(s,a)$ for all $s\in\mathcal S, a\in\mathcal A $
 
-From previous sections, we discussed optimality conditions for optimal policy and optimal value functions. Now, we will derive algorithms to compute the optimal policy.
+How to compute the optimal policy?  
+$\to$ Dynamic programming
 
 ### Value Iteration
 
-> Init $\mathbf v^{(0)}$ arbitrarily  
-> For $i=0,1,\dots$, run until convergence
-> $$
-> \begin{align}
-> \mathbf v_{n+1}
-> = \max_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v^{(i)} \right\}
-> \end{align}
-> $$
-
-Remarks:
-
-* The sequence $\mathbf v^{(0)}, \mathbf v^{(1)}, \dots$ obtained from above iteration converges to $\mathbf v^*$, i.e.
-  $$
-  \begin{align}
-  \lim_{i\to\infty} \mathbf v^{(i)} = \mathbf v^*
-  \end{align}
-  $$
-* Having computed the optimal state values $\mathbf v^*$, the optimal policy is obtained from
-  > $$
-  > \begin{align}
-  > \pi^*(s) = \argmax_{a\in\mathcal A}
-  > \left\{
-  >   r(s, a) + \gamma \sum_{s'} p(s' \mid s, a) \cdot v^*(s')
-  > \right\},
-  > \quad \forall s\in\mathcal S
-  > \end{align}
-  > $$
-* Reminder: The iteration does **not** ensure that the intermediate result $\mathbf v^{(i)}$ satisfy Bellman equation **for any policy**. However, the limit of $\mathbf v^{(i)}$ satisfies BOEs, i.e. the Bellman equation for the optimal policy.
-
-> Init $v^{(0)}(s)$ for all $s\in\mathcal S$ by random guessing  
-> For $i = 0,1,\dots$, do  
-> $\quad$ For each $s\in\mathcal S$, do  
-> $\quad\quad$ For each $a\in\mathcal A$, compute Q-function  
-> $\quad\quad\qquad q^{(i)}(s,a) = r(s, a) + \gamma \displaystyle\sum_{s'} p(s' \mid s, a) \cdot v^{(i)}(s')$  
-> $\quad\quad$ **Policy update**: $\pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A}\, q^{(i)}(s,a)$  
-> $\quad\quad$ **Value update**: $v_{n+1}(s) = \displaystyle\max_{a\in\mathcal A} q^{(i)}(s,a)$  
-> until $\big\Vert \mathbf v_{n+1} - \mathbf v^{(i)} \big\Vert \le$ some threshold $\epsilon$. (i.e. $\mathbf v^{(i)}$ converges)  
-> Return $v^{(i_\text{stop})}(s)$ and $\pi^{(i_\text{stop})}(s)$ for all $s\in\mathcal S$
-
-Remarks:
-
-* In stopping condition, $\mathbf v^{(i)}$ is the vector containing all $v^{(i)}(s), s\in\mathcal S$. The norm can be infinity norm or any other norms.
-* Although $v^{(i)}(s)$ converges to $v^{*}(s)$ for all $s\in\mathcal S$, the intermediate values $v^{(i)}(s)$ do **not** generally satisfy Bellman equation for **any** policy. We interpret $v^{(i)}(s)$ as the estimate of $v^*(s)$ at $i$-th iteration rather than the state values under $\pi^{(i)}$ or $\pi_{n+1}$, i.e.
-  $$
-    \begin{align*}
-    v^{(i)}(s)
-    &\ne r(s, \pi^{(i)}(s)) + \gamma \sum_{s'} p(s'\mid s, \pi^{(i)}(s)) v^{(i)}(s)
-    \\
-    v^{(i)}(s)
-    &\ne r(s, \pi_{n+1}(s)) + \gamma \sum_{s'} p(s'\mid s, \pi_{n+1}(s)) v^{(i)}(s)
-    \end{align*}
-  $$
-* Likewise, $q^{(i)}(s,a)$ represents the estimate of $q^{*}(s,a)$ at $i$-th iteration.
+The recurrent structure in BOE motivates us to define the Bellman optimality operator, which is at the core of value iteration. We will show that iteration over Bellman optimality operator leads to the optimal value function. (Just like iterating over Bellman operator for a certain policy leads to the value function for that policy)
 
 #### Bellman Optimality Operator
 
@@ -921,22 +869,71 @@ $$
 \implies  \lim_{n\to\infty} B_{*}^n v(s) =  v_{*}(s)
 $$
 
-Let $v_n \triangleq \mathcal B_{*}^n v$. Then, the function sequence can be computed recursively
+Let $v_n \triangleq \mathcal B_{*}^n v$. Then, $v_n$ can be iteratively computed as follows (called ***value iteration***)
 $$
-\begin{align*}
+\begin{align}
 v_n(s)
 &= \mathcal B_{*} v_{n-1}(s) \\
 &= \max_{a\in\mathcal A} \Big\{r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [v_{n-1}(s')]\Big\} \\
-\end{align*}
+&= \max_{a\in\mathcal A} \Big\{ r(s,a) + \gamma\sum_{s'\in\mathcal S} p(s' \mid s,a) [ v_{n-1}(s') ] \Big\} &\text{if $\mathcal S$ is finite}
+\end{align}
 $$
 
-For finite state space, the above equation reduces to Bellman updates shown in previous section
-$$
-\begin{align*}
-v_n(s)
-&= \max_{a\in\mathcal A} \Big\{ r(s,a) + \gamma\sum_{s'\in\mathcal S} p(s' \mid s,a) [ v_{n-1}(s') ] \Big\}
-\end{align*}
-$$
+#### The Algorithm
+
+Now, we unfold value iteration algorithm for finite state space.
+
+> **VALUE ITERATION (element-wise form)**  
+> Init $v_{0}(s)$ for all $s\in\mathcal S$ by random guessing  
+> For $n = 0,1,\dots$, do until $v_{0}(s)$ converges for all $s\in\mathcal S$  
+> $\quad$ For each $s\in\mathcal S$, do  
+> $\quad\quad$ For each $a\in\mathcal A$, compute   
+> $\quad\quad\qquad q_n(s,a) = r(s, a) + \gamma \displaystyle\sum_{s'} p(s' \mid s, a) \cdot v_n(s')$  
+> $\quad\quad$ **Policy update**: $\pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A}\, q_n(s,a)$  
+> $\quad\quad$ **Value update**: $v_{n+1}(s) = \displaystyle\max_{a\in\mathcal A} q_n(s,a)$  
+> Return $v^{*}(s)$ and $\pi^{*}(s)$ for all $s\in\mathcal S$
+
+Remarks:
+
+* Having computed the optimal value function $v^*$, the optimal policy is obtained from
+  $$
+  \begin{align*}
+  \pi^*(s)
+  &= \argmax_{a\in\mathcal A}\: q^*(s,a) \\
+  &= \argmax_{a\in\mathcal A}
+  \left\{
+    r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [v^*(s')]
+  \right\}
+  \end{align*}
+  $$
+* The sequence $v_n(\cdot)$ converges to $v^{*}(\cdot)$ which satisfies BOE. However, $v_n(\cdot)$ itself do **not** generally satisfy Bellman equation for **any** policy. $v_n(s)$ should be interpreted as the estimate of $v^*(s)$ at $n$-th iteration rather than the state values under some policy. In particular,
+  $$
+    \begin{align*}
+    v_n(s)
+    &\ne v_{\pi_n} (s)
+    \\
+    v_n(s)
+    &\ne r(s, \pi_n(s)) + \gamma \sum_{s'} p(s'\mid s, \pi_n(s)) v_n(s)
+    = \mathcal B_{\pi_{n}} v_n(s)
+    \end{align*}
+  $$
+* Likewise, $q_n(s,a)$ represents the estimate of $q^{*}(s,a)$ at $n$-th iteration rather than the real Q-function for any policy. In particular, $q_n(s,a) \ne q_{\pi_n}(s,a)$
+
+> **VALUE ITERATION (vector form)**  
+> Init $\mathbf v_{0}$ arbitrarily  
+> For $n=0,1,\dots$, run until convergence
+> $$
+> \begin{align}
+> \mathbf v_{n+1}
+> = \max_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v_n \right\}
+> \end{align}
+> $$
+
+Remarks:
+
+* The vector $\mathbf v_n$ contains all $v_n(s), s\in\mathcal S$.
+* TODO: explain r_a and P_a.
+* Reminder: The iteration does **not** ensure that the intermediate result $\mathbf v_n$ satisfy Bellman equation **for any policy**. However, the limit of $\mathbf v_n$ satisfies BOEs.
 
 ### Policy Iteration
 
@@ -1069,7 +1066,7 @@ Now, we unfold the policy iteration for easy implementation. The  greedy policy 
 
 > **Policy Iteration (vector form)**  
 > Init $\pi_0$ by random guessing  
-> For $i=0,1,2,\dots$, run until convergence  
+> For $n=0,1,2,\dots$, run until convergence  
 > $\quad$ Policy evaluation: Solve $\mathbf v_{\pi_n} = \mathbf r_{\pi_n} + \gamma\mathbf P_{\pi_n} \mathbf v_{\pi_n}$ for state values $\mathbf v_{\pi_n}$  
 > $\quad$ Policy improvement: Solve $\pi_{n+1} = \displaystyle\argmax_{\pi}  \big\{ \mathbf r_{\pi} + \gamma\mathbf P_{\pi} \mathbf v_{\pi_n} \big\}$ for new policy $\pi_{n+1}$
 
@@ -1082,7 +1079,7 @@ Now, we unfold the policy iteration for easy implementation. The  greedy policy 
 > $\quad\quad\qquad$ Q-function: $q_{\pi_n} (s,a) = r(s,a) + \gamma\displaystyle\sum_{s'\in\mathcal S} p(s'\mid s,a) \, v_{\pi_n}(s')$  
 > $\quad\quad\;$ Policy improvement: compute greedy policy $\pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A} \: q_{\pi_n} (s,a)$  
 > until $\Vert\mathbf v_{\pi_{n+1}} - \mathbf v_{\pi_n} \Vert < \epsilon$  
-> Return $v_{\pi_n}(s)$ and $\pi^{(i)}(s)$ for all $s\in\mathcal S$
+> Return $v_{\pi_n}(s)$ and $\pi_n(s)$ for all $s\in\mathcal S$
 
 ### Generalized Policy Iteration
 

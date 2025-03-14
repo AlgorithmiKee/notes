@@ -462,7 +462,7 @@ One can verify that $d(\cdot,\cdot)$ satisfies the metric axioms and that $(\mat
 
 For a certain policy $\pi$, we define the corresponding Bellman operator $\mathcal B_{\pi}$ which maps a state value function $v(\cdot)$ to a new value function $\mathcal B_{\pi}v(\cdot)$.
 > $$
-> \mathcal B_{\pi}: \mathcal V \to \mathcal V, v(\cdot) \mapsto \mathcal B_{\pi}v(\cdot)
+> \mathcal B_{\pi}: \mathcal V \to \mathcal V, v \mapsto \mathcal B_{\pi}v
 > $$
 
 where the new value function is defined as
@@ -471,6 +471,10 @@ where the new value function is defined as
 > r(s, \pi(s)) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ v(s') ]
 > $$
 
+Note that $\mathcal B_{\pi} v$ is defined as long as $v$ is bounded and $v$ itself does not necessarily need to satisfy Bellman equation for any policy. Nevertheless, if $v$ happens to be the value function $v_{\tilde\pi}$ for some policy $\tilde \pi$. Then,
+$$
+\mathcal B_{\pi} v_{\tilde\pi} = q_{\tilde\pi}(s,\pi(s))
+$$
 Properties of Bellman operator:
 
 > 1. $\mathcal B_{\pi}$  is monotonic, i.e.
@@ -790,7 +794,7 @@ From previous sections, we discussed optimality conditions for optimal policy an
 > For $i=0,1,\dots$, run until convergence
 > $$
 > \begin{align}
-> \mathbf v^{(i+1)}
+> \mathbf v_{n+1}
 > = \max_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v^{(i)} \right\}
 > \end{align}
 > $$
@@ -820,27 +824,27 @@ Remarks:
 > $\quad$ For each $s\in\mathcal S$, do  
 > $\quad\quad$ For each $a\in\mathcal A$, compute Q-function  
 > $\quad\quad\qquad q^{(i)}(s,a) = r(s, a) + \gamma \displaystyle\sum_{s'} p(s' \mid s, a) \cdot v^{(i)}(s')$  
-> $\quad\quad$ **Policy update**: $\pi^{(i+1)}(s) = \displaystyle\argmax_{a\in\mathcal A}\, q^{(i)}(s,a)$  
-> $\quad\quad$ **Value update**: $v^{(i+1)}(s) = \displaystyle\max_{a\in\mathcal A} q^{(i)}(s,a)$  
-> until $\big\Vert \mathbf v^{(i+1)} - \mathbf v^{(i)} \big\Vert \le$ some threshold $\epsilon$. (i.e. $\mathbf v^{(i)}$ converges)  
+> $\quad\quad$ **Policy update**: $\pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A}\, q^{(i)}(s,a)$  
+> $\quad\quad$ **Value update**: $v_{n+1}(s) = \displaystyle\max_{a\in\mathcal A} q^{(i)}(s,a)$  
+> until $\big\Vert \mathbf v_{n+1} - \mathbf v^{(i)} \big\Vert \le$ some threshold $\epsilon$. (i.e. $\mathbf v^{(i)}$ converges)  
 > Return $v^{(i_\text{stop})}(s)$ and $\pi^{(i_\text{stop})}(s)$ for all $s\in\mathcal S$
 
 Remarks:
 
 * In stopping condition, $\mathbf v^{(i)}$ is the vector containing all $v^{(i)}(s), s\in\mathcal S$. The norm can be infinity norm or any other norms.
-* Although $v^{(i)}(s)$ converges to $v^{*}(s)$ for all $s\in\mathcal S$, the intermediate values $v^{(i)}(s)$ do **not** generally satisfy Bellman equation for **any** policy. We interpret $v^{(i)}(s)$ as the estimate of $v^*(s)$ at $i$-th iteration rather than the state values under $\pi^{(i)}$ or $\pi^{(i+1)}$, i.e.
+* Although $v^{(i)}(s)$ converges to $v^{*}(s)$ for all $s\in\mathcal S$, the intermediate values $v^{(i)}(s)$ do **not** generally satisfy Bellman equation for **any** policy. We interpret $v^{(i)}(s)$ as the estimate of $v^*(s)$ at $i$-th iteration rather than the state values under $\pi^{(i)}$ or $\pi_{n+1}$, i.e.
   $$
     \begin{align*}
     v^{(i)}(s)
     &\ne r(s, \pi^{(i)}(s)) + \gamma \sum_{s'} p(s'\mid s, \pi^{(i)}(s)) v^{(i)}(s)
     \\
     v^{(i)}(s)
-    &\ne r(s, \pi^{(i+1)}(s)) + \gamma \sum_{s'} p(s'\mid s, \pi^{(i+1)}(s)) v^{(i)}(s)
+    &\ne r(s, \pi_{n+1}(s)) + \gamma \sum_{s'} p(s'\mid s, \pi_{n+1}(s)) v^{(i)}(s)
     \end{align*}
   $$
 * Likewise, $q^{(i)}(s,a)$ represents the estimate of $q^{*}(s,a)$ at $i$-th iteration.
 
-In policy update step, the new policy $\pi^{(i+1)}(s)$ always picks the action maximizing the current estimtae of Q-function $q^{(i)}(s,a)$. Hence, it is called ***greedy*** policy update.
+In policy update step, the new policy $\pi_{n+1}(s)$ always picks the action maximizing the current estimtae of Q-function $q^{(i)}(s,a)$. Hence, it is called ***greedy*** policy update.
 
 #### Bellman Optimality Operator
 
@@ -939,7 +943,7 @@ $$
 \forall s\in\mathcal S, v_{\pi'}(s) \ge v_{\pi}(s)
 $$
 
-*Proof*: Using the definition of Q-functions
+*Proof*: Using the definition of Q-functions and Bellman operator, we get
 $$
 \begin{align*}
 q_{\pi}(s, \pi'(s)) &\ge q_{\pi}(s, \pi(s)) \\
@@ -948,24 +952,24 @@ r(s, \pi'(s)) + \mathbb E_{s'\sim p(\cdot\mid s, \pi'(s))}[v_{\pi}(s')] &\ge v_{
 \end{align*}
 $$
 
-Then, we conclude
+Applying $\mathcal B_{\pi'}$ repeatedly yields
+$$
+v_{\pi}(s)\le \mathcal B_{\pi'}^n v_{\pi}(s)
+\tag{$\star$}
+$$
+Recall that $\mathcal B_{\pi'}^n$ converges to $v_{\pi'}$ for any $v\in\mathcal V$. Taking the limit in $(\star)$, we get
 $$
 v_{\pi}(s)
-\le \mathcal B_{\pi'} v_{\pi}(s)
-\le \mathcal B_{\pi'}^2 v_{\pi}(s)
-\le \cdots
-\le \mathcal B_{\pi'}^n v_{\pi}(s)
-\le \lim_{n\to\infty} \mathcal B_{\pi'}^n v_{\pi}(s)
-= v_{\pi'}(s)
-\quad\blacksquare
+\le v_{\pi'}(s)
+\tag*{$\blacksquare$}
 $$
 
 ---
 
 > Init $\pi^{(0)}$ by random guessing  
 > For $i=0,1,2,\dots$, run until convergence  
-> $\quad$ **Policy evaluation**: Solve $\mathbf v_{\pi^{(i)}} = \mathbf r_{\pi^{(i)}} + \gamma\mathbf P_{\pi^{(i)}} \mathbf v_{\pi^{(i)}}$ for state values $\mathbf v_{\pi^{(i)}}$  
-> $\quad$ **Policy improvement**: Solve $\pi^{(i+1)} = \displaystyle\argmax_{\pi}  \big\{ \mathbf r_{\pi} + \gamma\mathbf P_{\pi} \mathbf v_{\pi^{(i)}} \big\}$ for new policy $\pi^{(i+1)}$
+> $\quad$ **Policy evaluation**: Solve $\mathbf v_{\pi_n} = \mathbf r_{\pi_n} + \gamma\mathbf P_{\pi_n} \mathbf v_{\pi_n}$ for state values $\mathbf v_{\pi_n}$  
+> $\quad$ **Policy improvement**: Solve $\pi_{n+1} = \displaystyle\argmax_{\pi}  \big\{ \mathbf r_{\pi} + \gamma\mathbf P_{\pi} \mathbf v_{\pi_n} \big\}$ for new policy $\pi_{n+1}$
 
 Remark:
 
@@ -976,37 +980,48 @@ or numerically using fixed point iteration.
 * In policy improvement, the new policy maximizes the immediate reward plus the discounted future reward by following $\pi^{(i)}$. Element-wise, this breaks down to maximizing the Q-functions:
     $$
     \begin{align}
-    \pi^{(i+1)}(s)
-    &= \argmax_{a\in\mathcal A}  \left\{ r(s,a) + \gamma\sum_{s'\in\mathcal S} p(s'\mid s,a) \, v_{\pi^{(i)}}(s') \right\}, \quad \forall s\in\mathcal S \\
-    &= \argmax_{a\in\mathcal A} q_{\pi^{(i)}} (s,a)
+    \pi_{n+1}(s)
+    &= \argmax_{a\in\mathcal A}  \left\{ r(s,a) + \gamma\sum_{s'\in\mathcal S} p(s'\mid s,a) \, v_{\pi_n}(s') \right\}, \quad \forall s\in\mathcal S \\
+    &= \argmax_{a\in\mathcal A} q_{\pi_n} (s,a)
     \end{align}
     $$
-* Each intermediate $\mathbf v_{\pi^{(i)}}$ satisfies the Bellman equation for policy $\pi^{(i)}$. vs. In value iteration, $\mathbf v^{(i)}$ does not generally satisfy Bellman equation for any policy!
+* Each intermediate $\mathbf v_{\pi_n}$ satisfies the Bellman equation for policy $\pi^{(i)}$. vs. In value iteration, $\mathbf v^{(i)}$ does not generally satisfy Bellman equation for any policy!
 
 Element-wise formulation of policy iteration:
 
-> Init $\pi^{(0)}(s)$ for all $s\in\mathcal S$ by random guessing  
-> For $i=0,1,2,\dots$, do  
-> $\quad$ **Policy evaluation**: compute $v_{\pi^{(i)}}(s)$ for all $s\in\mathcal S$ by solving linear equations  
+> Init $\pi_{0}(s)$ for all $s\in\mathcal S$ by random guessing  
+> For $n=0,1,2,\dots$, do  
+> $\quad$ **Policy evaluation**: compute $v_{\pi_n}(s)$ for all $s\in\mathcal S$ by solving linear equations  
 > $\quad$ For each $s\in\mathcal S$, do  
 > $\quad\quad\;$ For each $a\in\mathcal A$, compute  
-> $\quad\quad\qquad$ Q-function: $q_{\pi^{(i)}} (s,a) = r(s,a) + \gamma\displaystyle\sum_{s'\in\mathcal S} p(s'\mid s,a) \, v_{\pi^{(i)}}(s')$  
-> $\quad\quad\;$ **Policy improvement**: $\pi^{(i+1)}(s) = \displaystyle\argmax_{a\in\mathcal A} \: q_{\pi^{(i)}} (s,a)$  
-> until $\Vert\mathbf v_{\pi^{(i+1)}} - \mathbf v_{\pi^{(i)}} \Vert < \epsilon$  
-> Return $v_{\pi^{(i)}}(s)$ and $\pi^{(i)}(s)$ for all $s\in\mathcal S$
+> $\quad\quad\qquad$ Q-function: $q_{\pi_n} (s,a) = r(s,a) + \gamma\displaystyle\sum_{s'\in\mathcal S} p(s'\mid s,a) \, v_{\pi_n}(s')$  
+> $\quad\quad\;$ **Policy improvement**: $\pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A} \: q_{\pi_n} (s,a)$  
+> until $\Vert\mathbf v_{\pi_{n+1}} - \mathbf v_{\pi_n} \Vert < \epsilon$  
+> Return $v_{\pi_n}(s)$ and $\pi^{(i)}(s)$ for all $s\in\mathcal S$
 
 Policy iteratoin works because of following facts
 
-1. Policy improvement theorem: the policy is indeed improved iteratively.
+1. The policy is indeed improved iteratively.
     $$
-    \pi^{(i+1)}(s) = \displaystyle\argmax_{a\in\mathcal A} q_{\pi^{(i)}} (s,a)
+    \pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A} q_{\pi_n} (s,a)
     \implies
-    v_{\pi^{(i+1)}}(s) \ge v_{\pi^{(i)}}(s),\: \forall s\in\mathcal S
+    v_{\pi_{n+1}}(s) \ge v_{\pi_n}(s),\: \forall s\in\mathcal S
     $$
 1. The sequence of state values generated by policy iteration indeed converges to the optimal state values.
     $$
-    \lim_{i\to\infty} v_{\pi^{(i)}}(s) = v^*(s),\: \forall s\in\mathcal S
+    \lim_{i\to\infty} v_{\pi_n}(s) = v^*(s),\: \forall s\in\mathcal S
     $$
+
+*Proof 1*: By construction, for each $s\in\mathcal S$, $\pi_{n+1}(s)$ is the maximizer of $q_{\pi_n} (s,\cdot)$, i.e.
+$$
+q_{\pi_n} (s,\pi_{n+1}(s)) \ge q_{\pi_n} (s,a), \forall s\in\mathcal S, \forall a\in\mathcal A
+$$
+
+In particular, $q_{\pi_n} (s,\pi_{n+1}(s)) \ge q_{\pi_n} (s,\pi_{n}(s)), \forall s\in\mathcal S$. By policy improvement theorem, we conclude that $\pi_{n+1}$ is an improvement of $\pi_{n}(s)$. $\quad\blacksquare$
+
+*Proof 2*: By part 1, we know that the sequence of functions $v_{\pi_n}$ monotonically increases. On the other hand, all $v_{\pi_n}$ have finite sup norm and thus uniformly bounded. By monotonic convergence theorem (c.f. Appendix), $v_{\pi_n}$ converges to some $\bar v\in\mathcal V$.
+
+Next, we will show that $\bar v$ is indeed the optimal value function by showing that $\bar v$ satisfies BOE. **TBA**
 
 ### Generalized Policy Iteration
 
@@ -1152,7 +1167,7 @@ Eigenvector $\mathbf v$ is nonzero $\implies \vert\lambda\vert \le 1$. $\quad\bl
 
 ### Convergence of Sequence of Functions
 
-Let $\mathcal X$ be any set and $(f_n)_{n\in\mathbb N}:\mathcal X \to \mathbb R$ be a sequence of bounded functions. Then, we say that
+Let $\mathcal X$ be any set and $(f_n)_{n\in\mathbb N}:\mathcal X \to \mathbb R$ be a sequence of functions. Then, we say that
 
 $(f_n)_{n\in\mathbb N}$ converges to $f$ **point-wise** iff
 $$
@@ -1189,3 +1204,25 @@ $$
 \implies \text{point-wise convg.}
 \end{align*}
 $$
+
+$(f_n)_{n\in\mathbb N}$ is **monotonically increasing** iff for each $x\in\mathcal X$, the sequence $(f_n(x))_{n\in\mathbb N}$ is monotonically increasing, i.e.
+$$
+\forall x\in\mathcal X, \forall n\in\mathbb N, f_n(x) \le f_{n+1}(x)
+$$
+
+$(f_n)_{n\in\mathbb N}$ is **point-wise bounded** iff for each $x\in\mathcal X$, the sequence $(f_n(x))_{n\in\mathbb N}$ is bounded by some $M_x\in\mathbb R$, i.e.
+$$
+\forall x\in\mathcal X, \exist M_x\in\mathbb R \text{ s.t. }
+\forall n\in\mathbb N, \vert f_n(x) \vert \le M_x
+$$
+
+$(f_n)_{n\in\mathbb N}$ is **uniformly bounded** iff
+$$
+\exist M\in\mathbb R \text{ s.t. }
+\forall x\in\mathcal X, \forall n\in\mathbb N, \vert f_n(x)\vert \le M
+$$
+
+**Monotonic Convergence Theorem**  
+Let $(f_n)_{n\in\mathbb N}$ be point-wise bounded and monotonically increasing, then $(f_n)_{n\in\mathbb N}$ converges to some $f$.
+
+Remark: The limit function is not necessarily equal to the pointwise bound! i.e. Let $\vert f_n(x)\vert$ be bounded by $M_x$. Then, $f(x)\ne M_x$ in general.

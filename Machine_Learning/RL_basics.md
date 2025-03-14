@@ -1,5 +1,5 @@
 ---
-title: "Reinforcement Learning"
+title: "Intro to RL"
 author: "Ke Zhang"
 date: "2025"
 fontsize: 12pt
@@ -32,53 +32,14 @@ A Markov decision process (MDP) consists of
 
 In the following, we consider stationary MDP. i.e. Both the station transition probability and reward function are time-independent.
 
-### Policy
-
-In MDP, the agent performs actions determined by current state, according to a (deterministic) ***policy***
-$$
-\pi: \mathcal S \to \mathcal A, s\mapsto a=\pi(s)
-$$
-
-A policy can also be stochastic. i.e. instead of mapping the state to a fixed action, there are multiple possible actions with different probability. A stochastic policy is described by the conditional distribution
-
-$$
-\pi(a \mid s), a \in\mathcal A, s \in\mathcal S
-$$
-
-Remarks:
-
-* The determinstic policy can be seen as a special of stochastic policy by assigning $\pi(\hat a \mid s)$ to 1 for some $\hat a$.
-  $$
-  \pi(a \mid s) =
-  \begin{cases}
-    1 & a=\hat a\\
-    0 & \text{else}
-  \end{cases}
-  $$
-* For stochastic policy, it holds that
-  $$
-  \sum_a \pi(a \mid s) = 1
-  $$
-
-* Both deterministic and stochastic policy are time-invariant. i.e. The distribution of $a$ given $s$ is always the same, regardless when we arrived at $s$.
-
-From now on, we stick to deterministic policy and we will answer the following quesitons
-
-1. How to quantify the goodness of a policy?  
-    $\to$ state values, Bellman equations
-1. Which criterion should the optimal policy satisfy?  
-    $\to$ Bellman optimality equations.
-1. How to find the optimal policy?  
-    $\to$ value iteration, policy iteration
-
 ### Rewards
 
-Given the state $s_t$ at time $t$, the agent execute policy $a_t = \pi(s_t)$, which leads to
+Given the state $s_t$ at time $t$, the agent takes action $a_t$, which leads to
 
 * the new state $s_{t+1}$, sampled from $p(\cdot \mid s_t, a_t)$
 * and the reward $r_t$, determined by the reward function $r_t = r(s_t, a_t)$.
 
-Continue executing $\pi$, we get a state-action-reward trajectory
+Continue taking actions $a_{t+1}, a_{t+2}, \dots$, we get a state-action-reward trajectory
 $$
 s_t     \xrightarrow[r_t]    {a_t \:}
 s_{t+1} \xrightarrow[r_{t+1}]{a_{t+1} \:}
@@ -88,7 +49,7 @@ $$
 
 $\to$ Intuitive goal: Maximize the sum of all $r_t$.
 
-In the statistical setting, $s_t, s_{t+1}, \dots$ are instances of random variables $S_t, S_{t+1}, \dots$. Hence, the actions and rewards are also random. $\implies$ stochastic state-action-reward trajectory:
+In the stochastic setting, all states $S_{t}, S_{t+1}, \dots$ are random. Since the agent takes action based on current state, the action sequence is also random. Similary, the reward sequence is also random. $\implies$ stochastic state-action-reward trajectory:
 
 $$
 S_t     \xrightarrow[R_t]    {A_t \:}
@@ -124,11 +85,19 @@ G_t = R_t + \gamma G_{t+1}
 \end{align}
 $$
 
-## State Value & Bellman Equations
+### Policy
 
-### State Value
+In MDP, the agent performs actions determined by current state, according to a ***policy***
+$$
+\pi: \mathcal S \to \mathcal A, s\mapsto a=\pi(s)
+$$
 
-> The ***state value*** $v_{\pi}(s)$ is defined as the expected total reward by executing policy $\pi$ starting from state $s$.
+Remark: The policy defined here is **time-invariant** and **deterministic**, i.e. For a certain state $s$, the agent takes the **same** action **whenever** he arrives at $s$.
+
+### State Value Function
+
+> For a certain policy $\pi$, the corresponding ***state value function*** is mapping $v_{\pi}:\mathcal S\to\mathbb R, s\mapsto v_{\pi}(s)$.  
+> $v_{\pi}(s)$ is called ***state value***, defined as the expected total reward by executing policy $\pi$ starting from state $s$.
 >
 > $$
 > \begin{align}
@@ -140,15 +109,15 @@ $$
 
 Remarks:
 
-* The expectation is take over $\{S_k\}_{k \ge t+1}$
+* The expectation is take over $\{S_k\}_{k \ge t+1}$. The random variable $G_t$ depends implicity on policy $\pi$ as it represents the total reward by executing $\pi$.
 
 * State value $v_{\pi}(s)$ is defined for **ALL** possible states in space $\mathcal S$.
 
 * For a fixed policy $\pi$, $v_{\pi}(s)$ quantifies the goodness of state $s$.
 
-* For a fixed initial state $s$, $\mathbf v_{\pi}$ quantifies the goodness of policy $\pi$.
+* For a fixed initial state $s$, $v_{\pi}(s)$ quantifies the goodness of policy $\pi$.
 
-* For a stationanry MDP, $v_{\pi}(s)$ is independent of $t$. i.e. The state value of $s$ remains the same regardless of when the agents arrives at $s$. Hence, one can also define the state value as
+* For a stationanry MDP, $v_{\pi}(s)$ is independent of $t$. i.e. The state value of $s$ remains the same regardless of when the agents arrives at $s$. Hence, we can assume without loss of generality that the agent arrived at $s$ at $t=0$. The state value then becomes
 
   $$
   v_{\pi}(s) = \mathbb E
@@ -157,7 +126,40 @@ Remarks:
   \right]
   $$
 
-### Bellman Equations
+### Q-function (State-Action Value)
+
+The ***Q-function*** (or ***state action value***) for a certain policy $\pi$ as follows
+> $$
+> \begin{align}
+> q_{\pi}(s,a)
+> &= \mathbb E\left[ G_t \:\middle|\: S_t = s, A_t = a \right],
+> \quad \forall s\in\mathcal S, \forall a\in\mathcal A
+> \end{align}
+> $$
+
+Relation between Q-function and state value for the same $\pi$:
+
+* Interpretation: $q_{\pi}(s,a)$ represents the total reward of taking action $a$ at initial state $s$ and then following a policy $\pi$. vs. $v_{\pi}(s)$ represents the total reward of following $\pi$ from $s$ onward.
+* For fixed $\pi$ and $s$, if $q_{\pi}(s,a_1) > q_{\pi}(s,a_2)$, we say that $a_1$ is the better action to take over $a_2$ at state $s$.
+* Compute $v_{\pi}(s)$ from $q_{\pi}(s,a)$: simply let $a=\pi(s)$, i.e.
+  $$
+  \begin{align}
+  v_{\pi}(s) = q_{\pi}(s,a) \Big|_{a=\pi(s)}
+  \end{align}
+  $$
+
+* Compute $q_{\pi}(s,a)$ from $v_{\pi}(s)$: use Bellman equation (will be proved later)
+  $$
+  \begin{align}
+  q_{\pi}(s,a)
+  &= r(s,a) + \gamma \mathbb E_{s' \sim p(\cdot \mid s, a)} [ v_{\pi}(s') ] \\[4pt]
+  &= r(s,a) + \gamma \sum_{s'\in\mathcal S} p(s' \mid s, a) v_{\pi}(s') & \text{if } \mathcal S \text{ is finite}\\
+  \end{align}
+  $$
+
+## Bellman Equations
+
+### Bellman Equations for State Value
 
 > Bellman Equations: The state values have the recursive structure
 > $$
@@ -210,7 +212,7 @@ v_{\pi}(s)
 \end{align*}
 $$
 
-The underbraced term is the expected total reward by executing policy $\pi$ starting from state $s_1$ which is by definition exactly the state value of $s_1s_1$. Hence, we conclude. $\quad\square$
+The underbraced term is the expected total reward by executing policy $\pi$ starting from state $s_1$ which is by definition exactly the state value of $s_1s_1$. Hence, we conclude. $\quad\blacksquare$
 
 For finite state space, the expected future reward in Bellman equation can be expressed in a sum. The Bellman equations become
 
@@ -284,6 +286,7 @@ v_{\pi}(\text{bull}) \\ v_{\pi}(\text{bear})  \\ v_{\pi}(\text{flat})
 v_{\pi}(\text{bull}) \\ v_{\pi}(\text{bear})  \\ v_{\pi}(\text{flat})
 \end {bmatrix}
 $$
+
 In general, let $\mathcal S = \{ \varsigma_1, \dots, \varsigma_n \}$. (To avoid confusion, we do not use $\{s_1, \dots, s_n\}$ to denote $\mathcal S$ because the indices of $s$ represent time.) Then, we can write $n$ Bellman equations into the vector form
 $$
 \underbrace{
@@ -336,11 +339,25 @@ Now, given the Bellman equations (either in element-wise or vector form), we ask
 1. Is there a policy which maximizes the state values? If so, how to find it?  
     $\to$ dynamic programming
 
-### Solving Bellman Equations
+### Bellman Equation for Q-function
 
-In this section, we assume finite state space. Then, computing the state values is essentially solving linear equations. c.f. Bellman equation in vector form.
+Similarly, Q-function also has recursive structure
+$$
+q_{\pi}(s,a) = r(s,a) + \gamma \mathbb E_{s' \sim p(\cdot \mid s, a)} [ q_{\pi}(s', \pi(s')) ]
+$$
 
-Analytical solution: Given policy $\pi$, the state values are
+## Policy Evaluation
+
+Given a policy $\pi$, computing its value function $v_{\pi}(\cdot)$ is called ***policy evaluation***. Effectively, we would like to evaluate how good $\pi$ is for each state $s$. This is equivelent to solving Bellman equations. We will see later:
+
+* If $\mathcal S$ is a finite set, solving Bellman equations boils down to solving a system of linear equations.
+* If $\mathcal S$ is a infinite set, there is generally no closed-form solution for $v_{\pi}(s)$ expect for a few special cases (not covered here).
+
+### Computing State Values for Finite State Space
+
+#### Analytical Solution
+
+If $\mathcal S$ is fininte, policy evaluation boils down to solving $\mathbf v_{\pi} = \mathbf r_{\pi} + \gamma \mathbf P_{\pi}\mathbf v_{\pi}$ for $\mathbf v_{\pi}$. It is easy to verify that the analytical solution to the Bellman equations is
 $$
 \begin{align}
 \mathbf v_{\pi} = (\mathbf{I} - \gamma \mathbf{P}_{\pi})^{-1} \mathbf r_{\pi}
@@ -349,42 +366,59 @@ $$
 
 where $\mathbf{I}$ is the $\vert \mathcal S \vert \times \vert \mathcal S \vert$ identity matrix.
 
-*Proof*: Follows directy from vector form of Bellman equation. $\quad\square$
+Remarks:
 
-Drawback of analytical solution: involves matrix inversion. High computational complexity when $\vert \mathcal S \vert$ is large.
+* The analytical solution is useful for theoretical study. Only practical when $\vert \mathcal S \vert$ is small.
+* Drawback of analytical solution:
+  * Requires matrix inversion. High computational complexity (nearly $\mathcal O(\vert \mathcal S \vert^3)$) when $\vert \mathcal S \vert$ is large.
+  * No generalization to infinite state space as we can not pack pack all $v(s), s\in\mathcal S$ into a vector
 
-Numerical solution (fixed point iteration): The state values can be obtained from the following algorithm
+#### Numerical Solution: Bellman Update
+
+Algorithm to compute state values:
+
+> **Bellman Update (vector form)**  
 > Initialize $\mathbf v^{(0)}$ arbitrarily.  
-> For $i=0,1,\dots$, run until convergence:
+> For $n=0,1,\dots$, run until $\mathbf v^{(n)}$ converges
 >
 > $$
 > \begin{align}
-> \mathbf v^{(i+1)} = \mathbf r_{\pi} + \gamma \mathbf P_{\pi} \mathbf v^{(i)}
+> \mathbf v^{(n+1)} = \mathbf r_{\pi} + \gamma \mathbf P_{\pi} \mathbf v^{(n)}
 > \end{align}
+> $$
+
+The above algorithm can be reformulated element-wise as follows
+
+> **Bellman Update (element-wise form)**  
+> Init $v^{(0)}(s)$ for all $s\in\mathcal S$  
+> For $n=0,1,\dots$, run until $v^{(n)}(s)$ converges  
+> $\quad$ For each $s\in\mathcal S$, do  
+> $$
+> v^{(n+1)}(s) = r(s, \pi(s)) + \gamma\sum_{s'\in\mathcal S} p(s' \mid s, \pi(s)) [ v^{(n)}(s') ]
 > $$
 
 Remarks:
 
-* During iteration, $\mathbf v^{(i)}$ is not a true state value vector since $\mathbf v^{(i)}$ itself does not satisfy Bellman equation. There is no policy associated with $\mathbf v^{(i)}$.
-* The sequence $\mathbf v^{(0)}, \mathbf v^{(1)}, \dots$ obtained from above iteration converges to $\mathbf v_{\pi}$, i.e.
+* During iteration, $\mathbf v^{(n)}$ itself does not neccessarily satisfy Bellman equation for any policy.
+* The sequence $\mathbf v^{(0)}, \mathbf v^{(1)}, \dots$ obtained from Bellman update converges to $\mathbf v_{\pi}$, i.e.
   $$
   \begin{align}
-  \lim_{i\to\infty} \mathbf v^{(i)}
+  \lim_{n\to\infty} \mathbf v^{(n)}
   = \mathbf v_{\pi}
   = (\mathbf{I} - \gamma \mathbf{P}_{\pi})^{-1} \mathbf r_{\pi}
   \end{align}
   $$
 
-*Proof of convergence*: Let $n=\vert \mathcal S \vert$. From Bellman equation, we know that $\mathbf v_{\pi}$ is a fixed point of the affine function
+*Proof of convergence*: Define the affine function
 $$
-f: \mathbb R^n \to \mathbb R^n,
-\mathbf v \mapsto
-f(\mathbf v) = \mathbf r_{\pi} + \gamma \mathbf P_{\pi} \mathbf v
+f_{\pi}: \mathbb R^{\vert \mathcal S \vert} \to \mathbb R^{\vert \mathcal S \vert},
+\mathbf v \mapsto \mathbf r_{\pi} + \gamma \mathbf P_{\pi} \mathbf v
 $$
-We show that $f(\cdot)$ is a contractive mapping under infinity norm.
+
+We show that $f_{\pi}(\cdot)$ is a contractive mapping under infinity norm.
 $$
 \begin{align*}
-\Vert f(\mathbf u) - f(\mathbf v) \Vert_{\infty}
+\Vert f_{\pi}(\mathbf u) - f_{\pi}(\mathbf v) \Vert_{\infty}
 &= \left\Vert (\mathbf r_{\pi} + \gamma \mathbf P_{\pi} \mathbf u) - (\mathbf r_{\pi} + \gamma \mathbf P_{\pi} \mathbf v) \right\Vert_{\infty}
 \\
 &= \gamma \left\Vert  \mathbf P_{\pi} (\mathbf u - \mathbf v) \right\Vert_{\infty}
@@ -393,14 +427,133 @@ $$
 \end{align*}
 $$
 
-The last step follows from the fact that $\Vert \mathbf P_{\pi} \mathbf x \Vert_{\infty} \le \Vert \mathbf x \Vert_{\infty}, \forall x\in\mathbb R^n$, i.e. multiplication with row stochastic matrix does not increase infnity norm. (c.f. Appendix).
+The last step follows from the fact that $\Vert \mathbf P_{\pi} \mathbf x \Vert_{\infty} \le \Vert \mathbf x \Vert_{\infty}, \forall x\in\mathbb R^{\vert \mathcal S \vert}$, i.e. multiplication with row stochastic matrix does not increase infnity norm. (c.f. Appendix).
 
 By contraction mapping theorem (c.f. separate notes), we conclude that
 
-1. $f(\cdot)$ has a unique fixed point. Since $\mathbf v_{\pi}  = f(\mathbf v_{\pi} )$ by Bellman equation, $\mathbf v_{\pi}$ is the unique fixed point.
-1. $\forall \mathbf v^{(0)} \in\mathbb R^n$, the sequence defined by $\mathbf v^{(i+1)} = f(\mathbf v^{(i)})$ converges to $\mathbf v_{\pi} $ in infnity norm
+1. $f_{\pi}(\cdot)$ has a unique fixed point. Since $\mathbf v_{\pi}  = f_{\pi}(\mathbf v_{\pi} )$ by Bellman equation, $\mathbf v_{\pi}$ is the unique fixed point.
+2. $\forall \mathbf v\in\mathbb R^{\vert \mathcal S \vert}$, the sequence of vectors $f_{\pi}^n (\mathbf v)$ converges to $\mathbf v_{\pi} $ in infnity norm
 
-Since all $p$-norms in $\mathbb R^n$ are equivalent, convergence in infnity norm implies convergence in any $p$-norm. $\:\square$
+Since all $p$-norms in $\mathbb R^{\vert \mathcal S \vert}$ are equivalent, convergence in infnity norm implies convergence in any $p$-norm. $\:\blacksquare$
+
+### Bellman Operator for Infinite State Space
+
+Generalization of Bellman update to any $\mathcal S$ (possibly an infinite set). Instead of considering state values $v_{\pi}(s), \forall s\in\mathcal S$ as a vector in $\mathbb R^{\vert \mathcal S \vert}$, we consider the state value function $v_{\pi}(\cdot)$ as a "point" in the following function space.
+
+Let $\mathcal V$ be the set of all **bounded** value functions.
+$$
+\mathcal V =
+\left\{
+v:\mathcal S\to\mathbb R \:\Big|\: \Vert v \Vert_\infty  < \infty
+\right\}
+$$
+
+where the ***sup norm*** is defined as
+$$
+\Vert v \Vert_\infty \triangleq \max_{s\in\mathcal S} \vert v(s) \vert
+$$
+
+The ***sup norm metric*** $d: \mathcal V \times \mathcal V \to \mathbb R, (u,v) \mapsto d(u,v)$ is defined as
+$$
+d(u,v) = \Vert u-v \Vert_\infty = \max_{s\in\mathcal S} \vert u(s)-v(s) \vert
+$$
+
+One can verify that $d(\cdot,\cdot)$ satisfies the metric axioms and that $(\mathcal V, d)$ is a **complete** metric space.
+
+For a certain policy $\pi$, we define the corresponding Bellman operator $\mathcal B_{\pi}$ which maps a state value function $v(\cdot)$ to a new value function $\mathcal B_{\pi}v(\cdot)$.
+> $$
+> \mathcal B_{\pi}: \mathcal V \to \mathcal V, v \mapsto \mathcal B_{\pi}v
+> $$
+
+where the new value function is defined as
+> $$
+> \mathcal B_{\pi} v(s) =
+> r(s, \pi(s)) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ v(s') ]
+> $$
+
+Note that $\mathcal B_{\pi} v$ is defined as long as $v$ is bounded and $v$ itself does not necessarily need to satisfy Bellman equation for any policy. Nevertheless, if $v$ happens to be the value function $v_{\tilde\pi}$ for some policy $\tilde \pi$. Then,
+$$
+\mathcal B_{\pi} v_{\tilde\pi} = q_{\tilde\pi}(s,\pi(s))
+$$
+Properties of Bellman operator:
+
+> 1. $\mathcal B_{\pi}$  is monotonic, i.e.
+>    $$
+>    u(s) \le v(s), \forall s\in\mathcal S \implies
+>    \mathcal B_{\pi}u(s) \le \mathcal B_{\pi}v(s), \forall s\in\mathcal S
+>    $$
+> 1. $\mathcal B_{\pi}$  is a contractive mapping. i.e. 
+>    $$
+>    \forall u, v\in\mathcal V,\:
+>    \Vert \mathcal B_{\pi}u - \mathcal B_{\pi}v \Vert_\infty \le \gamma \Vert u-v\Vert_\infty
+>    $$
+> 1. $v_{\pi}(\cdot)$ is the unique fixed point of $\mathcal B_{\pi}$, i.e.
+>    $$
+>    \mathcal B_{\pi} v_{\pi}(s) = v_{\pi}(s), \forall s\in\mathcal S
+>    $$
+
+*Proof 1*:
+By the monotonicity of expectation
+$\mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ u(s') ] \le \mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ v(s') ]$, we conclude. $\:\blacksquare$
+
+*Proof 2*:
+Consider $\vert \mathcal B_{\pi}u(s) - \mathcal B_{\pi}v(s) \vert$ for all $s\in\mathcal S$.
+$$
+\begin{align*}
+\vert \mathcal B_{\pi}u(s) - \mathcal B_{\pi}v(s) \vert
+&=\Big\vert
+    r(s, \pi(s)) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ u(s') ] -
+    r(s, \pi(s)) - \gamma\mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ v(s') ]
+  \Big\vert\\
+&=\vert\gamma\vert \cdot
+  \Big\vert
+    \mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ u(s') -v(s') ]
+  \Big\vert\\
+&\le \gamma \cdot
+    \mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} \big[\vert u(s') -v(s') \vert\big]\\
+&\le \gamma \cdot
+    \mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} \big[\Vert u-v\Vert_\infty\big]\\
+&\le \gamma \cdot \Vert u-v\Vert_\infty
+\end{align*}
+$$
+
+Hence, we conclude
+$$
+\Vert \mathcal B_{\pi}u - \mathcal B_{\pi}v \Vert_\infty
+=\displaystyle\max_{s\in\mathcal S} \vert \mathcal B_{\pi}u(s) - \mathcal B_{\pi}v(s) \vert
+\le \gamma \cdot \Vert u-v\Vert_\infty
+\quad\blacksquare
+$$
+
+*Proof 3*:
+By Bellman equation, we know that $v_{\pi}$ is a fixed point of $\mathcal B_{\pi}$. The uniqueness follows from contraction mapping theorem and completeness of $\mathcal V$. $\quad\blacksquare$
+
+Hence, starting from any $v\in\mathcal V$ (which does not neccessarily need to satisfy Bellman equation for any policy). Repeatedly applying $\mathcal B_{\pi}$ on $v$ leads to convergence to $v_{\pi}$. Formally,
+$$
+\forall v \in\mathcal V: \lim_{n\to\infty} \Vert B_{\pi}^n v - v_{\pi}\Vert_{\infty} =0
+$$
+
+Using the fact that convergence in sup norm implies point-wise convergence(c.f. Appendix), we get
+$$
+\forall v \in\mathcal V: \lim_{n\to\infty} B_{\pi}^n v(s) =  v_{\pi}(s), \forall s\in\mathcal S
+$$
+
+Let $v_n \triangleq \mathcal B_{\pi}^n v$. Then, the function sequence can be computed recursively
+$$
+\begin{align*}
+v_n(s)
+&= \mathcal B_{\pi} v_{n-1}(s) \\
+&= r(s, \pi(s)) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ v_{n-1}(s') ] \\
+\end{align*}
+$$
+
+For finite state space, the above equation reduces to Bellman updates shown in previous section
+$$
+\begin{align*}
+v_n(s)
+&= r(s, \pi(s)) + \gamma\sum_{s'\in\mathcal S} p(s' \mid s, \pi(s)) [ v_{n-1}(s') ]
+\end{align*}
+$$
 
 ## Bellman Optimality Equations
 
@@ -426,7 +579,7 @@ $$
 
 We haven't proved the existence of $\pi^*$. For now, let's assume its existence and discover what conditions have to be met for $\pi^*$ and $v^*(s)$. This will lead us to Bellman optimality equations,  from which we will derive an algorithm to find $\pi^*$ (and thus prove its existence).
 
-### Bellman Optimality Criterion
+### Optimal State Values
 
 Recall the Bellman equation for $v_{\pi}(s)$ holds for any policy. In particular, Bellman equations also hold for $\pi^*$:
 
@@ -593,207 +746,7 @@ $$
 \end{bmatrix}^\top
 $$
 
-### Solving Optimal State Values
-
-Similar to the algorithm to solve the state values $\mathbf v_{\pi}$ for any given policy, we introduce the following algorithm to solve the optimal state values $\mathbf v^*$.
-
-> Init $\mathbf v^{(0)}$ arbitrarily  
-> For $i=0,1,\dots$, run until convergence
-> $$
-> \begin{align}
-> \mathbf v^{(i+1)}
-> = \max_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v^{(i)} \right\}
-> \end{align}
-> $$
-
-Remarks:
-
-* The sequence $\mathbf v^{(0)}, \mathbf v^{(1)}, \dots$ obtained from above iteration converges to $\mathbf v^*$, i.e.
-  $$
-  \begin{align}
-  \lim_{i\to\infty} \mathbf v^{(i)} = \mathbf v^*
-  \end{align}
-  $$
-* Having computed the optimal state values $\mathbf v^*$, the optimal policy is obtained from
-  > $$
-  > \begin{align}
-  > \pi^*(s) = \argmax_{a\in\mathcal A}
-  > \left\{
-  >   r(s, a) + \gamma \sum_{s'} p(s' \mid s, a) \cdot v^*(s')
-  > \right\},
-  > \quad \forall s\in\mathcal S
-  > \end{align}
-  > $$
-* Reminder: The iteration does **not** ensure that the intermediate result $\mathbf v^{(i)}$ satisfy Bellman equation **for any policy**. However, the limit of $\mathbf v^{(i)}$ satisfies BOEs, i.e. the Bellman equation for the optimal policy.
-
-*Proof of convergence*: In the following, all $\max(\cdot)$, $\vert\cdot\vert$ and inequalities are taken element-wise when acting on vectors. Let $\mathcal S = \{ \varsigma_1, \dots, \varsigma_n \}$ and
-$$
-f: \mathbb R^n \to \mathbb R^n, \mathbf v \mapsto
-f(\mathbf v) = \displaystyle\max_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v \right\}
-$$
-
-By BOE, $\mathbf v^*$ is a fixed point of $f(\cdot)$. To prove the convergence, it is sufficient to show that $f(\cdot)$ is contractive.  
-For any $\mathbf u, \mathbf v\in\mathbb R^n$, we have two optimization problems w.r.t. $a$. (The maximization is taken element-wise)
-$$
-\begin{align*}
-f(\mathbf u)
-&= \displaystyle\max_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf u \right\}
-\\
-f(\mathbf v)
-&= \displaystyle\max_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v \right\}
-\end{align*}
-$$
-For $f(\mathbf u)$, let $\hat a_k$ be the optimizer at $k$-row of $\mathbf r_a + \gamma \mathbf P_a\mathbf u $. (Note: $\hat a_k$ depends on $\mathbf u$)
-$$
-\hat a_k = \argmax_{a\in\mathcal A}
-\Big\{
-r(\varsigma_k, a) + \gamma \sum_{j} p(\varsigma_j \mid \varsigma_k, a) \cdot u_j
-\Big\}
-$$
-Then, we can express $f(\mathbf u)$ in with $\mathbf r_{\hat a}$ and $\mathbf P_{\hat a}$, defined as follows.
-$$
-\mathbf r_{\hat a} \triangleq
-\begin{bmatrix}
-  r(\varsigma_1, \hat a_1) \\
-  \vdots \\
-  r(\varsigma_n, \hat a_n)
-\end{bmatrix}
-,\:
-\mathbf P_{\hat a} \triangleq
-\begin{bmatrix}
-p(\varsigma_1 \mid \varsigma_1, \hat a_1) & \dots & p(\varsigma_n \mid \varsigma_1, \hat a_1)  \\
-\vdots & \ddots & \vdots \\
-p(\varsigma_1 \mid \varsigma_n, \hat a_n) & \dots & p(\varsigma_n \mid \varsigma_n, \hat a_n)
-\end{bmatrix}
-\implies
-f(\mathbf u) = \mathbf r_{\hat a} + \gamma \mathbf P_{\hat a}\mathbf u
-$$
-Likewise, for $f(\mathbf v)$, let $\hat b_k$ be the optimizer at $k$-row of $\mathbf r_a + \gamma \mathbf P_a\mathbf v $. (Note: $\hat b_k$ depends on $\mathbf v$. Hence, $\hat a_k \ne \hat b_k$ in general)
-$$
-\hat b_k = \argmax_{a\in\mathcal A}
-\Big\{
-r(\varsigma_k, a) + \gamma \sum_{j} p(\varsigma_j \mid \varsigma_k, a) \cdot v_j
-\Big\}
-$$
-Define $\mathbf r_{\hat b}$ and $\mathbf P_{\hat b}$ in the same way. $\implies f(\mathbf v) = \mathbf r_{\hat b}+ \gamma \mathbf P_{\hat b}\mathbf v$.
-
-By the optimality of $\{\hat a_1, \dots, \hat a_n\}$ and $\{\hat b_1, \dots, \hat b_n\}$,
-$$
-\begin{align*}
-f(\mathbf u)
-&= \mathbf r_{\hat a} + \gamma \mathbf P_{\hat a}\mathbf u
-\ge \mathbf r_{\hat b} + \gamma \mathbf P_{\hat b}\mathbf u
-\\
-f(\mathbf v)
-&= \mathbf r_{\hat b}+ \gamma \mathbf P_{\hat b}\mathbf v
-\ge \mathbf r_{\hat a}+ \gamma \mathbf P_{\hat a}\mathbf v
-\\
-\end{align*}
-$$
-Hence, $f(\mathbf u) - f(\mathbf v)$ is element-wise bounded as follows
-$$
-\begin{align*}
-f(\mathbf u) - f(\mathbf v)
-&= (\mathbf r_{\hat a} + \gamma \mathbf P_{\hat a}\mathbf u) -
-   (\mathbf r_{\hat b}+ \gamma \mathbf P_{\hat b}\mathbf v) \\
-&\ge(\mathbf r_{\hat b} + \gamma \mathbf P_{\hat b}\mathbf u) -
-    (\mathbf r_{\hat b}+ \gamma \mathbf P_{\hat b}\mathbf v)
-= \gamma \mathbf P_{\hat b}(\mathbf u - \mathbf v)
-\\[6pt]
-f(\mathbf u) - f(\mathbf v)
-&= (\mathbf r_{\hat a} + \gamma \mathbf P_{\hat a}\mathbf u) -
-   (\mathbf r_{\hat b}+ \gamma \mathbf P_{\hat b}\mathbf v) \\
-&\le(\mathbf r_{\hat a} + \gamma \mathbf P_{\hat a}\mathbf u) -
-    (\mathbf r_{\hat a}+ \gamma \mathbf P_{\hat a}\mathbf v)
-= \gamma \mathbf P_{\hat a}(\mathbf u - \mathbf v)
-\\[6pt]
-\implies
-\gamma \mathbf P_{\hat b}(\mathbf u - \mathbf v)
-\le
-f(\mathbf u) &- f(\mathbf v)
-\le \gamma \mathbf P_{\hat a}(\mathbf u - \mathbf v)
-\end{align*}
-$$
-Taking the absolute values of $f(\mathbf u) - f(\mathbf v)$ element-wise yields
-$$
-\begin{align*}
-\left\vert f(\mathbf u) - f(\mathbf v) \right\vert
-\le \max
-\left\{
-  \gamma \big\vert \mathbf P_{\hat b}(\mathbf u - \mathbf v) \big\vert ,
-  \gamma \big\vert \mathbf P_{\hat a}(\mathbf u - \mathbf v) \big\vert
-\right\}
-
-&\le \gamma \Vert \mathbf u - \mathbf v \Vert_{\infty} \cdot \mathbf 1
-\end{align*}
-$$
-* ⓘ The last inequality follows from the property of row-stochastic matrix (c.f. Appendix): If $\mathbf P\in\mathbb R^{n\times n}$ is a row-stochastic matrix, then
-$$
-  \forall \mathbf x\in\mathbb R^n:
-  \big\vert(\mathbf{Px})_{i}\big\vert \le \Vert \mathbf x \Vert_{\infty}
-  \iff
-  \big\vert(\mathbf{Px})\big\vert \le \Vert \mathbf x \Vert_{\infty}\cdot\mathbf 1
-$$
-Namely, all elements of $\left\vert f(\mathbf u) - f(\mathbf v) \right\vert$ is boudned by $\gamma \Vert \mathbf u - \mathbf v \Vert_{\infty}$. Hence,
-$$
-\left\Vert f(\mathbf u) - f(\mathbf v) \right\Vert_{\infty}
-\le \gamma \Vert \mathbf u - \mathbf v \Vert_{\infty}
-\iff
-f(\cdot) \text{ is contractive }\quad\square
-$$
-*Proof of optimal policy*: When deriving BOEs, we showed that
-$$
-\begin{align*}
-\pi^*(s) = \argmax_{a\in\mathcal A}
-\left\{
-  r(s, a) + \gamma \mathbb E_{s' \sim p(\cdot \mid s, a)} [ v^*(s') ]
-\right\},
-\quad \forall s\in\mathcal S
-\end{align*}
-$$
-Expanding the expectation into a sum, we conclude. $\quad\square$
-
-### Q-function
-
-During derivation of the optimality conditions, we used the key fact that
-
-> At any time step, executing the optimal policy $\pi^*$ from that point onward is at least as good as taking any other action $a$ first and then following  $\pi^*$.
-
-This motivates us to define the ***Q-function*** (or ***state action value***) for a certain policy $\pi$ as follows
-$$
-\begin{align}
-q_{\pi}(s,a)
-&= \mathbb E\left[ G_t \:\middle|\: S_t = s, A_t = a \right],
-\quad \forall s\in\mathcal S, \forall a\in\mathcal A
-\end{align}
-$$
-
-Relation between Q-function and state value for the same $\pi$:
-
-* Interpretation: $q_{\pi}(s,a)$ represents the total reward of taking action $a$ at initial state $s$ and then following a policy $\pi$. vs. $v_{\pi}(s)$ represents the total reward of following $\pi$ from $s$ onward. Recall: the state value is defined as
-  $$
-  \begin{align*}
-  v_{\pi}(s)
-  &= \mathbb E\left[ G_t \:\middle|\: S_t = s \right],
-  \quad \forall s\in\mathcal S
-  \end{align*}
-  $$
-
-* Compute $v_{\pi}(s)$ from $q_{\pi}(s,a)$: simply let $a=\pi(s)$, i.e.
-  $$
-  \begin{align}
-  v_{\pi}(s) = q_{\pi}(s,a) \Big|_{a=\pi(s)}
-  \end{align}
-  $$
-
-* Compute $q_{\pi}(s,a)$ from $v_{\pi}(s)$: use recurisve structure (The same idea when deriving Bellman equation for a certain policy)
-  $$
-  \begin{align}
-  q_{\pi}(s,a)
-  &= r(s,a) + \gamma \mathbb E_{s' \sim p(\cdot \mid s, a)} [ v_{\pi}(s') ] \\
-  &= r(s,a) + \gamma \sum_{s'\in\mathcal S} p(s' \mid s, a) v_{\pi}(s') & \text{if } \mathcal S \text{ is finite}\\
-  \end{align}
-  $$
+### Optimal Q-function
 
 Similary, the optimal Q-function is defined as
 $$
@@ -833,47 +786,190 @@ Throughout this section, we assume that both state space and action space are di
 * state transition probabilities $p(s' \mid s,a)$ for all $s,s'\in\mathcal S, a\in\mathcal A $
 * state-action-rewards $r(s,a)$ for all $s\in\mathcal S, a\in\mathcal A $
 
-From previous sections, we knew that an optimal policy  $\pi^*$ exists. Now, we focus on designing algorithms to compute $\pi^*$.
+From previous sections, we discussed optimality conditions for optimal policy and optimal value functions. Now, we will derive algorithms to compute the optimal policy.
 
 ### Value Iteration
 
-The algorithm introduced earlier to solve BOEs is called value iteration. For the sake of implementation, the algorithm can be unfolded element-wise as follows
+> Init $\mathbf v^{(0)}$ arbitrarily  
+> For $i=0,1,\dots$, run until convergence
+> $$
+> \begin{align}
+> \mathbf v_{n+1}
+> = \max_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v^{(i)} \right\}
+> \end{align}
+> $$
+
+Remarks:
+
+* The sequence $\mathbf v^{(0)}, \mathbf v^{(1)}, \dots$ obtained from above iteration converges to $\mathbf v^*$, i.e.
+  $$
+  \begin{align}
+  \lim_{i\to\infty} \mathbf v^{(i)} = \mathbf v^*
+  \end{align}
+  $$
+* Having computed the optimal state values $\mathbf v^*$, the optimal policy is obtained from
+  > $$
+  > \begin{align}
+  > \pi^*(s) = \argmax_{a\in\mathcal A}
+  > \left\{
+  >   r(s, a) + \gamma \sum_{s'} p(s' \mid s, a) \cdot v^*(s')
+  > \right\},
+  > \quad \forall s\in\mathcal S
+  > \end{align}
+  > $$
+* Reminder: The iteration does **not** ensure that the intermediate result $\mathbf v^{(i)}$ satisfy Bellman equation **for any policy**. However, the limit of $\mathbf v^{(i)}$ satisfies BOEs, i.e. the Bellman equation for the optimal policy.
 
 > Init $v^{(0)}(s)$ for all $s\in\mathcal S$ by random guessing  
 > For $i = 0,1,\dots$, do  
 > $\quad$ For each $s\in\mathcal S$, do  
 > $\quad\quad$ For each $a\in\mathcal A$, compute Q-function  
 > $\quad\quad\qquad q^{(i)}(s,a) = r(s, a) + \gamma \displaystyle\sum_{s'} p(s' \mid s, a) \cdot v^{(i)}(s')$  
-> $\quad\quad$ **Policy update**: $\pi^{(i+1)}(s) = \displaystyle\argmax_{a\in\mathcal A}\, q^{(i)}(s,a)$  
-> $\quad\quad$ **Value update**: $v^{(i+1)}(s) = \displaystyle\max_{a\in\mathcal A} q^{(i)}(s,a)$  
-> until $\big\Vert \mathbf v^{(i+1)} - \mathbf v^{(i)} \big\Vert \le$ some threshold $\epsilon$. (i.e. $\mathbf v^{(i)}$ converges)  
+> $\quad\quad$ **Policy update**: $\pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A}\, q^{(i)}(s,a)$  
+> $\quad\quad$ **Value update**: $v_{n+1}(s) = \displaystyle\max_{a\in\mathcal A} q^{(i)}(s,a)$  
+> until $\big\Vert \mathbf v_{n+1} - \mathbf v^{(i)} \big\Vert \le$ some threshold $\epsilon$. (i.e. $\mathbf v^{(i)}$ converges)  
 > Return $v^{(i_\text{stop})}(s)$ and $\pi^{(i_\text{stop})}(s)$ for all $s\in\mathcal S$
 
 Remarks:
 
 * In stopping condition, $\mathbf v^{(i)}$ is the vector containing all $v^{(i)}(s), s\in\mathcal S$. The norm can be infinity norm or any other norms.
-* Although $v^{(i)}(s)$ converges to $v^{*}(s)$ for all $s\in\mathcal S$, the intermediate values $v^{(i)}(s)$ do **not** generally satisfy Bellman equation for **any** policy. We interpret $v^{(i)}(s)$ as the estimate of $v^*(s)$ at $i$-th iteration rather than the state values under $\pi^{(i)}$ or $\pi^{(i+1)}$, i.e.
+* Although $v^{(i)}(s)$ converges to $v^{*}(s)$ for all $s\in\mathcal S$, the intermediate values $v^{(i)}(s)$ do **not** generally satisfy Bellman equation for **any** policy. We interpret $v^{(i)}(s)$ as the estimate of $v^*(s)$ at $i$-th iteration rather than the state values under $\pi^{(i)}$ or $\pi_{n+1}$, i.e.
   $$
     \begin{align*}
     v^{(i)}(s)
     &\ne r(s, \pi^{(i)}(s)) + \gamma \sum_{s'} p(s'\mid s, \pi^{(i)}(s)) v^{(i)}(s)
     \\
     v^{(i)}(s)
-    &\ne r(s, \pi^{(i+1)}(s)) + \gamma \sum_{s'} p(s'\mid s, \pi^{(i+1)}(s)) v^{(i)}(s)
+    &\ne r(s, \pi_{n+1}(s)) + \gamma \sum_{s'} p(s'\mid s, \pi_{n+1}(s)) v^{(i)}(s)
     \end{align*}
   $$
 * Likewise, $q^{(i)}(s,a)$ represents the estimate of $q^{*}(s,a)$ at $i$-th iteration.
 
-In policy update step, the new policy $\pi^{(i+1)}(s)$ always picks the action maximizing the current estimtae of Q-function $q^{(i)}(s,a)$. Hence, it is called ***greedy*** policy update.
+In policy update step, the new policy $\pi_{n+1}(s)$ always picks the action maximizing the current estimtae of Q-function $q^{(i)}(s,a)$. Hence, it is called ***greedy*** policy update.
+
+#### Bellman Optimality Operator
+
+Recall the metric space $(\mathcal V, d)$ of bounded value functions equipped with sup norm metirc.
+
+Analogous to Bellman operator for a certain policy, we define the ***Bellman optimality operator*** $\mathcal B_{*}$ as
+> $$
+> \mathcal B_{*}: \mathcal V \to \mathcal V, v(\cdot) \mapsto \mathcal B_{*}v(\cdot)
+> $$
+
+where
+> $$
+> \mathcal B_{*} v(s) = \max_{a\in\mathcal A} \Big\{
+>    r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [ v(s') ]
+> \Big\}
+> $$
+
+Properties of Bellman operator:
+
+> 1. $\mathcal B_{*}$  is monotonic, i.e.
+>    $$
+>    u(s) \le v(s), \forall s\in\mathcal S \implies
+>    \mathcal B_{*}u(s) \le \mathcal B_{*}v(s), \forall s\in\mathcal S
+>    $$
+> 1. $\mathcal B_{*}$  is a contractive mapping. i.e. 
+>    $$
+>    \forall u, v \in\mathcal V,\:
+>    \Vert \mathcal B_{*}u - \mathcal B_{*}v \Vert_\infty \le \gamma\Vert u-v\Vert_\infty
+>    $$
+> 1. $v_{*}(\cdot)$ is the unique fixed point of $\mathcal B_{*}$, i.e.
+>    $$
+>    \mathcal B_{*} v_{*}(s) = v_{*}(s), \forall s\in\mathcal S
+>    $$
+
+*Proof 1 and 3*: Same as the proof for $\mathcal B_{\pi}$.
+
+*Proof 2*: We will show that $\forall s\in\mathcal S: \vert B_{*}u(s) - \mathcal B_{*}v(s) \vert \le \gamma\Vert u-v\Vert_\infty$ as follows
+$$
+\begin{align*}
+\vert B_{*}u(s) - \mathcal B_{*}v(s) \vert
+&= \left\vert
+      \max_{a\in\mathcal A} \Big\{r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [u(s')]\Big\} -
+      \max_{a\in\mathcal A} \Big\{r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [v(s')]\Big\}
+   \right\vert \\
+&\le \max_{a\in\mathcal A} \left\vert
+      \Big\{r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [u(s')]\Big\} -
+      \Big\{r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [v(s')]\Big\}
+     \right\vert \\
+&= \gamma\max_{a\in\mathcal A} \left\vert
+      \mathbb E_{s' \sim p(\cdot \mid s, a)} [u(s')-v(s')]
+     \right\vert \\
+&\le \gamma\max_{a\in\mathcal A}
+      \mathbb E_{s' \sim p(\cdot \mid s, a)} \left[ \vert u(s')-v(s')\vert \right] \\
+&\le \gamma\max_{a\in\mathcal A}
+      \mathbb E_{s' \sim p(\cdot \mid s, a)} \left[ \Vert u-v\Vert_\infty \right] \\
+&= \gamma\Vert u-v\Vert_\infty
+\end{align*}
+$$
+
+Once again, starting from any $v \in\mathcal V$ (which does not neccessarily need to satisfy Bellman equation for any policy), repeatedly applying $\mathcal B_{*}$ leads convergence to the optimal value function $v_{*}$.
+$$
+\forall v \in\mathcal V: \lim_{n\to\infty} \Vert B_{*}^n v - v_{*}\Vert_{\infty}
+\implies  \lim_{n\to\infty} B_{*}^n v(s) =  v_{*}(s)
+$$
+
+Let $v_n \triangleq \mathcal B_{*}^n v$. Then, the function sequence can be computed recursively
+$$
+\begin{align*}
+v_n(s)
+&= \mathcal B_{*} v_{n-1}(s) \\
+&= \max_{a\in\mathcal A} \Big\{r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [v_{n-1}(s')]\Big\} \\
+\end{align*}
+$$
+
+For finite state space, the above equation reduces to Bellman updates shown in previous section
+$$
+\begin{align*}
+v_n(s)
+&= \max_{a\in\mathcal A} \Big\{ r(s,a) + \gamma\sum_{s'\in\mathcal S} p(s' \mid s,a) [ v_{n-1}(s') ] \Big\}
+\end{align*}
+$$
 
 ### Policy Iteration
 
-Policy iteration is another algorithm to compute optimal policy. It starts with abitrary policy and iteratively improves it. Formally:
+Policy iteration is another algorithm to compute optimal policy. It starts with abitrary policy and iteratively improves it. The algorithm is backed by policy improvement theorem.
+
+#### Policy Improvement Theorem
+
+Let $\pi$ and $\pi'$ be two policies s.t.
+$$
+\forall s\in\mathcal S: q_{\pi}(s, \pi'(s)) \ge q_{\pi}(s, \pi(s))
+$$
+
+Then, $\pi'$ is an improvement of $\pi$, i.e.
+$$
+\forall s\in\mathcal S, v_{\pi'}(s) \ge v_{\pi}(s)
+$$
+
+*Proof*: Using the definition of Q-functions and Bellman operator, we get
+$$
+\begin{align*}
+q_{\pi}(s, \pi'(s)) &\ge q_{\pi}(s, \pi(s)) \\
+r(s, \pi'(s)) + \mathbb E_{s'\sim p(\cdot\mid s, \pi'(s))}[v_{\pi}(s')] &\ge v_{\pi}(s) \\
+\mathcal B_{\pi'} v_{\pi}(s) &\ge v_{\pi}(s)
+\end{align*}
+$$
+
+Applying $\mathcal B_{\pi'}$ repeatedly yields
+$$
+v_{\pi}(s)\le \mathcal B_{\pi'}^n v_{\pi}(s)
+\tag{$\star$}
+$$
+Recall that $\mathcal B_{\pi'}^n$ converges to $v_{\pi'}$ for any $v\in\mathcal V$. Taking the limit in $(\star)$, we get
+$$
+v_{\pi}(s)
+\le v_{\pi'}(s)
+\tag*{$\blacksquare$}
+$$
+
+---
 
 > Init $\pi^{(0)}$ by random guessing  
 > For $i=0,1,2,\dots$, run until convergence  
-> $\quad$ **Policy evaluation**: Solve $\mathbf v_{\pi^{(i)}} = \mathbf r_{\pi^{(i)}} + \gamma\mathbf P_{\pi^{(i)}} \mathbf v_{\pi^{(i)}}$ for state values $\mathbf v_{\pi^{(i)}}$  
-> $\quad$ **Policy improvement**: Solve $\pi^{(i+1)} = \displaystyle\argmax_{\pi}  \big\{ \mathbf r_{\pi} + \gamma\mathbf P_{\pi} \mathbf v_{\pi^{(i)}} \big\}$ for new policy $\pi^{(i+1)}$
+> $\quad$ **Policy evaluation**: Solve $\mathbf v_{\pi_n} = \mathbf r_{\pi_n} + \gamma\mathbf P_{\pi_n} \mathbf v_{\pi_n}$ for state values $\mathbf v_{\pi_n}$  
+> $\quad$ **Policy improvement**: Solve $\pi_{n+1} = \displaystyle\argmax_{\pi}  \big\{ \mathbf r_{\pi} + \gamma\mathbf P_{\pi} \mathbf v_{\pi_n} \big\}$ for new policy $\pi_{n+1}$
 
 Remark:
 
@@ -884,86 +980,48 @@ or numerically using fixed point iteration.
 * In policy improvement, the new policy maximizes the immediate reward plus the discounted future reward by following $\pi^{(i)}$. Element-wise, this breaks down to maximizing the Q-functions:
     $$
     \begin{align}
-    \pi^{(i+1)}(s)
-    &= \argmax_{a\in\mathcal A}  \left\{ r(s,a) + \gamma\sum_{s'\in\mathcal S} p(s'\mid s,a) \, v_{\pi^{(i)}}(s') \right\}, \quad \forall s\in\mathcal S \\
-    &= \argmax_{a\in\mathcal A} q_{\pi^{(i)}} (s,a)
+    \pi_{n+1}(s)
+    &= \argmax_{a\in\mathcal A}  \left\{ r(s,a) + \gamma\sum_{s'\in\mathcal S} p(s'\mid s,a) \, v_{\pi_n}(s') \right\}, \quad \forall s\in\mathcal S \\
+    &= \argmax_{a\in\mathcal A} q_{\pi_n} (s,a)
     \end{align}
     $$
-* Each intermediate $\mathbf v_{\pi^{(i)}}$ satisfies the Bellman equation for policy $\pi^{(i)}$. vs. In value iteration, $\mathbf v^{(i)}$ does not generally satisfy Bellman equation for any policy!
+* Each intermediate $\mathbf v_{\pi_n}$ satisfies the Bellman equation for policy $\pi^{(i)}$. vs. In value iteration, $\mathbf v^{(i)}$ does not generally satisfy Bellman equation for any policy!
 
 Element-wise formulation of policy iteration:
 
-> Init $\pi^{(0)}(s)$ for all $s\in\mathcal S$ by random guessing  
-> For $i=0,1,2,\dots$, do  
-> $\quad$ **Policy evaluation**: compute $v_{\pi^{(i)}}(s)$ for all $s\in\mathcal S$ by solving linear equations  
+> Init $\pi_{0}(s)$ for all $s\in\mathcal S$ by random guessing  
+> For $n=0,1,2,\dots$, do  
+> $\quad$ **Policy evaluation**: compute $v_{\pi_n}(s)$ for all $s\in\mathcal S$ by solving linear equations  
 > $\quad$ For each $s\in\mathcal S$, do  
 > $\quad\quad\;$ For each $a\in\mathcal A$, compute  
-> $\quad\quad\qquad$ Q-function: $q_{\pi^{(i)}} (s,a) = r(s,a) + \gamma\displaystyle\sum_{s'\in\mathcal S} p(s'\mid s,a) \, v_{\pi^{(i)}}(s')$  
-> $\quad\quad\;$ **Policy improvement**: $\pi^{(i+1)}(s) = \displaystyle\argmax_{a\in\mathcal A} q_{\pi^{(i)}} (s,a)$  
-> until $\Vert\mathbf v_{\pi^{(i+1)}} - \mathbf v_{\pi^{(i)}} \Vert < \epsilon$  
-> Return $v_{\pi^{(i)}}(s)$ and $\pi^{(i)}(s)$ for all $s\in\mathcal S$
+> $\quad\quad\qquad$ Q-function: $q_{\pi_n} (s,a) = r(s,a) + \gamma\displaystyle\sum_{s'\in\mathcal S} p(s'\mid s,a) \, v_{\pi_n}(s')$  
+> $\quad\quad\;$ **Policy improvement**: $\pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A} \: q_{\pi_n} (s,a)$  
+> until $\Vert\mathbf v_{\pi_{n+1}} - \mathbf v_{\pi_n} \Vert < \epsilon$  
+> Return $v_{\pi_n}(s)$ and $\pi^{(i)}(s)$ for all $s\in\mathcal S$
 
 Policy iteratoin works because of following facts
 
-1. The policy improvement step indeed improves policy iteratively.
+1. The policy is indeed improved iteratively.
     $$
-    \pi^{(i+1)}(s) = \displaystyle\argmax_{a\in\mathcal A} q_{\pi^{(i)}} (s,a)
+    \pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A} q_{\pi_n} (s,a)
     \implies
-    v_{\pi^{(i+1)}}(s) \ge v_{\pi^{(i)}}(s),\: \forall s\in\mathcal S
+    v_{\pi_{n+1}}(s) \ge v_{\pi_n}(s),\: \forall s\in\mathcal S
     $$
 1. The sequence of state values generated by policy iteration indeed converges to the optimal state values.
     $$
-    \lim_{i\to\infty} v_{\pi^{(i+1)}}(s) = v^*(s),\: \forall s\in\mathcal S
+    \lim_{i\to\infty} v_{\pi_n}(s) = v^*(s),\: \forall s\in\mathcal S
     $$
 
-Proof 1: For each $s\in\mathcal S$, $\pi^{(i+1)}(s)$ is the maximizer of the Q-function $q_{\pi^{(i)}} (s,a)$. In particular,
+*Proof 1*: By construction, for each $s\in\mathcal S$, $\pi_{n+1}(s)$ is the maximizer of $q_{\pi_n} (s,\cdot)$, i.e.
 $$
-q_{\pi^{(i)}} (s, \pi^{(i+1)}(s))
-\ge q_{\pi^{(i)}} (s, \pi^{(i)}(s)) = v_{\pi^{(i)}}(s)
-\tag{$\star$}
+q_{\pi_n} (s,\pi_{n+1}(s)) \ge q_{\pi_n} (s,a), \forall s\in\mathcal S, \forall a\in\mathcal A
 $$
 
-Hence, $\forall s\in\mathcal S$:
+In particular, $q_{\pi_n} (s,\pi_{n+1}(s)) \ge q_{\pi_n} (s,\pi_{n}(s)), \forall s\in\mathcal S$. By policy improvement theorem, we conclude that $\pi_{n+1}$ is an improvement of $\pi_{n}(s)$. $\quad\blacksquare$
 
-$$
-\begin{align*}
-v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s)
-&\overset{(\star)}{\ge} v_{\pi^{(i+1)}}(s)  - q_{\pi^{(i)}} (s, \pi^{(i+1)}(s))
-\\
-&= r(s, \pi^{(i+1)}(s)) + \gamma\mathbb E[v_{\pi^{(i+1)}}(S')] -
-\left( r(s, \pi^{(i+1)}(s)) + \gamma\mathbb E[v_{\pi^{(i)}}(S')] \right)
-\\
-&= \gamma\mathbb E\left[ v_{\pi^{(i+1)}}(S') - v_{\pi^{(i)}}(S') \right]
-\end{align*}
-$$
+*Proof 2*: By part 1, we know that the sequence of functions $v_{\pi_n}$ monotonically increases. On the other hand, all $v_{\pi_n}$ have finite sup norm and thus uniformly bounded. By monotonic convergence theorem (c.f. Appendix), $v_{\pi_n}$ converges to some $\bar v\in\mathcal V$.
 
-Recall the property of expectation: $\mathbb E[X] \ge x_{\min}$. Letting $X=v_{\pi^{(i+1)}}(S') - v_{\pi^{(i)}}(S')$, we get
-
-$$
-\forall s\in\mathcal S, \: v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s)
-\ge \gamma \min_{s'\in\mathcal S} \left\{ v_{\pi^{(i+1)}}(s') - v_{\pi^{(i)}}(s') \right\}
-\tag{$\star\star$}
-$$
-
-Taking $\displaystyle\min_{s\in\mathcal S}$ on the LHS, we get
-$$
-\min_{s\in\mathcal S} \left\{ v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s) \right\}
-\ge \gamma \min_{s'\in\mathcal S} \left\{ v_{\pi^{(i+1)}}(s') - v_{\pi^{(i)}}(s') \right\}
-$$
-
-Note that the optimization problem on both sides are the same. Hence,
-$$
-\begin{align*}
-(1-\gamma) \min_{s\in\mathcal S} \left\{ v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s) \right\} &\ge 0
-\\
-\min_{s\in\mathcal S} \left\{ v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s) \right\} &\ge 0
-&& \text{since } 0<\gamma<1 \\
-\forall s\in\mathcal S, \: v_{\pi^{(i+1)}}(s) - v_{\pi^{(i)}}(s) &\ge 0
-&& \text{by } (\star\star)
-\end{align*}
-$$
-
-We concluded that the policy improvement does not decrease state value. $\qquad \square$
+Next, we will show that $\bar v$ is indeed the optimal value function by showing that $\bar v$ satisfies BOE. **TBA**
 
 ### Generalized Policy Iteration
 
@@ -971,7 +1029,65 @@ We concluded that the policy improvement does not decrease state value. $\qquad 
 
 Stochastic policy and stochastic rewards.
 
+A policy can also be stochastic. i.e. instead of mapping the state to a fixed action, there are multiple possible actions with different probability. A stochastic policy is described by the conditional distribution
+
+$$
+\pi(a \mid s), a \in\mathcal A, s \in\mathcal S
+$$
+
+Remarks:
+
+* The determinstic policy can be seen as a special of stochastic policy by assigning $\pi(\hat a \mid s)$ to 1 for some $\hat a$.
+  $$
+  \pi(a \mid s) =
+  \begin{cases}
+    1 & a=\hat a\\
+    0 & \text{else}
+  \end{cases}
+  $$
+* For stochastic policy, it holds that
+  $$
+  \sum_a \pi(a \mid s) = 1
+  $$
+
+* Both deterministic and stochastic policy are time-invariant. i.e. The distribution of $a$ given $s$ is always the same, regardless when we arrived at $s$.
+
+From now on, we stick to deterministic policy and we will answer the following quesitons
+
+1. How to quantify the goodness of a policy?  
+    $\to$ state values, Bellman equations
+1. Which criterion should the optimal policy satisfy?  
+    $\to$ Bellman optimality equations.
+1. How to find the optimal policy?  
+    $\to$ value iteration, policy iteration
+
 ## Appendix
+
+### Dealing with Max and Abs
+
+Let $f,g: \mathcal X \to \mathbb R$ be any two real-valued functions, where $\mathcal X$ can be any set. Then,
+$$
+\left\vert \max_{x\in\mathcal X} f(x) - \max_{x\in\mathcal X} g(x) \right\vert
+\le \max_{x\in\mathcal X} \left\vert f(x) -g(x) \right\vert
+$$
+
+*Proof*: Let $M_f = \displaystyle\max_{x\in\mathcal X} f(x)$ and $M_g = \displaystyle\max_{x\in\mathcal X} g(x)$. It is sufficient to show that
+$$
+\exists x\in\mathcal X \text{ s.t. }
+\left\vert M_f - M_g \right\vert \le \left\vert f(x) -g(x) \right\vert
+$$
+
+Without loss of generality, assume that $M_f\ge M_g$. Then,
+
+$$
+\left\vert M_f - M_g \right\vert = M_f - M_g \le M_f - g(x),
+\:\forall x\in\mathcal X
+$$
+
+Let $x^*$ be the maximizer of $f$, i.e. $M_f=f(x^*)$. We conclude
+$$
+\left\vert M_f - M_g \right\vert \le f(x^*) - g(x^*) = \vert 
+$$
 
 ### Cascade of Expectations
 
@@ -1010,7 +1126,7 @@ Let $\mathbf A \in\mathbb R^{n \times n}$ be a state transition matrix. Then,
     \end{align}
     $$
 
-*Proof 1*: Let $\mathbf u = [1,\dots,1]^\top \in\mathbb R^n$ be all-one vector. It is easy to verify that $\mathbf{Au} = \mathbf{u}$. Hence, $\mathbf u$ is an eigenvector of $\mathbf A$ with eigen value $1$. $\:\square$
+*Proof 1*: Let $\mathbf u = [1,\dots,1]^\top \in\mathbb R^n$ be all-one vector. It is easy to verify that $\mathbf{Au} = \mathbf{u}$. Hence, $\mathbf u$ is an eigenvector of $\mathbf A$ with eigen value $1$. $\:\blacksquare$
 
 *Proof 2:* Recall the infinity norm is defined by
 
@@ -1035,7 +1151,7 @@ $$
 \Vert \mathbf y \Vert_{\infty}
 = \max_{i=1,\dots,n} \vert y_i \vert
 \le \Vert \mathbf x \Vert_{\infty}
-\quad\quad\quad \square
+\quad\quad\quad \blacksquare
 $$
 
 *Proof 3*: Let $\lambda$ be any eigenvalue of $\mathbf A$ and $\mathbf v$ be the corresponding eigenvector. Using the fact that $\Vert\mathbf{Av}\Vert_{\infty} \le  \Vert\mathbf{v}\Vert_{\infty}$, we conclude
@@ -1047,4 +1163,66 @@ $$
 \le \vert\mathbf{v}\Vert_{\infty}
 $$
 
-Eigenvector $\mathbf v$ is nonzero $\implies \vert\lambda\vert \le 1$. $\quad\square$
+Eigenvector $\mathbf v$ is nonzero $\implies \vert\lambda\vert \le 1$. $\quad\blacksquare$
+
+### Convergence of Sequence of Functions
+
+Let $\mathcal X$ be any set and $(f_n)_{n\in\mathbb N}:\mathcal X \to \mathbb R$ be a sequence of functions. Then, we say that
+
+$(f_n)_{n\in\mathbb N}$ converges to $f$ **point-wise** iff
+$$
+\begin{align}
+\forall x\in\mathcal X, &\lim_{n\to\infty} f_n(x) = f(x) \\
+&\qquad \Updownarrow \nonumber \\
+\forall x\in\mathcal X, &\forall\epsilon>0, \exists N\in\mathbb N, \text{ s.t. }
+\forall n \ge N, \vert f_n(x) - f(x) \vert < \epsilon
+\end{align}
+$$
+
+$(f_n)_{n\in\mathbb N}$ converges to $f$ **uniformly** iff
+$$
+\begin{align}
+\forall\epsilon>0, \exists N\in\mathbb N, \text{ s.t. }
+\forall n \ge N, \forall x\in\mathcal X, \vert f_n(x) - f(x) \vert < \epsilon
+\end{align}
+$$
+
+$(f_n)_{n\in\mathbb N}$ converges to $f$ **in sup norm** iff
+$$
+\begin{align}
+\lim_{n\to\infty} &\Vert f_n(x) - f(x) \Vert_\infty = 0  \\
+&\qquad\Updownarrow \nonumber \\
+\forall\epsilon>0, &\exists N\in\mathbb N, \text{ s.t. }
+\forall n \ge N, \sup_{x\in\mathcal X}\vert f_n(x) - f(x) \vert < \epsilon
+\end{align}
+$$
+
+Relation between different types of convergence:
+$$
+\begin{align*}
+\text{uniform convg.} \iff \text{convg. in sup norm}
+\implies \text{point-wise convg.}
+\end{align*}
+$$
+
+$(f_n)_{n\in\mathbb N}$ is **monotonically increasing** iff for each $x\in\mathcal X$, the sequence $(f_n(x))_{n\in\mathbb N}$ is monotonically increasing, i.e.
+$$
+\forall x\in\mathcal X, \forall n\in\mathbb N, f_n(x) \le f_{n+1}(x)
+$$
+
+$(f_n)_{n\in\mathbb N}$ is **point-wise bounded** iff for each $x\in\mathcal X$, the sequence $(f_n(x))_{n\in\mathbb N}$ is bounded by some $M_x\in\mathbb R$, i.e.
+$$
+\forall x\in\mathcal X, \exist M_x\in\mathbb R \text{ s.t. }
+\forall n\in\mathbb N, \vert f_n(x) \vert \le M_x
+$$
+
+$(f_n)_{n\in\mathbb N}$ is **uniformly bounded** iff
+$$
+\exist M\in\mathbb R \text{ s.t. }
+\forall x\in\mathcal X, \forall n\in\mathbb N, \vert f_n(x)\vert \le M
+$$
+
+**Monotonic Convergence Theorem**  
+Let $(f_n)_{n\in\mathbb N}$ be point-wise bounded and monotonically increasing, then $(f_n)_{n\in\mathbb N}$ converges to some $f$.
+
+Remark: The limit function is not necessarily equal to the pointwise bound! i.e. Let $\vert f_n(x)\vert$ be bounded by $M_x$. Then, $f(x)\ne M_x$ in general.

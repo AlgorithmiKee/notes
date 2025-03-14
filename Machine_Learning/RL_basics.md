@@ -475,6 +475,7 @@ Note that $\mathcal B_{\pi} v$ is defined as long as $v$ is bounded and $v$ itse
 $$
 \mathcal B_{\pi} v_{\tilde\pi} = q_{\tilde\pi}(s,\pi(s))
 $$
+
 Properties of Bellman operator:
 
 > 1. $\mathcal B_{\pi}$  is monotonic, i.e.
@@ -844,8 +845,6 @@ Remarks:
   $$
 * Likewise, $q^{(i)}(s,a)$ represents the estimate of $q^{*}(s,a)$ at $i$-th iteration.
 
-In policy update step, the new policy $\pi_{n+1}(s)$ always picks the action maximizing the current estimtae of Q-function $q^{(i)}(s,a)$. Hence, it is called ***greedy*** policy update.
-
 #### Bellman Optimality Operator
 
 Recall the metric space $(\mathcal V, d)$ of bounded value functions equipped with sup norm metirc.
@@ -862,7 +861,12 @@ where
 > \Big\}
 > $$
 
-Properties of Bellman operator:
+If $v$ happens to be the value function $v_{\tilde\pi}$ for some policy $\tilde \pi$. Then,
+$$
+\mathcal B_{*} v_{\tilde\pi}(s) = \max_{a\in\mathcal A} q_{\tilde\pi}(s,a)
+$$
+
+Properties of Bellman optimality operator:
 
 > 1. $\mathcal B_{*}$  is monotonic, i.e.
 >    $$
@@ -879,7 +883,7 @@ Properties of Bellman operator:
 >    \mathcal B_{*} v_{*}(s) = v_{*}(s), \forall s\in\mathcal S
 >    $$
 
-*Proof 1 and 3*: Same as the proof for $\mathcal B_{\pi}$.
+*Proof 1 and 3*: Same as the proof for $\mathcal B_{\pi}$. $\qquad\blacksquare$
 
 *Proof 2*: We will show that $\forall s\in\mathcal S: \vert B_{*}u(s) - \mathcal B_{*}v(s) \vert \le \gamma\Vert u-v\Vert_\infty$ as follows
 $$
@@ -902,6 +906,13 @@ $$
       \mathbb E_{s' \sim p(\cdot \mid s, a)} \left[ \Vert u-v\Vert_\infty \right] \\
 &= \gamma\Vert u-v\Vert_\infty
 \end{align*}
+$$
+
+whre the 2nd step follows from the fact (c.f. Appendix) that
+$$
+\left\vert \max_{x\in\mathcal X} f(x) - \max_{x\in\mathcal X} g(x) \right\vert
+\le \max_{x\in\mathcal X} \left\vert f(x) -g(x) \right\vert
+\tag*{$\blacksquare$}
 $$
 
 Once again, starting from any $v \in\mathcal V$ (which does not neccessarily need to satisfy Bellman equation for any policy), repeatedly applying $\mathcal B_{*}$ leads convergence to the optimal value function $v_{*}$.
@@ -933,15 +944,15 @@ Policy iteration is another algorithm to compute optimal policy. It starts with 
 
 #### Policy Improvement Theorem
 
-Let $\pi$ and $\pi'$ be two policies s.t.
-$$
-\forall s\in\mathcal S: q_{\pi}(s, \pi'(s)) \ge q_{\pi}(s, \pi(s))
-$$
-
-Then, $\pi'$ is an improvement of $\pi$, i.e.
-$$
-\forall s\in\mathcal S, v_{\pi'}(s) \ge v_{\pi}(s)
-$$
+> Let $\pi$ and $\pi'$ be two policies s.t.
+> $$
+> \forall s\in\mathcal S: q_{\pi}(s, \pi'(s)) \ge q_{\pi}(s, \pi(s))
+> $$
+>
+> Then, $\pi'$ is an improvement of $\pi$, i.e.
+> $$
+> \forall s\in\mathcal S, v_{\pi'}(s) \ge v_{\pi}(s)
+> $$
 
 *Proof*: Using the definition of Q-functions and Bellman operator, we get
 $$
@@ -952,7 +963,7 @@ r(s, \pi'(s)) + \mathbb E_{s'\sim p(\cdot\mid s, \pi'(s))}[v_{\pi}(s')] &\ge v_{
 \end{align*}
 $$
 
-Applying $\mathcal B_{\pi'}$ repeatedly yields
+By induction, we have
 $$
 v_{\pi}(s)\le \mathcal B_{\pi'}^n v_{\pi}(s)
 \tag{$\star$}
@@ -964,64 +975,114 @@ v_{\pi}(s)
 \tag*{$\blacksquare$}
 $$
 
----
+#### Greedy Policy
 
-> Init $\pi^{(0)}$ by random guessing  
+Given a poliy $\pi$, how to construct a better policy $\pi'$? A natural approach would be for each $s$, pick $a$, such that $q_{\pi}(s,\cdot)$ is maximized. The resulting called greedy policy.
+
+A policy $\pi'$ is called ***greedy*** w.r.t. $q_{\pi}$ if it is constructed as
+$$
+\begin{align}
+\forall s\in\mathcal S, \:
+\pi'(s)
+&= \argmax_a \: q_{\pi}(s,a) \\
+&= \argmax_a \Big\{ r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [v_{\pi}(s')] \Big\} \\
+\end{align}
+$$
+
+Fact: If $\pi'$ is greedy w.r.t. $q_{\pi}$, then it improves the original policy $\pi$ , i.e.
+$$
+\begin{align}
+\forall s\in\mathcal S, \:
+\pi'(s) = \argmax_a \: q_{\pi}(s,a)
+\implies v_{\pi'} \ge v_{\pi}
+\end{align}
+$$
+
+*Proof*: By construction of $\pi'$, we have
+$$
+\forall s\in\mathcal S, \forall a\in\mathcal A, \:
+q_{\pi}(s,\pi'(s)) \ge q_{\pi}(s,a)
+$$
+
+In particular,
+$$
+\forall s\in\mathcal S, \:
+q_{\pi}(s,\pi'(s)) \ge q_{\pi}(s,\pi(s))
+$$
+
+By policy improvement theorem, we conclude that $v_{\pi'} \ge v_{\pi}$. $\qquad\blacksquare$
+
+Suppose we improved $\pi$ by constructing a greedy policy $\pi'$. We can repeat this process to improve $\pi'$ and get $\pi''$. Keep doing so is called ***policy iteration***. The question is whether policy iteration will lead to an optimal policy. The answer is yes due to the following fact.
+
+> Let $\pi_0$ be any policy. Construct a sequence of greedy policy
+> $$
+> \pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A} \: q_{\pi_n} (s,a),
+> \quad\forall s\in\mathcal S
+> $$
+>
+> Then, the corresponding sequence of value functions $(v_{\pi_n})_{n\in\mathbb N}$ converges to the optimal value function $v^*$.
+
+*Proof*: By construction, $\pi_{n+1}$ is greedy w.r.t. $q_{\pi_n}$ for all $n\in\mathbb N$. By property of greedy policy, we have $v_{n+1} \ge v_{\pi_n}$, i.e. The sequence of functions $v_{\pi_n}$ monotonically increases.
+
+Moreover, all $v_{\pi_n}$ are bounded by $v^*$. By monotonic convergence theorem (c.f. Appendix), $v_{\pi_n}$ converges to some $\bar v\in\mathcal V$ with $\bar v \le v^*$. To show that $\bar v = v^*$, it remains to show that $v^*\le \bar v$.
+
+Note that we can express $q_{\pi_n} (s,\pi_{n+1}(s))$ in two differenet ways:
+
+$$
+\begin{align*}
+q_{\pi_n} (s,\pi_{n+1}(s))
+&= \max_a \Big\{ r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [v_{\pi_n}(s')] \Big\}
+= \mathcal B_{*} v_{\pi_n}(s)
+\\
+&= r(s, \pi_{n+1}(s)) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, \pi_{n+1}(s))} [v_{\pi_n}(s')]
+= \mathcal B_{\pi_{n+1}} v_{\pi_n}(s)
+\end{align*}
+$$
+
+Namely, $\mathcal B_{*} v_{\pi_n}(s) = q_{\pi_n} (s,\pi_{n+1}(s)) = \mathcal B_{\pi_{n+1}} v_{\pi_n}(s), \forall s\in\mathcal S$.
+
+By monotonicity and fixed point property of $\mathcal B_{\pi_{n+1}}$,
+$$
+\boxed{\mathcal B_{*} v_{\pi_n}}
+= \mathcal B_{\pi_{n+1}}  v_{\pi_n}
+\le \mathcal B_{\pi_{n+1}}  v_{\pi_{n+1}}
+= \boxed{v_{\pi_{n+1}}}
+$$
+
+By induction, we get
+$$
+\mathcal B_{*}^{n+1} v_{\pi_0} \le v_{\pi_{n+1}}
+$$
+
+Taking the limit on both sides, we conclude.
+$$
+\boxed{v^*} =
+\lim_{n\to\infty} \mathcal B_{*}^{n+1} v_{\pi_0}
+\le \lim_{n\to\infty} v_{\pi_{n+1}}
+= \boxed{\bar v}
+\tag*{$\blacksquare$}
+$$
+
+#### The Algorithm
+
+Now, we unfold the policy iteration for easy implementation. The  greedy policy construction,requires computing $q_{\pi_n}$ which requires knowledge of $v_{\pi_n}$. Hence, we must perform policy evaluation for $v_{\pi_n}$ before improving $\pi_{n}$.
+
+> **Policy Iteration (vector form)**  
+> Init $\pi_0$ by random guessing  
 > For $i=0,1,2,\dots$, run until convergence  
-> $\quad$ **Policy evaluation**: Solve $\mathbf v_{\pi_n} = \mathbf r_{\pi_n} + \gamma\mathbf P_{\pi_n} \mathbf v_{\pi_n}$ for state values $\mathbf v_{\pi_n}$  
-> $\quad$ **Policy improvement**: Solve $\pi_{n+1} = \displaystyle\argmax_{\pi}  \big\{ \mathbf r_{\pi} + \gamma\mathbf P_{\pi} \mathbf v_{\pi_n} \big\}$ for new policy $\pi_{n+1}$
+> $\quad$ Policy evaluation: Solve $\mathbf v_{\pi_n} = \mathbf r_{\pi_n} + \gamma\mathbf P_{\pi_n} \mathbf v_{\pi_n}$ for state values $\mathbf v_{\pi_n}$  
+> $\quad$ Policy improvement: Solve $\pi_{n+1} = \displaystyle\argmax_{\pi}  \big\{ \mathbf r_{\pi} + \gamma\mathbf P_{\pi} \mathbf v_{\pi_n} \big\}$ for new policy $\pi_{n+1}$
 
-Remark:
-
-* The convergence will be proved later.
-* In policy evaluation, the state values can be computed either analytically using
-$\mathbf v_{\pi} = (\mathbf{I} - \gamma \mathbf{P}_{\pi})^{-1} \mathbf r_{\pi}$
-or numerically using fixed point iteration.
-* In policy improvement, the new policy maximizes the immediate reward plus the discounted future reward by following $\pi^{(i)}$. Element-wise, this breaks down to maximizing the Q-functions:
-    $$
-    \begin{align}
-    \pi_{n+1}(s)
-    &= \argmax_{a\in\mathcal A}  \left\{ r(s,a) + \gamma\sum_{s'\in\mathcal S} p(s'\mid s,a) \, v_{\pi_n}(s') \right\}, \quad \forall s\in\mathcal S \\
-    &= \argmax_{a\in\mathcal A} q_{\pi_n} (s,a)
-    \end{align}
-    $$
-* Each intermediate $\mathbf v_{\pi_n}$ satisfies the Bellman equation for policy $\pi^{(i)}$. vs. In value iteration, $\mathbf v^{(i)}$ does not generally satisfy Bellman equation for any policy!
-
-Element-wise formulation of policy iteration:
-
+> **Policy Iteration (element-wise form)**  
 > Init $\pi_{0}(s)$ for all $s\in\mathcal S$ by random guessing  
 > For $n=0,1,2,\dots$, do  
-> $\quad$ **Policy evaluation**: compute $v_{\pi_n}(s)$ for all $s\in\mathcal S$ by solving linear equations  
+> $\quad$ Policy evaluation: compute $v_{\pi_n}(s)$ for all $s\in\mathcal S$ by solving linear equations  
 > $\quad$ For each $s\in\mathcal S$, do  
 > $\quad\quad\;$ For each $a\in\mathcal A$, compute  
 > $\quad\quad\qquad$ Q-function: $q_{\pi_n} (s,a) = r(s,a) + \gamma\displaystyle\sum_{s'\in\mathcal S} p(s'\mid s,a) \, v_{\pi_n}(s')$  
-> $\quad\quad\;$ **Policy improvement**: $\pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A} \: q_{\pi_n} (s,a)$  
+> $\quad\quad\;$ Policy improvement: compute greedy policy $\pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A} \: q_{\pi_n} (s,a)$  
 > until $\Vert\mathbf v_{\pi_{n+1}} - \mathbf v_{\pi_n} \Vert < \epsilon$  
 > Return $v_{\pi_n}(s)$ and $\pi^{(i)}(s)$ for all $s\in\mathcal S$
-
-Policy iteratoin works because of following facts
-
-1. The policy is indeed improved iteratively.
-    $$
-    \pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A} q_{\pi_n} (s,a)
-    \implies
-    v_{\pi_{n+1}}(s) \ge v_{\pi_n}(s),\: \forall s\in\mathcal S
-    $$
-1. The sequence of state values generated by policy iteration indeed converges to the optimal state values.
-    $$
-    \lim_{i\to\infty} v_{\pi_n}(s) = v^*(s),\: \forall s\in\mathcal S
-    $$
-
-*Proof 1*: By construction, for each $s\in\mathcal S$, $\pi_{n+1}(s)$ is the maximizer of $q_{\pi_n} (s,\cdot)$, i.e.
-$$
-q_{\pi_n} (s,\pi_{n+1}(s)) \ge q_{\pi_n} (s,a), \forall s\in\mathcal S, \forall a\in\mathcal A
-$$
-
-In particular, $q_{\pi_n} (s,\pi_{n+1}(s)) \ge q_{\pi_n} (s,\pi_{n}(s)), \forall s\in\mathcal S$. By policy improvement theorem, we conclude that $\pi_{n+1}$ is an improvement of $\pi_{n}(s)$. $\quad\blacksquare$
-
-*Proof 2*: By part 1, we know that the sequence of functions $v_{\pi_n}$ monotonically increases. On the other hand, all $v_{\pi_n}$ have finite sup norm and thus uniformly bounded. By monotonic convergence theorem (c.f. Appendix), $v_{\pi_n}$ converges to some $\bar v\in\mathcal V$.
-
-Next, we will show that $\bar v$ is indeed the optimal value function by showing that $\bar v$ satisfies BOE. **TBA**
 
 ### Generalized Policy Iteration
 

@@ -470,10 +470,14 @@ where the new value function is defined as
 > r(s, \pi(s)) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, \pi(s))} [ v(s') ]
 > $$
 
-Note that $\mathcal B_{\pi} v$ is defined as long as $v$ is bounded and $v$ itself does not necessarily need to satisfy Bellman equation for any policy. Nevertheless, if $v$ happens to be the value function $v_{\tilde\pi}$ for some policy $\tilde \pi$. Then,
-$$
-\mathcal B_{\pi} v_{\tilde\pi} = q_{\tilde\pi}(s,\pi(s))
-$$
+Remarks:
+
+* $\mathcal B_{\pi} v$ is well defined even though $v$ itself might not satisfy Bellman equation for any policy. Nevertheless, if $v$ happens to be the value function $v_{\tilde\pi}$ for some policy $\tilde \pi$. Then,
+  $$
+  \mathcal B_{\pi} v_{\tilde\pi} = q_{\tilde\pi}(s,\pi(s))
+  $$
+
+* We will see later that solving Bellman equation is equivalent to search for fixed point of $B_{\pi}$ in function space $\mathcal V$.
 
 Properties of Bellman operator:
 
@@ -668,34 +672,6 @@ For finite state space, the BOE becomes
 Again, let $\mathcal S = \{ \varsigma_1, \dots, \varsigma_n \}$. Then, we can write $n$ BOEs into vector form
 $$
 \begin{align*}
-\begin{bmatrix}
-v^*(\varsigma_1) \\ v^*(\varsigma_2) \\ \vdots \\ v^*(\varsigma_n)
-\end{bmatrix}
-&=
-\begin{bmatrix}
- \max_{a\in\mathcal A} \left\{
-        r(\varsigma_1, a) + \gamma \left[
-      p(\varsigma_1 \mid \varsigma_1, a) v^*(\varsigma_1) + \dots +
-      p(\varsigma_n \mid \varsigma_1, a) + v^*(\varsigma_n)
-     \right]
- \right\}  \\
- \max_{a\in\mathcal A} \left\{
-        r(\varsigma_2, a) + \gamma \left[
-      p(\varsigma_1 \mid \varsigma_2, a) v^*(\varsigma_1) + \dots +
-      p(\varsigma_n \mid \varsigma_2, a) + v^*(\varsigma_n)
-     \right]
- \right\}  \\
-\vdots \\
- \max_{a\in\mathcal A} \left\{
-        r(\varsigma_n, a) + \gamma \left[
-      p(\varsigma_1 \mid \varsigma_n, a) v^*(\varsigma_1) + \dots +
-      p(\varsigma_n \mid \varsigma_n, a) + v^*(\varsigma_n)
-     \right]
- \right\}
-\end{bmatrix}
-%%%%%%%%%%%%%%%%%%%%%%%%
-\\[12pt]
-%%%%%%%%%%%%%%%%%%%%%%%%
 \underbrace{
   \begin{bmatrix}
     v^*(\varsigma_1) \\ v^*(\varsigma_2) \\ \vdots \\ v^*(\varsigma_n)
@@ -729,22 +705,35 @@ v^*(\varsigma_1) \\ v^*(\varsigma_2) \\ \vdots \\ v^*(\varsigma_n)
 \end{align*}
 $$
 
-> Bellman Optimality Equation (vector form)
+where $\max$ is taken element-wise.
+$$
+\max_{a}
+\begin{bmatrix}
+f_1(a) \\
+\vdots \\
+f_n(a)
+\end{bmatrix}
+=
+\begin{bmatrix}
+\displaystyle\max_{a} f_1(a) \\
+\vdots \\
+\displaystyle\max_{a} f_n(a)
+\end{bmatrix}
+=
+\begin{bmatrix}
+f_1(\hat a_1) \\
+\vdots \\
+f_n(\hat a_n)
+\end{bmatrix}
+$$
+
+Hence, we get BOE in vector form
 > $$
 > \begin{align}
 > \mathbf v^*
 > = \max_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v^* \right\}
 > \end{align}
 > $$
-
-where $\max$ acting on a vector is taken element-wise.
-$$
-\displaystyle\max_{x} \mathbf w(x)
-=
-\begin{bmatrix}
-\max_{x} w_1(x) & \cdots \displaystyle & \max_{x} w_n(x)
-\end{bmatrix}^\top
-$$
 
 ### Optimal Q-function
 
@@ -809,10 +798,14 @@ where
 > \Big\}
 > $$
 
-If $v$ happens to be the value function $v_{\tilde\pi}$ for some policy $\tilde \pi$. Then,
-$$
-\mathcal B_{*} v_{\tilde\pi}(s) = \max_{a\in\mathcal A} q_{\tilde\pi}(s,a)
-$$
+Remarks:
+
+* If $v$ happens to be the value function $v_{\tilde\pi}$ for some policy $\tilde \pi$. Then,
+  $$
+  \mathcal B_{*} v_{\tilde\pi}(s) = \max_{a\in\mathcal A} q_{\tilde\pi}(s,a)
+  $$
+
+* We will see later that solving BOE is the same as searching for fixed point of $\mathcal B_*$ in function space $\mathcal V$.
 
 Properties of Bellman optimality operator:
 
@@ -882,12 +875,19 @@ $$
 #### The Algorithm
 
 Now, we unfold value iteration algorithm for finite state space.
+> **VALUE ITERATION (vector form)**  
+> Init $\mathbf v_{0}$ arbitrarily  
+> For $n=0,1,\dots$, run until convergence  
+> $\qquad$ compute
+> $\mathbf v_{n+1} = \displaystyle\max_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v_n \right\}$,  
+> $\qquad$ where $\displaystyle\max_{a\in\mathcal A}(\cdot)$ is taken row by row
 
+Equivalent reformulation in element-wise form
 > **VALUE ITERATION (element-wise form)**  
 > Init $v_{0}(s)$ for all $s\in\mathcal S$ by random guessing  
 > For $n = 0,1,\dots$, do until $v_{0}(s)$ converges for all $s\in\mathcal S$  
 > $\quad$ For each $s\in\mathcal S$, do  
-> $\quad\quad$ For each $a\in\mathcal A$, compute   
+> $\quad\quad$ For each $a\in\mathcal A$, compute  
 > $\quad\quad\qquad q_n(s,a) = r(s, a) + \gamma \displaystyle\sum_{s'} p(s' \mid s, a) \cdot v_n(s')$  
 > $\quad\quad$ **Policy update**: $\pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A}\, q_n(s,a)$  
 > $\quad\quad$ **Value update**: $v_{n+1}(s) = \displaystyle\max_{a\in\mathcal A} q_n(s,a)$  
@@ -919,22 +919,6 @@ Remarks:
   $$
 * Likewise, $q_n(s,a)$ represents the estimate of $q^{*}(s,a)$ at $n$-th iteration rather than the real Q-function for any policy. In particular, $q_n(s,a) \ne q_{\pi_n}(s,a)$
 
-> **VALUE ITERATION (vector form)**  
-> Init $\mathbf v_{0}$ arbitrarily  
-> For $n=0,1,\dots$, run until convergence
-> $$
-> \begin{align}
-> \mathbf v_{n+1}
-> = \max_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v_n \right\}
-> \end{align}
-> $$
-
-Remarks:
-
-* The vector $\mathbf v_n$ contains all $v_n(s), s\in\mathcal S$.
-* TODO: explain r_a and P_a.
-* Reminder: The iteration does **not** ensure that the intermediate result $\mathbf v_n$ satisfy Bellman equation **for any policy**. However, the limit of $\mathbf v_n$ satisfies BOEs.
-
 ### Policy Iteration
 
 Policy iteration is another algorithm to compute optimal policy. It starts with abitrary policy and iteratively improves it. The algorithm is backed by policy improvement theorem.
@@ -962,13 +946,14 @@ $$
 
 By induction, we have
 $$
-v_{\pi}(s)\le \mathcal B_{\pi'}^n v_{\pi}(s)
+\mathcal B_{\pi'}^n v_{\pi}(s) \ge v_{\pi}(s)
 \tag{$\star$}
 $$
 Recall that $\mathcal B_{\pi'}^n$ converges to $v_{\pi'}$ for any $v\in\mathcal V$. Taking the limit in $(\star)$, we get
 $$
-v_{\pi}(s)
-\le v_{\pi'}(s)
+\lim_{n\to\infty} \mathcal B_{\pi'}^n v_{\pi}(s)
+= v_{\pi'}(s)
+\ge v_{\pi}(s)
 \tag*{$\blacksquare$}
 $$
 
@@ -1064,24 +1049,25 @@ $$
 
 Now, we unfold the policy iteration for easy implementation. The  greedy policy construction,requires computing $q_{\pi_n}$ which requires knowledge of $v_{\pi_n}$. Hence, we must perform policy evaluation for $v_{\pi_n}$ before improving $\pi_{n}$.
 
-> **Policy Iteration (vector form)**  
+> **POLICY ITERATION(vector form)**  
 > Init $\pi_0$ by random guessing  
 > For $n=0,1,2,\dots$, run until convergence  
-> $\quad$ Policy evaluation: Solve $\mathbf v_{\pi_n} = \mathbf r_{\pi_n} + \gamma\mathbf P_{\pi_n} \mathbf v_{\pi_n}$ for state values $\mathbf v_{\pi_n}$  
-> $\quad$ Policy improvement: Solve $\pi_{n+1} = \displaystyle\argmax_{\pi}  \big\{ \mathbf r_{\pi} + \gamma\mathbf P_{\pi} \mathbf v_{\pi_n} \big\}$ for new policy $\pi_{n+1}$
+> $\quad$ **Policy evaluation**: Solve $\mathbf v_{\pi_n} = \mathbf r_{\pi_n} + \gamma\mathbf P_{\pi_n} \mathbf v_{\pi_n}$ for state values $\mathbf v_{\pi_n}$  
+> $\quad$ **Policy improvement**: Solve $\pi_{n+1} = \displaystyle\argmax_{\pi}  \big\{ \mathbf r_{\pi} + \gamma\mathbf P_{\pi} \mathbf v_{\pi_n} \big\}$ for new policy $\pi_{n+1}$
 
-> **Policy Iteration (element-wise form)**  
+Equivalent element-wise formutaiton of policy iteration:
+> **POLICY ITERATION(element-wise form)**  
 > Init $\pi_{0}(s)$ for all $s\in\mathcal S$ by random guessing  
 > For $n=0,1,2,\dots$, do  
-> $\quad$ Policy evaluation: compute $v_{\pi_n}(s)$ for all $s\in\mathcal S$ by solving linear equations  
+> $\quad$ **Policy evaluation**: compute $v_{\pi_n}(s)$ for all $s\in\mathcal S$ by solving linear equations  
 > $\quad$ For each $s\in\mathcal S$, do  
 > $\quad\quad\;$ For each $a\in\mathcal A$, compute  
 > $\quad\quad\qquad$ Q-function: $q_{\pi_n} (s,a) = r(s,a) + \gamma\displaystyle\sum_{s'\in\mathcal S} p(s'\mid s,a) \, v_{\pi_n}(s')$  
-> $\quad\quad\;$ Policy improvement: compute greedy policy $\pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A} \: q_{\pi_n} (s,a)$  
+> $\quad\quad\;$ **Policy improvement**: compute greedy policy $\pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A} \: q_{\pi_n} (s,a)$  
 > until $\Vert\mathbf v_{\pi_{n+1}} - \mathbf v_{\pi_n} \Vert < \epsilon$  
 > Return $v_{\pi_n}(s)$ and $\pi_n(s)$ for all $s\in\mathcal S$
 
-### Generalized Policy Iteration
+### Comparison of Value Iteration and Policy Iteration
 
 ## Generalization
 
@@ -1120,6 +1106,21 @@ From now on, we stick to deterministic policy and we will answer the following q
     $\to$ value iteration, policy iteration
 
 ## Appendix
+
+### Contractive Mapping
+
+Let $(\mathcal X, d)$ be a metric space. We say that a mapping $f:\mathcal X \to \mathcal X$ is ***contractive*** if
+$$
+\exists \gamma\in[0,1), \text{ s.t. }
+\forall x, y\in\mathcal X,
+d(f(x), f(y)) \le \gamma d(x,y)
+$$
+
+**Contraction Mapping Theorem**  
+If $\mathcal X$ is complete and $f:\mathcal X \to \mathcal X$ is contractive, then
+
+1. $f$ has unique fixed point. i.e. $\exists !\, x^* \in\mathcal X$ s.t. $f(x^*) = x^*$
+2. Construction of the fixed point: $\forall x\in\mathcal X, \displaystyle\lim_{n\to\infty} f^n(x) = x^*$
 
 ### Dealing with Max and Abs
 

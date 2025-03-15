@@ -72,10 +72,10 @@ $$
 
 Remarks:
 
-* $G_t$ is a random quantity as the state transition is stochastic. Executing the same policy from $s_t$ again will yield a different $g_t$.
+* $G_t$ is a random quantity as the state transition is stochastic. Taking the same action sequence from $s_t$ again will yield a different total reward.
 * The discount factor $\gamma$ serves two purposes:
   1. it ensures that the infinite sum is defined. Recall from math: If $\sum_{n=1}^\infty a_n$ converges absolutely and $\{b_n\}$ is bounded, then $\sum_{n=1}^\infty a_n b_n$ converges absolutely. Here, we have a geometric series which converges absolutely and a bounded sequence of rewards.
-  2. it puts more weight on short-term rewards over long-term rewards. e.g. In finance, 100 dollar today is worth more than 100 dollar next year.
+  2. it puts more weight on short-term rewards over long-term rewards. e.g. Practical meaning in finance, 100 dollar today is worth more than 100 dollar next year.
 
 Recursive structure: The total reward $G_t$ comprises immediate reward $R_t$ plus a discounted future reward $G_{t+1}$.
 
@@ -357,11 +357,11 @@ Given a policy $\pi$, computing its value function $v_{\pi}(\cdot)$ is called **
 #### Analytical Solution
 
 If $\mathcal S$ is fininte, policy evaluation boils down to solving $\mathbf v_{\pi} = \mathbf r_{\pi} + \gamma \mathbf P_{\pi}\mathbf v_{\pi}$ for $\mathbf v_{\pi}$. It is easy to verify that the analytical solution to the Bellman equations is
-$$
-\begin{align}
-\mathbf v_{\pi} = (\mathbf{I} - \gamma \mathbf{P}_{\pi})^{-1} \mathbf r_{\pi}
-\end{align}
-$$
+> $$
+> \begin{align}
+> \mathbf v_{\pi} = (\mathbf{I} - \gamma \mathbf{P}_{\pi})^{-1} \mathbf r_{\pi}
+> \end{align}
+> $$
 
 where $\mathbf{I}$ is the $\vert \mathcal S \vert \times \vert \mathcal S \vert$ identity matrix.
 
@@ -372,7 +372,7 @@ Remarks:
   * Requires matrix inversion. High computational complexity (nearly $\mathcal O(\vert \mathcal S \vert^3)$) when $\vert \mathcal S \vert$ is large.
   * No generalization to infinite state space as we can not pack pack all $v(s), s\in\mathcal S$ into a vector
 
-#### Numerical Solution: Bellman Update
+#### Bellman Update
 
 Algorithm to compute state values:
 
@@ -428,7 +428,7 @@ $$
 
 The last step follows from the fact that $\Vert \mathbf P_{\pi} \mathbf x \Vert_{\infty} \le \Vert \mathbf x \Vert_{\infty}, \forall x\in\mathbb R^{\vert \mathcal S \vert}$, i.e. multiplication with row stochastic matrix does not increase infnity norm. (c.f. Appendix).
 
-By contraction mapping theorem (c.f. separate notes), we conclude that
+By contraction mapping theorem (c.f. Appendix), we conclude that
 
 1. $f_{\pi}(\cdot)$ has a unique fixed point. Since $\mathbf v_{\pi}  = f_{\pi}(\mathbf v_{\pi} )$ by Bellman equation, $\mathbf v_{\pi}$ is the unique fixed point.
 2. $\forall \mathbf v\in\mathbb R^{\vert \mathcal S \vert}$, the sequence of vectors $f_{\pi}^n (\mathbf v)$ converges to $\mathbf v_{\pi} $ in infnity norm
@@ -526,7 +526,7 @@ $$
 \Vert \mathcal B_{\pi}u - \mathcal B_{\pi}v \Vert_\infty
 =\displaystyle\max_{s\in\mathcal S} \vert \mathcal B_{\pi}u(s) - \mathcal B_{\pi}v(s) \vert
 \le \gamma \cdot \Vert u-v\Vert_\infty
-\quad\blacksquare
+\tag*{$\blacksquare$}
 $$
 
 *Proof 3*:
@@ -872,15 +872,34 @@ v_n(s)
 \end{align}
 $$
 
+Having computed the optimal value function $v^*$, the optimal policy is obtained from
+$$
+\pi^*(s)
+= \argmax_{a\in\mathcal A}
+\left\{
+  r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [v^*(s')]
+\right\}
+$$
+
 #### The Algorithm
 
 Now, we unfold value iteration algorithm for finite state space.
 > **VALUE ITERATION (vector form)**  
 > Init $\mathbf v_{0}$ arbitrarily  
-> For $n=0,1,\dots$, run until convergence  
-> $\qquad$ compute
-> $\mathbf v_{n+1} = \displaystyle\max_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v_n \right\}$,  
-> $\qquad$ where $\displaystyle\max_{a\in\mathcal A}(\cdot)$ is taken row by row
+> For $n=0,1,\dots$, run until $\mathbf v_{n}$ converges, compute
+> $$
+>  \begin{align*}
+>  \mathbf v_{n+1}
+>  &= \displaystyle\max_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v_n \right\}
+>  \\
+>  \boldsymbol{\pi}_{n+1}
+>  &= \displaystyle\argmax_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v_n \right\}
+>  \end{align*}
+>  \quad
+>  \text{where } \max_{a\in\mathcal A}(\cdot) \text{ is taken row by row}
+> $$
+>
+> Return $\mathbf v^*$ and $\boldsymbol{\pi}^*$.
 
 Equivalent reformulation in element-wise form
 > **VALUE ITERATION (element-wise form)**  
@@ -895,17 +914,7 @@ Equivalent reformulation in element-wise form
 
 Remarks:
 
-* Having computed the optimal value function $v^*$, the optimal policy is obtained from
-  $$
-  \begin{align*}
-  \pi^*(s)
-  &= \argmax_{a\in\mathcal A}\: q^*(s,a) \\
-  &= \argmax_{a\in\mathcal A}
-  \left\{
-    r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [v^*(s')]
-  \right\}
-  \end{align*}
-  $$
+* In vector form, $\boldsymbol{\pi}_n$ consists of $\pi(s)$ for all $s\in\mathcal S$.
 * The sequence $v_n(\cdot)$ converges to $v^{*}(\cdot)$ which satisfies BOE. However, $v_n(\cdot)$ itself do **not** generally satisfy Bellman equation for **any** policy. $v_n(s)$ should be interpreted as the estimate of $v^*(s)$ at $n$-th iteration rather than the state values under some policy. In particular,
   $$
     \begin{align*}
@@ -1052,20 +1061,24 @@ Now, we unfold the policy iteration for easy implementation. The  greedy policy 
 > **POLICY ITERATION(vector form)**  
 > Init $\pi_0$ by random guessing  
 > For $n=0,1,2,\dots$, run until convergence  
-> $\quad$ **Policy evaluation**: Solve $\mathbf v_{\pi_n} = \mathbf r_{\pi_n} + \gamma\mathbf P_{\pi_n} \mathbf v_{\pi_n}$ for state values $\mathbf v_{\pi_n}$  
+> $\quad$ **Policy evaluation**: Compute $\mathbf v_{\pi_n}$ in $\mathbf v_{\pi_n} = \mathbf r_{\pi_n} + \gamma\mathbf P_{\pi_n} \mathbf v_{\pi_n}$  
 > $\quad$ **Policy improvement**: Solve $\pi_{n+1} = \displaystyle\argmax_{\pi}  \big\{ \mathbf r_{\pi} + \gamma\mathbf P_{\pi} \mathbf v_{\pi_n} \big\}$ for new policy $\pi_{n+1}$
 
 Equivalent element-wise formutaiton of policy iteration:
 > **POLICY ITERATION(element-wise form)**  
 > Init $\pi_{0}(s)$ for all $s\in\mathcal S$ by random guessing  
 > For $n=0,1,2,\dots$, do  
-> $\quad$ **Policy evaluation**: compute $v_{\pi_n}(s)$ for all $s\in\mathcal S$ by solving linear equations  
+> $\quad$ **Policy evaluation**: Compute $v_{\pi_n}(s)$ for all $s\in\mathcal S$ given $\pi_n$.  
 > $\quad$ For each $s\in\mathcal S$, do  
 > $\quad\quad\;$ For each $a\in\mathcal A$, compute  
 > $\quad\quad\qquad$ Q-function: $q_{\pi_n} (s,a) = r(s,a) + \gamma\displaystyle\sum_{s'\in\mathcal S} p(s'\mid s,a) \, v_{\pi_n}(s')$  
 > $\quad\quad\;$ **Policy improvement**: compute greedy policy $\pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A} \: q_{\pi_n} (s,a)$  
 > until $\Vert\mathbf v_{\pi_{n+1}} - \mathbf v_{\pi_n} \Vert < \epsilon$  
 > Return $v_{\pi_n}(s)$ and $\pi_n(s)$ for all $s\in\mathcal S$
+
+Remarks:
+
+* In policy evaluation, either analytical solution (for small state space)or Bellman update (for large state space)is used.
 
 ### Comparison of Value Iteration and Policy Iteration
 
@@ -1081,6 +1094,10 @@ $$
 
 Remarks:
 
+* By the law of total probability,
+  $$
+  \sum_a \pi(a \mid s) = 1
+  $$
 * The determinstic policy can be seen as a special of stochastic policy by assigning $\pi(\hat a \mid s)$ to 1 for some $\hat a$.
   $$
   \pi(a \mid s) =
@@ -1089,46 +1106,60 @@ Remarks:
     0 & \text{else}
   \end{cases}
   $$
-* For stochastic policy, it holds that
-  $$
-  \sum_a \pi(a \mid s) = 1
-  $$
-
 * Both deterministic and stochastic policy are time-invariant. i.e. The distribution of $a$ given $s$ is always the same, regardless when we arrived at $s$.
-
-From now on, we stick to deterministic policy and we will answer the following quesitons
-
-1. How to quantify the goodness of a policy?  
-    $\to$ state values, Bellman equations
-1. Which criterion should the optimal policy satisfy?  
-    $\to$ Bellman optimality equations.
-1. How to find the optimal policy?  
-    $\to$ value iteration, policy iteration
 
 ## Appendix
 
 ### Contractive Mapping
 
-Let $(\mathcal X, d)$ be a metric space. We say that a mapping $f:\mathcal X \to \mathcal X$ is ***contractive*** if
+Let $(\mathcal X, d)$ be a metric space. We say that $f:\mathcal X \to \mathcal X$ is a ***contractive*** mapping if
 $$
 \exists \gamma\in[0,1), \text{ s.t. }
 \forall x, y\in\mathcal X,
 d(f(x), f(y)) \le \gamma d(x,y)
 $$
 
-**Contraction Mapping Theorem**  
-If $\mathcal X$ is complete and $f:\mathcal X \to \mathcal X$ is contractive, then
+> **Contraction Mapping Theorem**  
+> If $(\mathcal X, d)$ is **complete** and $f:\mathcal X \to \mathcal X$ is contractive, then
+> 
+> 1. $f$ has unique fixed point. i.e. $\exists !\, x^* \in\mathcal X$ s.t. $f(x^*) = x^*$
+> 2. Construction of the fixed point: $\forall x\in\mathcal X, \displaystyle\lim_{n\to\infty} f^n(x) = x^*$
 
-1. $f$ has unique fixed point. i.e. $\exists !\, x^* \in\mathcal X$ s.t. $f(x^*) = x^*$
-2. Construction of the fixed point: $\forall x\in\mathcal X, \displaystyle\lim_{n\to\infty} f^n(x) = x^*$
+*Proof*: c.f. Separete notes.
+
+> **Montonic Contraction**  
+> Suppose that $(\mathcal X, d)$ is a complete metric space with a **partial oder** "$\le$". Let $f:\mathcal X \to \mathcal X$ be a **monotonic increasing** contraction mapping w.r.t. "$\le$". Then, 
+> $$
+> \forall x: x\le x^* \iff x\le f(x)
+> $$
+
+*Proof*: The claim is trivially true if $x=x^*$. Hence, we assume $x\ne x^*$ in the following.
+
+$\Longleftarrow$:  
+Using the monotonicity of $f$, we get the induction
+$$
+\boxed{x} \le f(x) \le f^2(x) \le \cdots \le \boxed{f^n(x)},
+\quad \forall x\in\mathbb N
+$$
+
+Taking the limit, we conclude $x\le \displaystyle\lim_{n\to\infty} f^n(x) = x^*$. $\qquad\blacksquare$
+
+$\implies$:  
+For the sake of contradiction, suppose $\exist x: x\le x^*$ but $x> f(x)$. By induction,
+$$
+x > f^n(x),
+\quad \forall x\in\mathbb N
+$$
+
+Taking the limit, we get $x \ge \displaystyle\lim_{n\to\infty} f^n(x) = x^*$. Since $x\ne x^*$ by assumption, we get $x>x^*$ which contradicts with $x\le x^*$. $\qquad\blacksquare$
 
 ### Dealing with Max and Abs
 
-Let $f,g: \mathcal X \to \mathbb R$ be any two real-valued functions, where $\mathcal X$ can be any set. Then,
-$$
-\left\vert \max_{x\in\mathcal X} f(x) - \max_{x\in\mathcal X} g(x) \right\vert
-\le \max_{x\in\mathcal X} \left\vert f(x) -g(x) \right\vert
-$$
+> Let $f,g: \mathcal X \to \mathbb R$ be any two real-valued functions, where $\mathcal X$ can be any set. Then,
+> $$
+> \left\vert \max_{x\in\mathcal X} f(x) - \max_{x\in\mathcal X} g(x) \right\vert
+> \le \max_{x\in\mathcal X} \left\vert f(x) -g(x) \right\vert
+> $$
 
 *Proof*: Let $M_f = \displaystyle\max_{x\in\mathcal X} f(x)$ and $M_g = \displaystyle\max_{x\in\mathcal X} g(x)$. It is sufficient to show that
 $$
@@ -1169,21 +1200,21 @@ A square matrix $\mathbf A \in\mathbb R^{n \times n}$ is called a ***row stochas
 * all its entires are nonnegative: $a_{ij} \ge 0, \forall i,j\in\{1,\dots,n\}$
 * and each row sums to 1. $\sum_{j=1}^n a_{ij} = 1, \forall i\in\{1,\dots,n\}$
 
-Let $\mathbf A \in\mathbb R^{n \times n}$ be a state transition matrix. Then,
-
-1. $1$ is always an eigenvalue of $\mathbf A$.
-1. Multiplication with $\mathbf A$ does not increase the infinity norm. i.e.
-    $$
-    \begin{align}
-      \Vert\mathbf{Ax}\Vert_{\infty} \le  \Vert\mathbf{x}\Vert_{\infty}, \forall \mathbf{x}\in\mathbb R^n
-    \end{align}
-    $$
-1. The eigenvalues of $\mathbf A$ are at most $1$. i.e.
-    $$
-    \begin{align}
-      \vert \lambda \vert \le 1, \forall\lambda\in\operatorname{spec}(A)
-    \end{align}
-    $$
+> Let $\mathbf A \in\mathbb R^{n \times n}$ be a state transition matrix. Then,
+> 
+> 1. $1$ is always an eigenvalue of $\mathbf A$.
+> 1. Multiplication with $\mathbf A$ does not increase the infinity norm. i.e.
+>     $$
+>     \begin{align}
+>       \Vert\mathbf{Ax}\Vert_{\infty} \le  \Vert\mathbf{x}\Vert_{\infty}, \forall \mathbf{x}\in\mathbb R^n
+>     \end{align}
+>     $$
+> 1. The eigenvalues of $\mathbf A$ are at most $1$. i.e.
+>     $$
+>     \begin{align}
+>       \vert \lambda \vert \le 1, \forall\lambda\in\operatorname{spec}(A)
+>     \end{align}
+>     $$
 
 *Proof 1*: Let $\mathbf u = [1,\dots,1]^\top \in\mathbb R^n$ be all-one vector. It is easy to verify that $\mathbf{Au} = \mathbf{u}$. Hence, $\mathbf u$ is an eigenvector of $\mathbf A$ with eigen value $1$. $\:\blacksquare$
 
@@ -1256,13 +1287,13 @@ $$
 \end{align}
 $$
 
-Relation between different types of convergence:
-$$
-\begin{align*}
-\text{uniform convg.} \iff \text{convg. in sup norm}
-\implies \text{point-wise convg.}
-\end{align*}
-$$
+> Relation between different types of convergence:
+> $$
+> \begin{align*}
+> \text{uniform convg.} \iff \text{convg. in sup norm}
+> \implies \text{point-wise convg.}
+> \end{align*}
+> $$
 
 $(f_n)_{n\in\mathbb N}$ is **monotonically increasing** iff for each $x\in\mathcal X$, the sequence $(f_n(x))_{n\in\mathbb N}$ is monotonically increasing, i.e.
 $$
@@ -1281,7 +1312,7 @@ $$
 \forall x\in\mathcal X, \forall n\in\mathbb N, \vert f_n(x)\vert \le M
 $$
 
-**Monotonic Convergence Theorem**  
-Let $(f_n)_{n\in\mathbb N}$ be point-wise bounded and monotonically increasing, then $(f_n)_{n\in\mathbb N}$ converges to some $f$.
+> **Monotonic Convergence Theorem**  
+> Let $(f_n)_{n\in\mathbb N}$ be point-wise bounded and monotonically increasing, then $(f_n)_{n\in\mathbb N}$ converges to some $f$.
 
 Remark: The limit function is not necessarily equal to the pointwise bound! i.e. Let $\vert f_n(x)\vert$ be bounded by $M_x$. Then, $f(x)\ne M_x$ in general.

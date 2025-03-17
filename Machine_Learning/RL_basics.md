@@ -27,7 +27,7 @@ A Markov decision process (MDP) consists of
 * $\mathcal S$: set of states.
 * $\mathcal A$: set of actions.
 * $p(\cdot\mid s, a)$: state transition probability. i.e. the probability distribution of the new state given the current state $s$ and current action $a$.
-* $\gamma\in(0,1)$: discount factor.
+* $\gamma\in[0,1)$: discount factor.
 * $r: \mathcal S \times \mathcal A \to \mathbb R$: reward function. bounded.
 
 In the following, we consider stationary MDP. i.e. Both the station transition probability and reward function are time-independent.
@@ -980,14 +980,14 @@ $$
 \end{align}
 $$
 
-Fact: If $\pi'$ is greedy w.r.t. $q_{\pi}$, then it improves the original policy $\pi$ , i.e.
-$$
-\begin{align}
-\forall s\in\mathcal S, \:
-\pi'(s) = \argmax_a \: q_{\pi}(s,a)
+> Fact: If $\pi'$ is greedy w.r.t. $q_{\pi}$, then it improves the original policy $\pi$ , i.e.
+> $$
+> \begin{align}
+> \forall s\in\mathcal S, \:
+> \pi'(s) = \argmax_a \: q_{\pi}(s,a)
 \implies v_{\pi'} \ge v_{\pi}
-\end{align}
-$$
+> \end{align}
+> $$
 
 *Proof*: By construction of $\pi'$, we have
 $$
@@ -1081,6 +1081,67 @@ Remarks:
 * In policy evaluation, either analytical solution (for small state space)or Bellman update (for large state space)is used.
 
 ### Comparison of Value Iteration and Policy Iteration
+
+We will see that
+
+> Starting from the same initial condition,
+>
+> 1. Policy itertion generally converges faster than value iteration.
+> 1. Policy iteration reduces to value iteration when policy evalution is performed using single-step Bellman update.
+
+Suppose the value iteration starts with $v_0 = v_{\pi_0}$ where $\pi_0$ is the initial guess of policy iteration.
+
+$$
+\begin{array}{cll}
+\, & \mathbf{Policy \: Iteration} & \mathbf{Value \: Iteration}
+\\ \hline
+1 & \mathtt{init}: \pi_0(\cdot) & -
+\\
+2
+&\mathtt{PE}:  v_{\pi_0} =  \mathcal B_{\pi_0} v_{\pi_0}
+&\mathtt{init}: v_0 = v_{\pi_0}
+\\
+3
+&\mathtt{PI}:  \pi_1(s) = \displaystyle\argmax_a\: q_{\pi_0}(s,a), \forall s\in\mathcal S.
+&\mathtt{PU}:  \pi_1(s) = \displaystyle\argmax_a\: q_{0}(s,a), \forall s\in\mathcal S.
+\\[6pt]
+\boxed{4}
+&\mathtt{PE}:  v_{\pi_1} =  \mathcal B_{\pi_1} v_{\pi_1}
+&\mathtt{VU}:  v_1 = \mathcal B_* v_0
+\\[6pt]
+5
+&\mathtt{PI}:  \pi_2(s) = \displaystyle\argmax_a\: q_{\pi_1}(s,a), \forall s\in\mathcal S.
+&\mathtt{PU}:  \pi_2(s) = \displaystyle\argmax_a\: q_{1}(s,a), \forall s\in\mathcal S.
+\\
+\vdots & \qquad\vdots & \qquad\vdots
+\end{array}
+$$
+
+Then, policy iteration converges faster than value iteration, i.e.
+
+> $$
+> \forall n\in\mathbb N, v_{n} \le v_{\pi_{n}}
+> $$
+
+*Proof*: We show this fact by induction. 
+
+Since $v_0 = v_{\pi_0}$, steps 1-3 in the table produces the same result. The step 4 is pivot as follows.
+
+In policy iteration, $\pi_1$  is greedy w.r.t. $q_{\pi_0}$. By property of greedy policy, it holds that $v_{\pi_1} \ge v_{\pi_0}$. Hence,
+$$
+v_{\pi_1} =  \mathcal B_{\pi_1} v_{\pi_1} \ge \mathcal B_{\pi_1} v_{\pi_0}
+$$
+
+In value iteration, $v_0 = v_{\pi_0}$, $q_0 = q_{\pi_0}$. Step 3 and 4 yield
+$$
+\begin{align*}
+v_1(s)
+&= \mathcal B_* v_0(s) = \mathcal B_* v_{\pi_0}(s) \\
+&= \max_a q_{\pi_0}(s,a) = q_{\pi_0}(s,\pi_1(s)) = \mathcal B_{\pi_1} v_0(s)
+\end{align*}
+$$
+
+Hence, $v_{\pi_1} \ge B_{\pi_1} v_{\pi_0} = v_1$.
 
 ## Generalization
 

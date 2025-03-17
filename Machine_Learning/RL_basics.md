@@ -1078,7 +1078,7 @@ Equivalent element-wise formutaiton of policy iteration:
 
 Remarks:
 
-* In policy evaluation, either analytical solution (for small state space)or Bellman update (for large state space)is used.
+* In policy evaluation, either analytical solution (for small state space) or Bellman update (for large state space) is used. The analytical solution provides exact state values of $v_{\pi_n}(s)$ while Bellman updates gives approximation of $v_{\pi_n}(s)$. We will see later that the approximation error in Bellman update does not prevent the algorithm from converging.
 
 ### Comparison of Value Iteration and Policy Iteration
 
@@ -1089,11 +1089,11 @@ We will see that
 > 1. Policy itertion generally converges faster than value iteration.
 > 1. Policy iteration reduces to value iteration when policy evalution is performed using single-step Bellman update.
 
-Suppose the value iteration starts with $v_0 = v_{\pi_0}$ where $\pi_0$ is the initial guess of policy iteration.
+Suppose the value iteration starts with $v_0 = v_{\pi_0}$ where $\pi_0$ is the initial guess of policy iteration. Assume that policy evaluation always gives the exact solution.
 
 $$
 \begin{array}{cll}
-\, & \mathbf{Policy \: Iteration} & \mathbf{Value \: Iteration}
+\, & \textbf{Policy Iteration} & \textbf{Value  Iteration}
 \\ \hline
 1 & \mathtt{init}: \pi_0(\cdot) & -
 \\
@@ -1117,31 +1117,154 @@ $$
 \end{array}
 $$
 
-Then, policy iteration converges faster than value iteration, i.e.
+Since $v_0 = v_{\pi_0}$, policy iteration and value iteration coincide from steps 1 to from step 3. The step 4 is pivot as follows.
 
-> $$
-> \forall n\in\mathbb N, v_{n} \le v_{\pi_{n}}
-> $$
+* In policy iteration, $\pi_1$  is greedy w.r.t. $q_{\pi_0}$. By property of greedy policy, it holds that $v_{\pi_1} \ge v_{\pi_0}$. Hence,
+  $$
+  v_{\pi_1} =  \mathcal B_{\pi_1} v_{\pi_1} \ge \mathcal B_{\pi_1} v_{\pi_0}
+  $$
 
-*Proof*: We show this fact by induction. 
+* In value iteration, $v_0 = v_{\pi_0}$, $q_0 = q_{\pi_0}$. Step 3 and 4 yield
+  $$
+  \begin{align*}
+  v_1(s)
+  &= \mathcal B_* v_0(s) = \mathcal B_* v_{\pi_0}(s) \\
+  &= \max_a q_{\pi_0}(s,a) = q_{\pi_0}(s,\pi_1(s)) = \mathcal B_{\pi_1} v_0(s)
+  \end{align*}
+  $$
 
-Since $v_0 = v_{\pi_0}$, steps 1-3 in the table produces the same result. The step 4 is pivot as follows.
+Hence, $v_{\pi_1} \ge B_{\pi_1} v_{\pi_0} = v_1$.
 
-In policy iteration, $\pi_1$  is greedy w.r.t. $q_{\pi_0}$. By property of greedy policy, it holds that $v_{\pi_1} \ge v_{\pi_0}$. Hence,
-$$
-v_{\pi_1} =  \mathcal B_{\pi_1} v_{\pi_1} \ge \mathcal B_{\pi_1} v_{\pi_0}
-$$
+Inductively, we can show that $v_{\pi_n} \ge v_n, \forall n\ge 1$.
 
-In value iteration, $v_0 = v_{\pi_0}$, $q_0 = q_{\pi_0}$. Step 3 and 4 yield
+*Proof*: The base case is already shown. Now suppose the inequality holds for any $n$. We will show $v_{\pi_{n+1}} \ge v_{n+1}$.  
+By induction hypothesis, we have $\forall s\in\mathbb S, \forall a\in\mathcal A$:
 $$
 \begin{align*}
-v_1(s)
-&= \mathcal B_* v_0(s) = \mathcal B_* v_{\pi_0}(s) \\
-&= \max_a q_{\pi_0}(s,a) = q_{\pi_0}(s,\pi_1(s)) = \mathcal B_{\pi_1} v_0(s)
+q_{\pi_n}(s,a)
+= r(s,a) + \mathbb E[v_{\pi_n}(s')]
+\ge r(s,a) + \mathbb E[v_{n}(s')]
+= q_{n}(s,a)
 \end{align*}
 $$
 
-Hence, $v_{\pi_1} \ge B_{\pi_1} v_{\pi_0} = v_1$.
+Hence, maximizing over $a$ yields
+$$
+\begin{align*}
+\max_{a} q_{\pi_n}(s,a) &\ge \max_{a} q_{n}(s,a) \\
+q_{\pi_n}(s,\pi_{n+1}(s)) &\ge v_{n+1}(s) \\
+\end{align*}
+$$
+
+Using the property of greedy policy, we conclude the inequality for $n+1$:
+$$
+v_{\pi_{n+1}}(s)
+= \mathcal B_{\pi_{n+1}} v_{\pi_{n+1}} (s)
+\ge \mathcal B_{\pi_{n+1}} v_{\pi_{n}} (s)
+= q_{\pi_n}(s,\pi_{n+1}(s))
+\ge v_{n+1}(s)
+\tag*{$\blacksquare$}
+$$
+
+Now, suppose that policy evaluation is performed using a single-step Bellman update, i.e.
+$$
+\tilde{v}_{\pi_{n}} = \mathcal B_{\pi_{n}} \tilde{v}_{\pi_{n-1}}, \quad\forall n\ge 1
+$$
+
+Here, $\tilde{v}_{\pi_{n}}$ no longer satisfies Bellman equation for $\pi_{n}$. Rather, it is an approximation of $v_{\pi_{n}}$. The Q-function $\tilde{q}_{\pi_n}$ is an approximation of the true $q_{\pi_n}$, defined as
+$$
+\tilde{q}_{\pi_n}(s,a) = r(s,a) + \mathbb E[\tilde{v}_{\pi_n}(s')]
+$$
+
+Then, we compare this modified policy iteration to value iteration as follows
+$$
+\begin{array}{cll}
+\, & \textbf{Policy Iteration (single-step trauncated)} & \textbf{Value Iteration}
+\\ \hline
+1 & \mathtt{init}: \pi_0(\cdot) & -
+\\
+2
+&\mathtt{PE}:  \tilde{v}_{\pi_0} =  \mathcal B_{\pi_0} \tilde v \quad\text{for some } \tilde v\in\mathcal V
+&\mathtt{init}: v_0 = \tilde{v}_{\pi_0}
+\\
+3
+&\mathtt{PI}:  \pi_1(s) = \displaystyle\argmax_a\: \tilde{q}_{\pi_0}(s,a), \forall s\in\mathcal S.
+&\mathtt{PU}:  \pi_1(s) = \displaystyle\argmax_a\: q_{0}(s,a), \forall s\in\mathcal S.
+\\[6pt]
+\boxed{4}
+&\mathtt{PE}:  \tilde{v}_{\pi_1} = \mathcal B_{\pi_1} \tilde{v}_{\pi_0}
+&\mathtt{VU}:  v_1 = \mathcal B_* v_0
+\\[6pt]
+5
+&\mathtt{PI}:  \pi_2(s) = \displaystyle\argmax_a\: \tilde{q}_{\pi_1}(s,a), \forall s\in\mathcal S.
+&\mathtt{PU}:  \pi_2(s) = \displaystyle\argmax_a\: q_{1}(s,a), \forall s\in\mathcal S.
+\\
+\vdots & \qquad\vdots & \qquad\vdots
+\end{array}
+$$
+
+In policy iteration, we have in step 4
+$$
+\tilde{v}_{\pi_1}(s)
+= \mathcal B_{\pi_1} \tilde{v}_{\pi_0}(s)
+= \tilde{q}_{\pi_0}(s,\pi_1(s))
+= \max_a \tilde{q}_{\pi_0}(s,a)
+$$
+
+In value iteration, we have in step 4
+$$
+{v}_{1}(s)
+= \mathcal B_{*} {v}_{0}(s)
+= \max_a {q}_{0}(s,a)
+$$
+
+Recall that $v_0 = \tilde{v}_{\pi_0} \implies q_0 = \tilde{q}_{\pi_0}$. Hence, $\tilde{v}_{\pi_1} = {v}_{1}$.
+Inductively, one can show that $\tilde{v}_{\pi_n} = {v}_{n}, \forall n\ge 1$. Therefore, single-step truncated policy iteration coincides with value iteration (and thus converges).
+
+#### Truncated Policy Update
+
+In policy evaluation, what if we perform an $m$-step Bellman update  instead of a single-step Bellman update? This yields ***truncated policy update***.
+
+$$
+\begin{array}{cll}
+\, & \textbf{Trauncated Policy Iteration} & \textbf{Value Iteration}
+\\ \hline
+1 & \mathtt{init}: \pi_0(\cdot) & -
+\\
+2
+&\mathtt{PE}:  \tilde{v}_{\pi_0} =  \mathcal B_{\pi_0}^m \tilde v \quad\text{for some } \tilde v\in\mathcal V
+&\mathtt{init}: v_0 = \tilde{v}_{\pi_0}
+\\
+3
+&\mathtt{PI}:  \pi_1(s) = \displaystyle\argmax_a\: \tilde{q}_{\pi_0}(s,a), \forall s\in\mathcal S.
+&\mathtt{PU}:  \pi_1(s) = \displaystyle\argmax_a\: q_{0}(s,a), \forall s\in\mathcal S.
+\\[6pt]
+\boxed{4}
+&\mathtt{PE}:  \tilde{v}_{\pi_1} = \mathcal B_{\pi_1}^m \tilde{v}_{\pi_0}
+&\mathtt{VU}:  v_1 = \mathcal B_* v_0
+\\[6pt]
+5
+&\mathtt{PI}:  \pi_2(s) = \displaystyle\argmax_a\: \tilde{q}_{\pi_1}(s,a), \forall s\in\mathcal S.
+&\mathtt{PU}:  \pi_2(s) = \displaystyle\argmax_a\: q_{1}(s,a), \forall s\in\mathcal S.
+\\
+\vdots & \qquad\vdots & \qquad\vdots
+\end{array}
+$$
+
+Remarks:
+
+* If $m=1$, truncated policy iteration conincides with value update.
+* The larger $m$ is, the better does $\tilde{v}_{\pi_n}$ approximate $v_{\pi_n}$.
+* If $m\to\infty$, truncated policy iteration becomes standard policy iteration.
+* In practice, policy iteration is usally implemented as truncated policy iteration because policy evaluation must be performed in finite steps.
+
+We now show that truncated policy iteration converges faster as $m$ increases, i.e.
+$$
+\mathcal B_{\pi_n}^{m+1} \tilde{v}_{\pi_{n-1}} \ge \mathcal B_{\pi_n}^m \tilde{v}_{\pi_{n-1}},
+\quad\forall m,n\ge 1
+$$
+
+*Proof*: TODO
 
 ## Generalization
 

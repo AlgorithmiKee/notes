@@ -1,5 +1,41 @@
 # Exercise Reinfocement Learning
 
+## Basic Understanding
+
+> Each question has exactly **one** correct solution
+
+1. Consider an MDP where both state space $\mathcal S$ and action space $\mathcal A$ are finite. What is the total number of deteriministic policies? (Assume time-independent policies only)
+   - [ ] 1
+   - [ ] $\vert\mathcal S\vert + {\vert\mathcal A\vert}$
+   - [ ] $\vert\mathcal S\vert \cdot {\vert\mathcal A\vert}$
+   - [ ] $\vert\mathcal S\vert^{\vert\mathcal A\vert}$
+   - [ ] $\vert\mathcal A\vert^{\vert\mathcal S\vert}$
+   - [ ] infinitely many
+
+1. Let $\pi$ and $\pi'$ be two distinct policies. Which of the following quantity is equal to $q_{\pi}(s,\pi'(s))$?
+   - [ ] $q_{\pi'}(s, \pi(s))$
+   - [ ] $v_{\pi}(s)$
+   - [ ] $v_{\pi'}(s)$
+   - [ ] $\mathcal B_{\pi'} v_{\pi}(s)$
+   - [ ] $\mathcal B_{\pi} v_{\pi'}(s)$
+   - [ ] $\mathcal B_{*} v_{\pi}(s)$
+   - [ ] $\mathcal B_{*} v_{\pi'}(s)$
+
+1. Recall the row-stochastic matrix $\mathbf P_{\pi}\in\mathbb R^{n\times n}$ introduced in finite state space MDP, where
+    $$
+    \begin{align*}
+    (\mathbf P_{\pi})_{ij}
+    &= p(S' = \varsigma_j \mid S =\varsigma_i,\pi(\varsigma_i)), \forall i,j=1,\dots,n \\
+    \mathcal S &= \{\varsigma_1,\dots, \varsigma_n\}
+    \end{align*}
+    $$
+    Which statement about $\mathbf P_{\pi}$ is **wrong**?
+   - [ ] $\mathbf P_{\pi}$ is not always symmetric.
+   - [ ] $\mathbf P_{\pi}$ is always positive definite.
+   - [ ] The all-one vector $\mathbf 1$ is always an eigenvector of $\mathbf P_{\pi}$ with eigenvalue 1.
+   - [ ] Let $\boldsymbol{\rho},\boldsymbol{\rho}' \in\mathbb R^{1\times n}$ be such that $(\boldsymbol{\rho})_i = p(S=\varsigma_i)$ and $(\boldsymbol{\rho}')_i = p(S'=\varsigma_i)$. Then, $\boldsymbol{\rho}' = \boldsymbol{\rho}\mathbf P_{\pi}$.
+   - [ ] Let $\mathbf{v}_{\pi}\in\mathbb R^{n\times 1}$ be such that $(\mathbf{v}_{\pi})_i = v_{\pi}(\varsigma_i)$. Then, $\mathbb E[v_{\pi}(S')\mid S=\varsigma_k] = \sum_{j=1}^n (\mathbf P_{\pi})_{kj}(\mathbf{v}_{\pi})_j$.
+
 ## Analytical Solution of Bellman Equation
 
 Recall the analytical solution of Bellman equation for finite state space $\mathcal S=\{\varsigma_1,\dots, \varsigma_n\}$

@@ -5,21 +5,32 @@
 > Each question has exactly **one** correct solution
 
 1. Consider an MDP where both state space $\mathcal S$ and action space $\mathcal A$ are finite. What is the total number of deteriministic policies? (Assume time-independent policies only)
-   - [ ] 1
-   - [ ] $\vert\mathcal S\vert + {\vert\mathcal A\vert}$
-   - [ ] $\vert\mathcal S\vert \cdot {\vert\mathcal A\vert}$
-   - [ ] $\vert\mathcal S\vert^{\vert\mathcal A\vert}$
-   - [ ] $\vert\mathcal A\vert^{\vert\mathcal S\vert}$
-   - [ ] infinitely many
+    $$
+    \begin{array}{lll}
+    \square\; 1 \quad &
+    \square\; \vert\mathcal S\vert + {\vert\mathcal A\vert} \quad &
+    \square\; \vert\mathcal S\vert \cdot {\vert\mathcal A\vert} \quad
+    \\
+    \square\; \vert\mathcal S\vert^{\vert\mathcal A\vert} \quad &
+    \square\; \vert\mathcal A\vert^{\vert\mathcal S\vert} \quad &
+    \square\; \infty
+    \end{array}
+    $$
 
 1. Let $\pi$ and $\pi'$ be two distinct policies. Which of the following quantity is equal to $q_{\pi}(s,\pi'(s))$?
-   - [ ] $q_{\pi'}(s, \pi(s))$
-   - [ ] $v_{\pi}(s)$
-   - [ ] $v_{\pi'}(s)$
-   - [ ] $\mathcal B_{\pi'} v_{\pi}(s)$
-   - [ ] $\mathcal B_{\pi} v_{\pi'}(s)$
-   - [ ] $\mathcal B_{*} v_{\pi}(s)$
-   - [ ] $\mathcal B_{*} v_{\pi'}(s)$
+    $$
+    \begin{array}{llll}
+    \square\; v_{\pi}(s) &
+    \square\; v_{\pi'}(s) &
+    \square\; r(s, \pi'(s)) &
+    \square\; q_{\pi'}(s, \pi(s))
+    \\
+    \square\; \mathcal B_{\pi'} v_{\pi}(s) &
+    \square\; \mathcal B_{\pi} v_{\pi'}(s) &
+    \square\; \mathcal B_{*} v_{\pi}(s) &
+    \square\; \mathcal B_{*} v_{\pi'}(s) &
+    \end{array}
+    $$
 
 1. Recall the row-stochastic matrix $\mathbf P_{\pi}\in\mathbb R^{n\times n}$ introduced in finite state space MDP, where
     $$
@@ -82,18 +93,65 @@ $$
 
 Show that for any policy $\pi$, it holds that $\mathcal B_{*}v_{\pi} \ge v_{\pi}$.
 
-## Stochastic Linear System
+## Policy Iteration for Stochastic Linear Dynamics
 
-Consider the following stochastic linear dymanics with state space $\mathcal S=\mathbb R^n$ and action space $\mathcal A=\mathbb R^m$.
+Let the state space $\mathcal S = \mathbb R^n$ and action space $\mathcal A = \mathbb R^m$. Consider the following stochastic linear dymanics with quadratic reward function
 $$
-s' = As + Ba + \epsilon,
-\quad \epsilon\sim\mathcal N(0,\Sigma)
+\begin{align*}
+s_{t+1} &= As_{t} + Ba_{t} + \epsilon, \quad \epsilon\sim\mathcal N(0,\Sigma) \\
+r(s_t,a_t) &= -s_{t}^\top Qs_{t} - a_{t}^\top Ra_{t}
+\end{align*}
 $$
 
-where $s,s',\epsilon\in\mathbb R^n, a\in\mathbb R^m$.
+where
 
-The reward function is given by
+- $t\in\mathbb N, s_{t},s_{t+1},\epsilon\in\mathbb R^n, a\in\mathbb R^m, A\in\mathbb R^{n\times n}, B\in\mathbb R^{n\times m}$.
+- $Q\in\mathbb R^{n\times n}$ and $R\in\mathbb R^{m\times m}$ are symmetric positive definite matrices.
+
+A linear policy $\pi:\mathbb R^n \to\mathbb R^m$ is given by
+
 $$
-r(s,a) = -s^\top Qs - a^\top Ra
+\pi(s) = Ks, \quad K\in\mathbb R^{m\times n}
 $$
-where $Q$ and $R$ are positive definite matrices.
+
+Throughout this problem, assume the system parameters $(A, B, Q, R, \Sigma, \gamma)$, and the controller matrix $K$ are known.
+
+1. For a given state-action pair $(s,a)$, determine the conditional PDF of the future state.
+    $$
+    p(s'\mid s,a) \triangleq p(s_{t+1}=s' \mid s_{t}=s, a_{t}=a)
+    $$
+2. For a given current state $s$, calulate the immediate reward by executing $\pi$.
+    $$
+    r(s,\pi(s)) \triangleq r(s_{t}=s, a_t=\pi(s))
+    $$
+
+Let $v_0$ be the initial guess of the true value function $v_{\pi}$. By applying Bellman update $v_{k+1} = \mathcal B_{\pi}v_{k}$, we obtain $v_1, v_2, \dots$ etc.
+
+3. Show that Bellman update $v_{k+1} = \mathcal B_{\pi}v_{k}$ becomes
+    $$
+    v_{k+1}(s) =
+    -s^{\top}(Q+K^{\top}RK)s + \gamma\mathbb E_{s'\sim\mathcal N((A+BK)s, \Sigma)}[v_k(s')]
+    $$
+4. We set the initial guess to $v_0(s) = 0, \forall s\in\mathbb R^n$. Show by induction that for all $k\in\mathbb N$, $v_k(s)$ is a quadratic function of the form
+    $$
+    v_{k}(s) = s^{\top}P_ks + c_k
+    $$
+
+    > Hint: For a random vector $\mathbf{x}$ and a symmetric matrix $\mathbf{A}$,
+    > $$
+    >   \mathbb E_{\mathbf x}[\mathbf{x}^{\top}\mathbf{A}\mathbf{x}] =
+    >   \boldsymbol{\mu}^{\top}\mathbf{A}\boldsymbol{\mu} + \operatorname{tr}(\mathbf{A}\boldsymbol{\Sigma})
+    > $$
+    > where $\boldsymbol{\mu}$ and $\boldsymbol{\Sigma}$ are the mean and variance of $\mathbf{x}$ respectively.
+
+By the convergence $\displaystyle\lim_{k\to\infty} v_k = v_{\pi}$, we conclude that the true value function is also of the form
+$$
+v_{\pi}(s) = s^{\top}Ps + c
+$$
+
+5. Show that $P$ satisfies the equation
+    $$
+    P = Q + K^{\top}RK + \gamma(A+BK)^{\top}P(A+BK)
+    $$
+
+6. Express $c$ in terms of $P$ and system parameters.

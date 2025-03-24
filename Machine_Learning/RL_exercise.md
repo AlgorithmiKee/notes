@@ -5,6 +5,7 @@
 > Each question has exactly **one** correct solution
 
 1. Consider an MDP where both state space $\mathcal S$ and action space $\mathcal A$ are finite. What is the total number of deteriministic policies? (Assume time-independent policies only)
+
     $$
     \begin{array}{lll}
     \square\; 1 \quad &
@@ -18,6 +19,7 @@
     $$
 
 1. Let $\pi$ and $\pi'$ be two distinct policies. Which of the following quantity is equal to $q_{\pi}(s,\pi'(s))$?
+
     $$
     \begin{array}{llll}
     \square\; v_{\pi}(s) &
@@ -33,6 +35,7 @@
     $$
 
 1. Recall the row-stochastic matrix $\mathbf P_{\pi}\in\mathbb R^{n\times n}$ introduced in finite state space MDP, where
+
     $$
     \begin{align*}
     (\mathbf P_{\pi})_{ij}
@@ -40,12 +43,23 @@
     \mathcal S &= \{\varsigma_1,\dots, \varsigma_n\}
     \end{align*}
     $$
+
     Which statement about $\mathbf P_{\pi}$ is **wrong**?
+
    - [ ] $\mathbf P_{\pi}$ is not always symmetric.
    - [ ] $\mathbf P_{\pi}$ is always positive definite.
    - [ ] The all-one vector $\mathbf 1$ is always an eigenvector of $\mathbf P_{\pi}$ with eigenvalue 1.
    - [ ] Let $\boldsymbol{\rho},\boldsymbol{\rho}' \in\mathbb R^{1\times n}$ be such that $(\boldsymbol{\rho})_i = p(S=\varsigma_i)$ and $(\boldsymbol{\rho}')_i = p(S'=\varsigma_i)$. Then, $\boldsymbol{\rho}' = \boldsymbol{\rho}\mathbf P_{\pi}$.
    - [ ] Let $\mathbf{v}_{\pi}\in\mathbb R^{n\times 1}$ be such that $(\mathbf{v}_{\pi})_i = v_{\pi}(\varsigma_i)$. Then, $\mathbb E[v_{\pi}(S')\mid S=\varsigma_k] = \sum_{j=1}^n (\mathbf P_{\pi})_{kj}(\mathbf{v}_{\pi})_j$.
+
+1. Recall the optimal Q-function $q^*(s,a)$. Then, the greedy policy w.r.t. $q^*(s,a)$ must be an optimal policy.
+
+    $$
+    \begin{array}{ll}
+    \square\; \text{true} \qquad &
+    \square\; \text{false} &
+    \end{array}
+    $$
 
 ## Analytical Solution of Bellman Equation
 
@@ -85,15 +99,35 @@ $$
 ## Bellman Optimality Operator
 
 Recall the definition of Bellman optimality operator $\mathcal B_{*}: \mathcal V \to \mathcal V, v\mapsto \mathcal B_{*}v$ where
+
 $$
 \mathcal B_{*} v(s) = \max_{a\in\mathcal A} \Big\{
     r(s, a) + \gamma\mathbb E_{s' \sim p(\cdot \mid s, a)} [ v(s') ]
 \Big\}
 $$
 
-Show that for any policy $\pi$, it holds that $\mathcal B_{*}v_{\pi} \ge v_{\pi}$.
+1. Show that for any policy $\pi$, it holds that $\mathcal B_{*}v_{\pi} \ge v_{\pi}$.
+1. Does the inequality $\mathcal B_{*}v \ge v$ hold for arbitray bounded value function $v\in\mathcal V$? Justify your answer.
 
-## Policy Iteration for Stochastic Linear Dynamics
+## Transformed Reward Function
+
+Consider an old MDP with discount factor $\gamma$, reward function $r(s,a)$.
+A policy $\pi$ results in the value function $v_{\pi}$ in the old MDP.
+Now, let the new MDP be the same as the old MDP, expect that the reward function of the new MDP is an affine transformation of the old reward function:
+
+$$
+r'(s,a) = m \cdot r(s,a) + c,
+\quad m>0, c\in\mathbb R
+$$
+
+The same policy $\pi$ results in value function $v'_{\pi}$ in the new MDP.
+
+1. For any $s\in\mathcal S$, express $v'_{\pi}(s)$ in terms of $v_{\pi}(s)$, $\gamma$, $m$ and $c$.
+1. Suppose $\pi^*$ is an optimal policy of the old MDP. Is $\pi^*$ also optimal in the new MDP? Justify your answer.
+
+## Model Mismatch
+
+## Policy Evaluation for Stochastic Linear Dynamics
 
 Let the state space $\mathcal S = \mathbb R^n$ and action space $\mathcal A = \mathbb R^m$. Consider the following stochastic linear dymanics with quadratic reward function
 $$

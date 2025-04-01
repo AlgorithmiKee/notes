@@ -127,6 +127,33 @@ The same policy $\pi$ results in value function $v'_{\pi}$ in the new MDP.
 
 ## Model Mismatch
 
+Consider an MDP whose true state transition probability is $p(s'\mid s,a)$. A policy $\pi$ results in value function $v_{\pi}$ in this ground-truth MDP. The agent has however limited knowledge about the environment and thus assumes a deviated state transition probability $\hat p(s'\mid s,a)$. Assume the agent has perfect knowlege of the true reward function $r(s,a)$ and discount factor $\gamma$, i.e. the only model mismatch is state transition probability. The same policy $\pi$ results in value function $\hat v_{\pi}$ in the mismatched MDP.
+
+**For subtask 1,2 and 3, assume the following**:  
+The state space $\mathcal S$ is finite. Let $\mathbf v_{\pi}, \hat{\mathbf v}_{\pi}\in\mathbb R^{\vert\mathcal S\vert}$ denote the state values under ground-truth MDP and mismatched MDP respectively. Let $\mathbf r_{\pi}\in\mathbb R^{\vert\mathcal S\vert}$ denote the immediate rewards. Let $\mathbf P_{\pi}, \hat{\mathbf P}_{\pi}\in\mathbb R^{\vert\mathcal S\vert \times \vert\mathcal S\vert}$ (both are row-stochastic) denote the state transition matrices under ground-truth MDP and mismatched MDP respectively.
+
+1. Write down the vector-form Bellman equations for ground-truth MDP
+2. Write down the vector-form Bellman equations for mismathced MDP
+3. Show that the difference between $\mathbf v_{\pi}$ and $\hat{\mathbf v}_{\pi}$ satisfies
+
+    $$
+    \mathbf v_{\pi} - \hat{\mathbf v}_{\pi} =
+    \gamma (\mathbf I - \gamma\hat{\mathbf P}_{\pi})^{-1}
+    (\mathbf P_{\pi} - \hat{\mathbf P}_{\pi}) \mathbf v_{\pi}
+    $$
+
+**For subtask 4, assume the following**:  
+The state space is $\mathcal S=\mathbb R^n$. Let $v_{\pi}, \hat{v}_{\pi}$ denote the state value functions under ground-truth MDP and mismatched MDP respectively. Assume $p(s'\mid s,a)$ and $\hat p(s'\mid s,a)$ are integrable over $s'\in\mathbb R^n$.
+
+4. Show that the distance between $v_{\pi}$ and $\hat{v}_{\pi}$ is upper bounded as follows
+
+    $$
+    \Vert v_{\pi} -  \hat{v}_{\pi} \Vert_\infty
+    \le \frac{\gamma}{1-\gamma} \Vert v_{\pi} \Vert_\infty \cdot \big\Vert p(\cdot\mid s,a) - \hat p(\cdot\mid s,a) \big\Vert_1
+    $$
+    where
+    $\Vert f \Vert_\infty = \max_x \vert f(x) \vert$ and $\Vert f \Vert_1 = \int_{x\in\mathcal X} \vert f(x) \vert \,\mathrm dx$
+
 ## Policy Evaluation for Stochastic Linear Dynamics
 
 Let the state space $\mathcal S = \mathbb R^n$ and action space $\mathcal A = \mathbb R^m$. Consider the following stochastic linear dymanics with quadratic reward function

@@ -1,11 +1,11 @@
 ---
-title: "Intro to RL"
+title: "Dynamic Programming for MDP I"
 author: "Ke Zhang"
 date: "2025"
 fontsize: 12pt
 ---
 
-# Reinforcement Learning
+# Dynamic Programming for Markov Decision Process I
 
 [toc]
 
@@ -486,7 +486,7 @@ Properties of Bellman operator:
 >    u(s) \le v(s), \forall s\in\mathcal S \implies
 >    \mathcal B_{\pi}u(s) \le \mathcal B_{\pi}v(s), \forall s\in\mathcal S
 >    $$
-> 1. $\mathcal B_{\pi}$  is a contractive mapping. i.e. 
+> 1. $\mathcal B_{\pi}$  is a contractive mapping. i.e.
 >    $$
 >    \forall u, v\in\mathcal V,\:
 >    \Vert \mathcal B_{\pi}u - \mathcal B_{\pi}v \Vert_\infty \le \gamma \Vert u-v\Vert_\infty
@@ -764,7 +764,7 @@ The Bellman optimality criterion can also be formulated in terms of Q-function:
 $$
 \begin{align}
 v^*(s) &= \max_{a\in\mathcal A} q^*(s,a) \\
-\pi^*(s) &= \argmax_{a\in\mathcal A}\, q^*(s,a) 
+\pi^*(s) &= \argmax_{a\in\mathcal A}\, q^*(s,a)
 \end{align}
 $$
 
@@ -800,9 +800,9 @@ where
 
 Remarks:
 
-* If $v$ happens to be the value function $v_{\tilde\pi}$ for some policy $\tilde \pi$. Then,
+* If $v$ happens to be the value function $v_{\pi}$ for some policy $ \pi$. Then,
   $$
-  \mathcal B_{*} v_{\tilde\pi}(s) = \max_{a\in\mathcal A} q_{\tilde\pi}(s,a)
+  \mathcal B_{*} v_{\pi}(s) = \max_{a\in\mathcal A} q_{\pi}(s,a)
   $$
 
 * We will see later that solving BOE is the same as searching for fixed point of $\mathcal B_*$ in function space $\mathcal V$.
@@ -814,7 +814,7 @@ Properties of Bellman optimality operator:
 >    u(s) \le v(s), \forall s\in\mathcal S \implies
 >    \mathcal B_{*}u(s) \le \mathcal B_{*}v(s), \forall s\in\mathcal S
 >    $$
-> 1. $\mathcal B_{*}$  is a contractive mapping. i.e. 
+> 1. $\mathcal B_{*}$  is a contractive mapping. i.e.
 >    $$
 >    \forall u, v \in\mathcal V,\:
 >    \Vert \mathcal B_{*}u - \mathcal B_{*}v \Vert_\infty \le \gamma\Vert u-v\Vert_\infty
@@ -826,7 +826,7 @@ Properties of Bellman optimality operator:
 
 *Proof 1 and 3*: Same as the proof for $\mathcal B_{\pi}$. $\qquad\blacksquare$
 
-*Proof 2*: We will show that $\forall s\in\mathcal S: \vert B_{*}u(s) - \mathcal B_{*}v(s) \vert \le \gamma\Vert u-v\Vert_\infty$ as follows
+*Proof 2*: We show that $\forall s\in\mathcal S: \vert B_{*}u(s) - \mathcal B_{*}v(s) \vert \le \gamma\Vert u-v\Vert_\infty$ as follows
 $$
 \begin{align*}
 \vert B_{*}u(s) - \mathcal B_{*}v(s) \vert
@@ -849,7 +849,7 @@ $$
 \end{align*}
 $$
 
-whre the 2nd step follows from the fact (c.f. Appendix) that
+where the 2nd step follows from the fact (c.f. Appendix) that
 $$
 \left\vert \max_{x\in\mathcal X} f(x) - \max_{x\in\mathcal X} g(x) \right\vert
 \le \max_{x\in\mathcal X} \left\vert f(x) -g(x) \right\vert
@@ -883,34 +883,29 @@ $$
 
 #### The Algorithm
 
-Now, we unfold value iteration algorithm for finite state space.
+Now, we present value iteration algorithm for finite state space.
+
 > **VALUE ITERATION (vector form)**  
 > Init $\mathbf v_{0}$ arbitrarily  
-> For $n=0,1,\dots$, run until $\mathbf v_{n}$ converges, compute
-> $$
->  \begin{align*}
->  \mathbf v_{n+1}
->  &= \displaystyle\max_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v_n \right\}
->  \\
->  \boldsymbol{\pi}_{n+1}
->  &= \displaystyle\argmax_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v_n \right\}
->  \end{align*}
->  \quad
->  \text{where } \max_{a\in\mathcal A}(\cdot) \text{ is taken row by row}
-> $$
->
-> Return $\mathbf v^*$ and $\boldsymbol{\pi}^*$.
+> For $n=0,1,\dots$, do  
+> $\quad\quad$ **Policy update**: $\boldsymbol{\pi}_{n+1} = \displaystyle\argmax_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v_n \right\}$  
+> $\quad\quad$ **Value update**: $\mathbf v_{n+1} = \displaystyle\max_{a\in\mathcal A} \left\{\mathbf r_a + \gamma \mathbf P_a\mathbf v_n \right\}$  
+> $\quad\quad$ where $\displaystyle\argmax_{a\in\mathcal A}$ and $\displaystyle\max_{a\in\mathcal A}$ are taken row by row.  
+> until $\Vert\mathbf v_{n} - \mathbf v_{n-1} \Vert_\infty < \epsilon$  
+> Return $\mathbf v_{n}$ and $\boldsymbol{\pi}_{n}$.
 
 Equivalent reformulation in element-wise form
+
 > **VALUE ITERATION (element-wise form)**  
-> Init $v_{0}(s)$ for all $s\in\mathcal S$ by random guessing  
-> For $n = 0,1,\dots$, do until $v_{0}(s)$ converges for all $s\in\mathcal S$  
+> Init $v_{0}(s)$ for all $s\in\mathcal S$ arbitrarily  
+> For $n = 0,1,\dots$, do  
 > $\quad$ For each $s\in\mathcal S$, do  
-> $\quad\quad$ For each $a\in\mathcal A$, compute  
-> $\quad\quad\qquad q_n(s,a) = r(s, a) + \gamma \displaystyle\sum_{s'} p(s' \mid s, a) \cdot v_n(s')$  
+> $\quad\quad$ For each $a\in\mathcal A$, do  
+> $\quad\quad\qquad$ compute: $q_n(s,a) = r(s, a) + \gamma \displaystyle\sum_{s'} p(s' \mid s, a) \cdot v_n(s')$  
 > $\quad\quad$ **Policy update**: $\pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A}\, q_n(s,a)$  
 > $\quad\quad$ **Value update**: $v_{n+1}(s) = \displaystyle\max_{a\in\mathcal A} q_n(s,a)$  
-> Return $v^{*}(s)$ and $\pi^{*}(s)$ for all $s\in\mathcal S$
+> until $\Vert v_{n} - v_{n-1} \Vert_\infty < \epsilon$  
+> Return $v_{n}(s)$ and $\pi_{n}(s)$ for all $s\in\mathcal S$
 
 Remarks:
 
@@ -980,7 +975,7 @@ $$
 \end{align}
 $$
 
-> Fact: If $\pi'$ is greedy w.r.t. $q_{\pi}$, then it improves the original policy $\pi$ , i.e.
+> **Fact**: If $\pi'$ is greedy w.r.t. $q_{\pi}$, then it improves the original policy $\pi$ , i.e.
 > $$
 > \begin{align}
 > \forall s\in\mathcal S, \:
@@ -1013,7 +1008,7 @@ Suppose we improved $\pi$ by constructing a greedy policy $\pi'$. We can repeat 
 >
 > Then, the corresponding sequence of value functions $(v_{\pi_n})_{n\in\mathbb N}$ converges to the optimal value function $v^*$.
 
-*Proof*: By construction, $\pi_{n+1}$ is greedy w.r.t. $q_{\pi_n}$ for all $n\in\mathbb N$. By property of greedy policy, we have $v_{n+1} \ge v_{\pi_n}$, i.e. The sequence of functions $v_{\pi_n}$ monotonically increases.
+*Proof*: By construction, $\pi_{n+1}$ is greedy w.r.t. $q_{\pi_n}$ for all $n\in\mathbb N$. By property of greedy policy, we have $v_{\pi_{n+1}} \ge v_{\pi_n}$, i.e. The sequence of functions $v_{\pi_n}$ monotonically increases.
 
 Moreover, all $v_{\pi_n}$ are bounded by $v^*$. By monotonic convergence theorem (c.f. Appendix), $v_{\pi_n}$ converges to some $\bar v\in\mathcal V$ with $\bar v \le v^*$. To show that $\bar v = v^*$, it remains to show that $v^*\le \bar v$.
 
@@ -1056,24 +1051,26 @@ $$
 
 #### The Algorithm
 
-Now, we unfold the policy iteration for easy implementation. The  greedy policy construction,requires computing $q_{\pi_n}$ which requires knowledge of $v_{\pi_n}$. Hence, we must perform policy evaluation for $v_{\pi_n}$ before improving $\pi_{n}$.
+Now, we present policy iteration in pseudocode for finite state space. The greedy policy construction requires computing $q_{\pi_n}$, which depends on $v_{\pi_n}$. Thus, we must first perform policy evaluation to compute $v_{\pi_n}$ before improving $\pi_{n}$.
 
 > **POLICY ITERATION(vector form)**  
-> Init $\pi_0$ by random guessing  
-> For $n=0,1,2,\dots$, run until convergence  
-> $\quad$ **Policy evaluation**: Compute $\mathbf v_{\pi_n}$ in $\mathbf v_{\pi_n} = \mathbf r_{\pi_n} + \gamma\mathbf P_{\pi_n} \mathbf v_{\pi_n}$  
-> $\quad$ **Policy improvement**: Solve $\pi_{n+1} = \displaystyle\argmax_{\pi}  \big\{ \mathbf r_{\pi} + \gamma\mathbf P_{\pi} \mathbf v_{\pi_n} \big\}$ for new policy $\pi_{n+1}$
+> Init $\pi_0$ arbitrarily  
+> For $n=0,1,2,\dots$, do  
+> $\quad$ **Policy evaluation**: Compute $\mathbf v_{\pi_n}$ by solving $\mathbf v_{\pi_n} = \mathbf r_{\pi_n} + \gamma\mathbf P_{\pi_n} \mathbf v_{\pi_n}$  
+> $\quad$ **Policy improvement**: Compute greedy policy $\boldsymbol{\pi}_{n+1} = \displaystyle\argmax_{a\in\mathcal A}  \big\{ \mathbf r_{a} + \gamma\mathbf P_{a} \mathbf v_{\pi_n} \big\}$  
+> until $\Vert\mathbf v_{\pi_{n}} - \mathbf v_{\pi_{n-1}} \Vert_\infty < \epsilon$  
+> Return $\mathbf v_{\pi_n}$ and $\boldsymbol{\pi}_{n}$
 
 Equivalent element-wise formutaiton of policy iteration:
 > **POLICY ITERATION(element-wise form)**  
-> Init $\pi_{0}(s)$ for all $s\in\mathcal S$ by random guessing  
+> Init $\pi_{0}(s)$ for all $s\in\mathcal S$ arbitrarily  
 > For $n=0,1,2,\dots$, do  
 > $\quad$ **Policy evaluation**: Compute $v_{\pi_n}(s)$ for all $s\in\mathcal S$ given $\pi_n$.  
 > $\quad$ For each $s\in\mathcal S$, do  
-> $\quad\quad\;$ For each $a\in\mathcal A$, compute  
-> $\quad\quad\qquad$ Q-function: $q_{\pi_n} (s,a) = r(s,a) + \gamma\displaystyle\sum_{s'\in\mathcal S} p(s'\mid s,a) \, v_{\pi_n}(s')$  
+> $\quad\quad\;$ For each $a\in\mathcal A$, do  
+> $\quad\quad\qquad$ Compute Q-function: $q_{\pi_n} (s,a) = r(s,a) + \gamma\displaystyle\sum_{s'\in\mathcal S} p(s'\mid s,a) \, v_{\pi_n}(s')$  
 > $\quad\quad\;$ **Policy improvement**: compute greedy policy $\pi_{n+1}(s) = \displaystyle\argmax_{a\in\mathcal A} \: q_{\pi_n} (s,a)$  
-> until $\Vert\mathbf v_{\pi_{n+1}} - \mathbf v_{\pi_n} \Vert < \epsilon$  
+> until $\Vert v_{\pi_{n}} - v_{\pi_{n-1}} \Vert_\infty < \epsilon$  
 > Return $v_{\pi_n}(s)$ and $\pi_n(s)$ for all $s\in\mathcal S$
 
 Remarks:
@@ -1081,13 +1078,6 @@ Remarks:
 * In policy evaluation, either analytical solution (for small state space) or Bellman update (for large state space) is used. The analytical solution provides exact state values of $v_{\pi_n}(s)$ while Bellman updates gives approximation of $v_{\pi_n}(s)$. We will see later that the approximation error in Bellman update does not prevent the algorithm from converging.
 
 ### Comparison of Value Iteration and Policy Iteration
-
-We will see that
-
-> Starting from the same initial condition,
->
-> 1. Policy itertion generally converges faster than value iteration.
-> 1. Policy iteration reduces to value iteration when policy evalution is performed using single-step Bellman update.
 
 Suppose the value iteration starts with $v_0 = v_{\pi_0}$ where $\pi_0$ is the initial guess of policy iteration. Assume that policy evaluation always gives the exact solution.
 
@@ -1117,28 +1107,36 @@ $$
 \end{array}
 $$
 
-Since $v_0 = v_{\pi_0}$, policy iteration and value iteration coincide from steps 1 to from step 3. The step 4 is pivot as follows.
+Since $v_0 = v_{\pi_0}$, policy iteration and value iteration coincide from steps 1 to step 3. The step 4 is the key difference between the two algorithms and is anaylsed as follows.
 
-* In policy iteration, $\pi_1$  is greedy w.r.t. $q_{\pi_0}$. By property of greedy policy, it holds that $v_{\pi_1} \ge v_{\pi_0}$. Hence,
+* In policy iteration, $\pi_1$  is greedy w.r.t. $q_{\pi_0}$. By property of greedy policy, we have $v_{\pi_1} \ge v_{\pi_0}$. Hence,
+
   $$
-  v_{\pi_1} =  \mathcal B_{\pi_1} v_{\pi_1} \ge \mathcal B_{\pi_1} v_{\pi_0}
+  v_{\pi_1}(s)
+  = \mathcal B_{\pi_1} v_{\pi_1}(s)
+  \ge \mathcal B_{\pi_1} v_{\pi_0}(s)
+  = q_{\pi_0}(s,\pi_1(s))
   $$
 
 * In value iteration, $v_0 = v_{\pi_0}$, $q_0 = q_{\pi_0}$. Step 3 and 4 yield
   $$
-  \begin{align*}
   v_1(s)
-  &= \mathcal B_* v_0(s) = \mathcal B_* v_{\pi_0}(s) \\
-  &= \max_a q_{\pi_0}(s,a) = q_{\pi_0}(s,\pi_1(s)) = \mathcal B_{\pi_1} v_0(s)
-  \end{align*}
+  = \mathcal B_* v_0(s)
+  = \max_a q_{0}(s,a)
+  = \max_a q_{\pi_0}(s,a)
+  = q_{\pi_0}(s,\pi_1(s))
   $$
 
-Hence, $v_{\pi_1} \ge B_{\pi_1} v_{\pi_0} = v_1$.
+Hence, $v_{\pi_1} \ge v_1$.
 
-Inductively, we can show that $v_{\pi_n} \ge v_n, \forall n\ge 1$.
+> **Claim**: Starting with $v_0 = v_{\pi_0}$, policy iteration converges faster than value iteration, i.e.
+> $$
+>  v_{\pi_n} \ge v_n, \forall n\ge 1
+> $$
 
 *Proof*: The base case is already shown. Now suppose the inequality holds for any $n$. We will show $v_{\pi_{n+1}} \ge v_{n+1}$.  
 By induction hypothesis, we have $\forall s\in\mathbb S, \forall a\in\mathcal A$:
+
 $$
 \begin{align*}
 q_{\pi_n}(s,a)
@@ -1148,7 +1146,8 @@ q_{\pi_n}(s,a)
 \end{align*}
 $$
 
-Hence, maximizing over $a$ yields
+Maximizing $q_{\pi_n}$ and $q_{n}$ over $a$ yields
+
 $$
 \begin{align*}
 \max_{a} q_{\pi_n}(s,a) &\ge \max_{a} q_{n}(s,a) \\
@@ -1157,6 +1156,7 @@ q_{\pi_n}(s,\pi_{n+1}(s)) &\ge v_{n+1}(s) \\
 $$
 
 Using the property of greedy policy, we conclude the inequality for $n+1$:
+
 $$
 v_{\pi_{n+1}}(s)
 = \mathcal B_{\pi_{n+1}} v_{\pi_{n+1}} (s)
@@ -1166,20 +1166,17 @@ v_{\pi_{n+1}}(s)
 \tag*{$\blacksquare$}
 $$
 
-Now, suppose that policy evaluation is performed using a single-step Bellman update, i.e.
+In the previous dicussion, we assumed that policy evaluation yields the exact solution. In practice, policy evalution is performed by iterative Bellman updates which gives approximate solution. In particular, consider policy evaluation with a single-step Bellman update:
+
 $$
 \tilde{v}_{\pi_{n}} = \mathcal B_{\pi_{n}} \tilde{v}_{\pi_{n-1}}, \quad\forall n\ge 1
 $$
 
-Here, $\tilde{v}_{\pi_{n}}$ no longer satisfies Bellman equation for $\pi_{n}$. Rather, it is an approximation of $v_{\pi_{n}}$. The Q-function $\tilde{q}_{\pi_n}$ is an approximation of the true $q_{\pi_n}$, defined as
-$$
-\tilde{q}_{\pi_n}(s,a) = r(s,a) + \mathbb E[\tilde{v}_{\pi_n}(s')]
-$$
+This leads to the single-step truncated policy iteration as follows
 
-Then, we compare this modified policy iteration to value iteration as follows
 $$
 \begin{array}{cll}
-\, & \textbf{Policy Iteration (single-step trauncated)} & \textbf{Value Iteration}
+\, & \textbf{Policy Iteration (single-step truncated)} & \textbf{Value Iteration}
 \\ \hline
 1 & \mathtt{init}: \pi_0(\cdot) & -
 \\
@@ -1203,31 +1200,60 @@ $$
 \end{array}
 $$
 
-In policy iteration, we have in step 4
+Remarks:
+
+* Here, $\tilde{v}_{\pi_{n}}$ no longer satisfies the Bellman equation for $\pi_{n}$. Rather, it is an approximation of $v_{\pi_{n}}$. Likewise, $\tilde{q}_{\pi_n}$ is an approximation of the true Q-function $q_{\pi_n}$, defined as
+    $$
+    \tilde{q}_{\pi_n}(s,a) = r(s,a) + \gamma\mathbb E[\tilde{v}_{\pi_n}(s')]
+    $$
+* In policy evaluation, we take $\tilde{v}_{\pi_{n-1}}$ as the initial guess and apply Bellman operator $\mathcal B_{\pi_{n}}$ only once.
+
+> **Claim**: Starting with $v_0 = \tilde{v}_{\pi_0}$, single-step truncated policy iteration coincides with value iteration, i.e.
+> $$
+>  \tilde{v}_{\pi_n} = {v}_{n}, \forall n\ge 0
+> $$
+
+*Proof*: We show this claim by induction. The base case for $n=0$ is true by assumption. Now, suppose $\tilde{v}_{\pi_n} = {v}_{n}$, we will show that $\tilde{v}_{\pi_{n+1}} = {v}_{n+1}$.
+
+By induction hypothesis, both algorithms share the same Q-function as
 $$
-\tilde{v}_{\pi_1}(s)
-= \mathcal B_{\pi_1} \tilde{v}_{\pi_0}(s)
-= \tilde{q}_{\pi_0}(s,\pi_1(s))
-= \max_a \tilde{q}_{\pi_0}(s,a)
+\begin{align*}
+\tilde{q}_{\pi_n}(s,a)
+= r(s,a) + \gamma\mathbb E[\tilde{v}_{\pi_n}(s')]
+= r(s,a) + \gamma\mathbb E[\tilde{v}_{n}(s')]
+= q_{n}(s,a)
+\end{align*}
 $$
 
-In value iteration, we have in step 4
-$$
-{v}_{1}(s)
-= \mathcal B_{*} {v}_{0}(s)
-= \max_a {q}_{0}(s,a)
-$$
+Thus, both algorithms select the same policy $\pi_{n+1}$, since $\displaystyle\argmax_a \tilde{q}_{\pi_n}(s,a) = \displaystyle\argmax_a q_{n}(s,a)$.
 
-Recall that $v_0 = \tilde{v}_{\pi_0} \implies q_0 = \tilde{q}_{\pi_0}$. Hence, $\tilde{v}_{\pi_1} = {v}_{1}$.
-Inductively, one can show that $\tilde{v}_{\pi_n} = {v}_{n}, \forall n\ge 1$. Therefore, single-step truncated policy iteration coincides with value iteration (and thus converges).
+* In policy iteration:
 
-#### Truncated Policy Update
+  $$
+  \tilde{v}_{\pi_{n+1}}(s)
+  = \mathcal B_{\pi_{n+1}} \tilde{v}_{\pi_n}(s)
+  = \tilde{q}_{\pi_n}(s,\pi_{n+1}(s))
+  = q_{n}(s,\pi_{n+1}(s))
+  $$
 
-In policy evaluation, what if we perform an $m$-step Bellman update  instead of a single-step Bellman update? This yields ***truncated policy update***.
+* In value iteration:
+
+  $$
+  {v}_{n+1}(s)
+  = \mathcal B_{*} {v}_{n}(s)
+  = \max_a q_{n}(s,a)
+  = q_{n}(s,\pi_{n+1}(s))
+  $$
+
+Theorefore, we conclude that $\tilde{v}_{\pi_{n+1}} = {v}_{n+1}$. $\qquad\blacksquare$
+
+### Truncated Policy Iteration
+
+In policy evaluation, what if we perform an $m$-step Bellman updates  instead of a single-step Bellman update? This yields ***truncated policy iteration***.
 
 $$
 \begin{array}{cll}
-\, & \textbf{Trauncated Policy Iteration} & \textbf{Value Iteration}
+\, & \textbf{Truncated Policy Iteration} & \textbf{Value Iteration}
 \\ \hline
 1 & \mathtt{init}: \pi_0(\cdot) & -
 \\
@@ -1253,44 +1279,16 @@ $$
 
 Remarks:
 
-* If $m=1$, truncated policy iteration conincides with value update.
-* The larger $m$ is, the better does $\tilde{v}_{\pi_n}$ approximate $v_{\pi_n}$.
+* If $m=1$, truncated policy iteration becomes value update.
+* As $m$ increases, $\tilde{v}_{\pi_n}$ provides a better approximation of $v_{\pi_n}$. Truncated policy iteration behaves more similarly to the standard policy iteration.
 * If $m\to\infty$, truncated policy iteration becomes standard policy iteration.
-* In practice, policy iteration is usally implemented as truncated policy iteration because policy evaluation must be performed in finite steps.
+* In practice, policy iteration is typically implemented as truncated policy iteration because policy evaluation must be performed in a finite number of steps.
 
-We now show that truncated policy iteration converges faster as $m$ increases, i.e.
-$$
-\mathcal B_{\pi_n}^{m+1} \tilde{v}_{\pi_{n-1}} \ge \mathcal B_{\pi_n}^m \tilde{v}_{\pi_{n-1}},
-\quad\forall m,n\ge 1
-$$
-
-*Proof*: TODO
-
-## Generalization
-
-Stochastic policy and stochastic rewards.
-
-A policy can also be stochastic. i.e. instead of mapping the state to a fixed action, there are multiple possible actions with different probability. A stochastic policy is described by the conditional distribution
-
-$$
-\pi(a \mid s), a \in\mathcal A, s \in\mathcal S
-$$
-
-Remarks:
-
-* By the law of total probability,
-  $$
-  \sum_a \pi(a \mid s) = 1
-  $$
-* The determinstic policy can be seen as a special of stochastic policy by assigning $\pi(\hat a \mid s)$ to 1 for some $\hat a$.
-  $$
-  \pi(a \mid s) =
-  \begin{cases}
-    1 & a=\hat a\\
-    0 & \text{else}
-  \end{cases}
-  $$
-* Both deterministic and stochastic policy are time-invariant. i.e. The distribution of $a$ given $s$ is always the same, regardless when we arrived at $s$.
+> **Summary**: Starting from the same initial condition,
+>
+> 1. Policy iteration generally converges faster than value iteration.
+> 1. Policy iteration becomes equivalent to value iteration when policy evaluation is performed using a single-step Bellman update at each iteration.
+> 1. Both policy iteration and value iteration can be seen as special cases of truncated policy iteration.
 
 ## Appendix
 
@@ -1305,14 +1303,14 @@ $$
 
 > **Contraction Mapping Theorem**  
 > If $(\mathcal X, d)$ is **complete** and $f:\mathcal X \to \mathcal X$ is contractive, then
-> 
+>
 > 1. $f$ has unique fixed point. i.e. $\exists !\, x^* \in\mathcal X$ s.t. $f(x^*) = x^*$
 > 2. Construction of the fixed point: $\forall x\in\mathcal X, \displaystyle\lim_{n\to\infty} f^n(x) = x^*$
 
 *Proof*: c.f. Separete notes.
 
 > **Montonic Contraction**  
-> Suppose that $(\mathcal X, d)$ is a complete metric space with a **partial oder** "$\le$". Let $f:\mathcal X \to \mathcal X$ be a **monotonic increasing** contraction mapping w.r.t. "$\le$". Then, 
+> Suppose that $(\mathcal X, d)$ is a complete metric space with a **partial oder** "$\le$". Let $f:\mathcal X \to \mathcal X$ be a **monotonic increasing** contraction mapping w.r.t. "$\le$". Then,
 > $$
 > \forall x: x\le x^* \iff x\le f(x)
 > $$
@@ -1360,7 +1358,7 @@ $$
 
 Let $x^*$ be the maximizer of $f$, i.e. $M_f=f(x^*)$. We conclude
 $$
-\left\vert M_f - M_g \right\vert \le f(x^*) - g(x^*) = \vert 
+\left\vert M_f - M_g \right\vert \le f(x^*) - g(x^*) = \vert
 $$
 
 ### Cascade of Expectations
@@ -1385,7 +1383,7 @@ A square matrix $\mathbf A \in\mathbb R^{n \times n}$ is called a ***row stochas
 * and each row sums to 1. $\sum_{j=1}^n a_{ij} = 1, \forall i\in\{1,\dots,n\}$
 
 > Let $\mathbf A \in\mathbb R^{n \times n}$ be a state transition matrix. Then,
-> 
+>
 > 1. $1$ is always an eigenvalue of $\mathbf A$.
 > 1. Multiplication with $\mathbf A$ does not increase the infinity norm. i.e.
 >     $$

@@ -555,7 +555,7 @@ For finite state space, the above equation reduces to Bellman updates shown in p
 $$
 \begin{align*}
 v_n(s)
-&= r(s, \pi(s)) + \gamma\sum_{s'\in\mathcal S} p(s' \mid s, \pi(s)) [ v_{n-1}(s') ]
+&= r(s, \pi(s)) + \gamma\sum_{s'\in\mathcal S} p(s' \mid s, \pi(s)) \cdot v_{n-1}(s')
 \end{align*}
 $$
 

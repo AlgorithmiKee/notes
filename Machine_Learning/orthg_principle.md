@@ -44,7 +44,7 @@ Remark:
 $$
 \Vert \mathbf x \Vert = \sqrt{\langle\mathbf x,\mathbf x\rangle},
 \quad
-d(\mathbf x, \mathbf y) = \Vert \mathbf x - \mathbf y \Vert
+d(\mathbf x, \mathbf y) = \Vert \mathbf x - \mathbf y \Vert = \sqrt{\langle\mathbf x - \mathbf y,\mathbf x - \mathbf y\rangle}
 $$
 
 Commonly used Hilbert spaces and their inner products
@@ -160,6 +160,7 @@ Matrix form:
 Remarks:
 
 * The matrix $\mathbf G$ is called ***Gram matrix*** (or ***kernel matrix***) of $\mathbf x_1, \dots, \mathbf x_n$. The element $G_{ij}=\langle\mathbf x_i,\mathbf x_j\rangle$ describes the similarity between $\mathbf x_i$ and $\mathbf x_j$. Likewise, the term $r_{i}=\langle\mathbf x_i,\mathbf y\rangle$ on the RHS describes similarity between $\mathbf x_i$ and $\mathbf y$.
+* The  Gram matrix $\mathbf G$ is Hermitian, i.e. $\mathbf G^\herm = \mathbf G$. If $\mathbb F = \mathbb R$, then $\mathbf G$ becomes symmetric.
 * The Gram matrix $\mathbf G$ is invertible iff $\mathbf x_1, \dots, \mathbf x_n$ is linearly independent vectors in $H$. (c.f. Appendix for proof.) Hence, in general, the optimal $\mathbf w$ is not unique. However, the optimal approximation $\hat{\mathbf y}$ is always unique due to uniqueness of orthogonal projection.
 
 Special case: $\mathbf x_1, \dots, \mathbf x_n$ are nonzero and orthogonal to each other. The Gram matrix becomes a diagonal matrix and thus invertible
@@ -266,6 +267,94 @@ Relation to linear regression: Recall that $\mathbf X\in\mathbb R^{m\times n}$. 
 * $i$-th tranning sample: $i$-th row of $\mathbf X$ and $y_i$.
 
 ## LMMSE
+
+Consider $H=\{X:\Omega\to\mathbb F\mid \mathbb E[\vert X\vert^2] <\infty \}$ where $\mathbb F$ is either $\mathbb R$ or $\mathbb C$. We would like to approaximate a random variable $Y$ using a linear combination of $X_1,\dots,X_n$.
+
+$$
+\hat Y = \sum_{k=1}^n w_k X_k, \quad w_1,\dots,w_n\in\mathbb F
+$$
+
+Recall for two random variables $U,V\in H$, we have $\langle U,V\rangle = \mathbb E[\overline{U}V]$ and $\Vert U-V \Vert^2 = \mathbb E[\vert U-V \vert^2]$.
+
+The subspace approximation problem
+
+$$
+\min_{\hat{Y}\in\operatorname{span}(X_1, \dots, X_n)}
+\Vert \hat{Y} - Y \Vert^2
+$$
+
+becomes **linear minimum mean square estimation (LMMSE)** problem
+
+$$
+\begin{align}
+\min_{\hat{Y}\in\operatorname{span}(X_1, \dots, X_n)} & \mathbb E
+\left[
+  \big\vert \hat{Y} - Y \big\vert^2
+\right]
+\\
+\min_{w_1,\dots,w_n\in\mathbb F} & \mathbb E
+\left[
+  \left\vert \sum_{k=1}^n w_k X_k - Y \right\vert^2
+\right]
+\end{align}
+$$
+
+For $\forall k=1,\dots,n$, the orthogonality principle $\langle \hat{Y} - Y, X_k \rangle = 0$ becomes
+
+$$
+\begin{align}
+\langle X_k, \hat{Y} - Y \rangle &= 0
+\\
+\mathbb E\left[\overline{X_k} \cdot ({\hat{Y} - Y})\right]  &= 0
+\\
+\mathbb E\left[\overline{X_k} \cdot \left(\sum_{\ell=1}^n w_\ell X_\ell - Y \right)\right]  &= 0
+\\
+\sum_{\ell=1}^n \mathbb E\left[\overline{X_k}X_\ell \right] w_\ell &=  \mathbb E[\overline{X_k}Y]
+\end{align}
+$$
+
+Matrix form:
+
+> $$
+> \begin{align}
+> \begin{bmatrix}
+>  \mathbb E[\overline{X_1}X_1] & \mathbb E[\overline{X_1}X_2] & \cdots & \mathbb E[\overline{X_1}X_n]
+> \\
+>  \mathbb E[\overline{X_2}X_1] & \mathbb E[\overline{X_2}X_2] & \cdots & \mathbb E[\overline{X_2}X_n]
+> \\
+> \vdots &\vdots &\ddots &\vdots
+> \\
+>  \mathbb E[\overline{X_n}X_1] & \mathbb E[\overline{X_n}X_2] & \cdots & \mathbb E[\overline{X_n}X_n]
+> \end{bmatrix}
+> \cdot
+> \begin{bmatrix}
+> w_1 \\ w_2 \\ \vdots \\ w_n
+> \end{bmatrix}
+> =%%%
+> \begin{bmatrix}
+> \mathbb E[\overline{X_1}Y] \\ \mathbb E[\overline{X_2}Y] \\ \vdots \\ \mathbb E[\overline{X_n}Y]
+> \end{bmatrix}
+> \tag{$\star$}
+> \end{align}
+> $$
+
+Define the random vector $\mathbf X \triangleq [X_1,\dots,X_n]^\top\in\mathbb C^n$. Recall the auto-correlation matrix and cross-correlation matrix are defined as
+
+$$
+\begin{align*}
+\mathbf R_{XX} = \mathbb E[\mathbf{XX}^\herm] &\iff (\mathbf R_{XX})_{ij} = \mathbb E[X_i\overline{X_j}]
+\\
+\mathbf r_{XY} = \mathbb E[\mathbf{X}\overline{Y}] &\iff (\mathbf r_{XY})_{i} = \mathbb E[X_i\overline{Y}]
+\end{align*}
+$$
+
+Let $\mathbf w \triangleq [w_1,\dots,w_n]$. Equation $(\star)$ becomes
+
+$$
+\begin{align}
+\overline{\mathbf R_{XX}} \cdot \mathbf w = \overline{\mathbf r_{XY}}
+\end{align}
+$$
 
 ## Connection to Fourier Series
 

@@ -59,9 +59,9 @@ Commonly used Hilbert spaces and their inner products
   \langle\mathbf x, \mathbf y\rangle = \mathbf x^\herm \mathbf y = \sum_{i=1}^n \overline{x_i} y_i
   $$
 
-* Space of square integrable functions $L^2(\mathbb R,\mathbb F)=\{f:\mathbb R \to\mathbb F \mid \int_{-\infty}^{\infty} \vert f(t) \vert^2 \,\mathrm dt <\infty \}$.
+* Space of square integrable functions $L^2(I,\mathbb F)=\{f:I \to\mathbb F \mid \int_{t\in I} \vert f(t) \vert^2 \,\mathrm dt <\infty \}$ where $I\subseteq\mathbb R$.
   $$
-  \langle f,g \rangle = \int_{\mathbb R} \overline{f(t)}g(t) \,\mathrm dt
+  \langle f,g \rangle = \int_{I} \overline{f(t)}g(t) \,\mathrm dt
   $$
 
 * Space of random variables with finite 2nd order moment $L^2(\Omega,\mathbb F)=\{X:\Omega\to\mathbb F\mid \mathbb E[\vert X\vert^2] <\infty \}$.
@@ -206,7 +206,6 @@ $$
 \hat{\mathbf y} = \sum_{k=1}^n  w_k\mathbf x_k = \mathbf{Xw},
 \:\text{ where }\:
 \mathbf X \triangleq [\mathbf x_1, \dots, \mathbf x_n] \in\mathbb R^{m\times n}
-
 $$
 
 The subspace approximation problem
@@ -225,7 +224,7 @@ $$
 \end{align}
 $$
 
-For $\forall k=1,\dots,n$, the orthogonality principle $\langle \hat{\mathbf y} - \mathbf y, \mathbf x_k \rangle = 0$ becomes
+For all $k=1,\dots,n$, the orthogonality principle $\langle \hat{\mathbf y} - \mathbf y, \mathbf x_k \rangle = 0$ becomes
 
 $$
 \begin{align}
@@ -266,9 +265,9 @@ Relation to linear regression: Recall that $\mathbf X\in\mathbb R^{m\times n}$. 
 * \#features per sample: $n$.
 * $i$-th tranning sample: $i$-th row of $\mathbf X$ and $y_i$.
 
-## LMMSE
+## LMMSE Estimation
 
-Consider $H=\{X:\Omega\to\mathbb F\mid \mathbb E[\vert X\vert^2] <\infty \}$ where $\mathbb F$ is either $\mathbb R$ or $\mathbb C$. We would like to approaximate a random variable $Y$ using a linear combination of $X_1,\dots,X_n$.
+Consider $H=\{X:\Omega\to\mathbb F\mid \mathbb E[\vert X\vert^2] <\infty \}$ where $\mathbb F$ is either $\mathbb R$ or $\mathbb C$. We would like to approximate a random variable $Y$ using a linear combination of $X_1,\dots,X_n$.
 
 $$
 \hat Y = \sum_{k=1}^n w_k X_k, \quad w_1,\dots,w_n\in\mathbb F
@@ -283,7 +282,7 @@ $$
 \Vert \hat{Y} - Y \Vert^2
 $$
 
-becomes **linear minimum mean square estimation (LMMSE)** problem
+becomes **Linear Minimum Mean Square Error (LMMSE)** estimation:
 
 $$
 \begin{align}
@@ -299,7 +298,7 @@ $$
 \end{align}
 $$
 
-For $\forall k=1,\dots,n$, the orthogonality principle $\langle \hat{Y} - Y, X_k \rangle = 0$ becomes
+For all $k=1,\dots,n$, the orthogonality principle $\langle \hat{Y} - Y, X_k \rangle = 0$ becomes
 
 $$
 \begin{align}
@@ -348,12 +347,93 @@ $$
 \end{align*}
 $$
 
-Let $\mathbf w \triangleq [w_1,\dots,w_n]$. Equation $(\star)$ becomes
+Let $\mathbf w \triangleq [w_1,\dots,w_n]^\top$. Equation $(\star)$ becomes
 
 $$
 \begin{align}
 \overline{\mathbf R_{XX}} \cdot \mathbf w = \overline{\mathbf r_{XY}}
 \end{align}
+$$
+
+If $\mathbb F = \mathbb R$, then equation $(\star)$ reduces further to
+
+$$
+\begin{align}
+\mathbf R_{XX} \cdot \mathbf w = \mathbf r_{XY}
+\end{align}
+$$
+
+### OLS converges to LMMSE estimation
+
+Let $\{(\mathbf x_i, y_i)\}_{i=1}^m \subset \mathbb R^n \times \mathbb R$ be iid from $p(\mathbf x, y)$. In OLS, we aim to fit the model $y = \mathbf w^\top \mathbf x$. Define the data matrix
+
+$$
+\begin{align*}
+\mathbf X_\text{train} &= [\mathbf x_1, \dots, \mathbf x_m] \in\mathbb R^{n\times m} \\
+\mathbf y_\text{train} &= [y_1, \dots, y_m]^\top \in\mathbb R^{m}
+\end{align*}
+$$
+
+**Note**: There are two ways to define the data matrix. In OLS section, the data matrix was defined s.t. each row is a data point. Here, $\mathbf X_\text{train}$ is defined s.t. each column is a data point. The advantage of such definition will be clear later.
+
+By OLS, the optimal weight vector satisfies
+
+$$
+\mathbf{X}_\text{train}\mathbf{X_\text{train}^\top}\mathbf{w} = \mathbf{X_\text{train}}\mathbf{y_\text{train}}
+$$
+
+Multiplying both sides with sample size $m$ yields
+
+$$
+\frac{1}{m}\mathbf{X}_\text{train}\mathbf{X_\text{train}^\top}\mathbf{w} = \frac{1}{m}\mathbf{X_\text{train}}\mathbf{y_\text{train}}
+$$
+
+Note that
+
+$$
+\begin{align*}
+\frac{1}{m}\mathbf{X}_\text{train}\mathbf{X_\text{train}^\top}
+&= \frac{1}{m}[\mathbf x_1,\dots, \mathbf x_m] \cdot
+   \begin{bmatrix}
+   \mathbf x_1^\top \\ \vdots \\ \mathbf x_m^\top
+   \end{bmatrix}
+= \frac{1}{m}\sum_{i=1}^m \mathbf x_i \mathbf x_i^\top
+\\
+\frac{1}{m}\mathbf{X_\text{train}}\mathbf{y_\text{train}}
+&= \frac{1}{m}[\mathbf x_1,\dots, \mathbf x_m] \cdot
+   \begin{bmatrix}
+   y_1 \\ \vdots \\ y_m
+   \end{bmatrix}
+= \frac{1}{m}\sum_{i=1}^m \mathbf x_i y_i^\top
+\end{align*}
+$$
+
+By the law of large number,
+
+$$
+\begin{align*}
+\lim_{m\to\infty}\frac{1}{m}\sum_{i=1}^m \mathbf x_i \mathbf x_i^\top
+&= \mathbb E[\mathbf x \mathbf x^\top] = \mathbf{R}_{XX}
+\\
+\lim_{m\to\infty}\frac{1}{m}\sum_{i=1}^m \mathbf x_i y_i^\top
+&= \mathbb E[\mathbf x y] = \mathbf{r}_{XY}
+\end{align*}
+$$
+
+Theorefore, as the sample size $m\to\infty$, OLS becomes LMMSE estimation.
+
+$$
+\begin{align*}
+\underbrace{
+  \frac{1}{m}\mathbf{X}_\text{train}\mathbf{X_\text{train}^\top}
+}_{\to \mathbf{R}_{XX} \text{ as } m\to\infty}
+\mathbf{w} &=
+\underbrace{
+  \frac{1}{m}\mathbf{X_\text{train}}\mathbf{y_\text{train}}
+}_{\to \mathbf{r}_{XY} \text{ as } m\to\infty}
+\\
+\mathbf{R}_{XX}\mathbf{w} &= \mathbf{r}_{XY}
+\end{align*}
 $$
 
 ## Connection to Fourier Series
@@ -381,4 +461,45 @@ Remarks:
 
 ### Invertibility of Gram Matrix
 
-TODO
+Let $\mathbf A\in\mathbb R^{m\times n}$, then
+
+1. $\ker(\mathbf A^\top)$ and $\operatorname{ran}(\mathbf A)$ are orthogonal complements. (and thus their intersection is $\{\mathbf 0\}$)
+2. $\ker(\mathbf A^\top \mathbf A) = \ker(\mathbf A)$.
+3. $\mathbf A^\top \mathbf A$ is invertible $\iff \mathbf A$ has linearly independent columns.
+
+*Proof 1*: We need to show that $\forall\mathbf x\in\ker(\mathbf A^\top), \forall \mathbf y\in\operatorname{ran}(\mathbf A), \langle \mathbf x, \mathbf y\rangle = 0$. By assumption,
+$$
+\begin{align*}
+\mathbf x\in\ker(\mathbf A^\top) &\implies \mathbf{A^\top x} = 0
+\\
+\mathbf y\in\operatorname{ran}(\mathbf A) &\implies \exists \mathbf u\in\mathbb R^n, \text{ s.t. } \mathbf y = \mathbf{Au}
+\end{align*}
+$$
+Then, we conclude
+$$
+\langle \mathbf x, \mathbf y\rangle
+= \mathbf x^\top \mathbf y
+= \mathbf x^\top \mathbf{Au}
+= \mathbf u^\top \underbrace{\mathbf{A^\top x}}_{\mathbf 0}
+= 0 \tag*{$\blacksquare$}
+$$
+*Proof 2*: We only need show that $\ker(\mathbf A^\top \mathbf A) \subseteq \ker(\mathbf A)$ since the inclusion in the opposite direction is trivial.
+
+Consider $\mathbf x\in \ker(\mathbf A^\top \mathbf A)$. By assumption,
+$$
+\mathbf A^\top \mathbf{Ax} = 0 \implies \mathbf{Ax}\in\ker(\mathbf A^\top)
+$$
+On the other hand, $\mathbf{Ax}\in\operatorname{ran}(\mathbf A)$. Hence,
+$$
+\mathbf{Ax}\in\operatorname{ran}(\mathbf A) \cap \ker(\mathbf A^\top)
+\implies \mathbf{Ax} = \mathbf 0 \implies \mathbf x\in \ker(\mathbf A)
+\tag*{$\blacksquare$}
+$$
+*Proof 3*: This follows directly from $\ker(\mathbf A^\top \mathbf A) = \ker(\mathbf A)$ as
+$$
+\mathbf A^\top \mathbf A \text{ invertible }
+\iff \ker(\mathbf A^\top \mathbf A) = \{\mathbf 0\}
+\iff \ker(\mathbf A) = \{\mathbf 0\}
+\iff \mathbf A \text{ has lin-indep. col.}
+\tag*{$\blacksquare$}
+$$

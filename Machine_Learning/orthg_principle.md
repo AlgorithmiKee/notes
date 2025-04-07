@@ -276,20 +276,19 @@ Relation to linear regression: Recall that $\mathbf X\in\mathbb R^{m\times n}$. 
 Let $(V,\mathbb F)$ be a vector space. Then, $\langle\cdot,\cdot\rangle: V\times V \to \mathbb F$ is called a inner product iff all of
 
 1. conjugate symmetry: $\langle\mathbf x,\mathbf y\rangle = \overline{\langle\mathbf x,\mathbf y\rangle}$
-1. linear w.r.t. the 2nd argument: $\langle\lambda\mathbf x,\mathbf y\rangle = \lambda\langle\mathbf x,\mathbf y\rangle$ and $\langle\mathbf x, \mathbf y + \mathbf z\rangle = \langle\mathbf x,\mathbf y\rangle + \langle\mathbf x,\mathbf z\rangle$
+1. linear w.r.t. the 2nd argument:  $\langle\mathbf x, \lambda\mathbf y\rangle = \lambda\langle\mathbf x, \mathbf y\rangle$ and $\langle\mathbf x, \mathbf y + \mathbf z\rangle = \langle\mathbf x,\mathbf y\rangle + \langle\mathbf x,\mathbf z\rangle$
 1. positive definite: $\langle\mathbf x,\mathbf x\rangle \ge 0$ with equality iff $\mathbf x = \mathbf 0$
 
 Elementary properties:
 
-* $\langle\mathbf x, \lambda\mathbf y\rangle = \overline\lambda\langle\mathbf x, \mathbf y\rangle$
-* $\langle\mathbf x, \mathbf y + \mathbf z\rangle = \langle\mathbf x,\mathbf y\rangle + \langle\mathbf x,\mathbf z\rangle$
-* $\langle\mathbf x, \mathbf y + \mathbf z\rangle = \langle\mathbf x,\mathbf y\rangle + \langle\mathbf x,\mathbf z\rangle$
+* $\langle\lambda\mathbf x,\mathbf y\rangle = \overline\lambda\langle\mathbf x,\mathbf y\rangle$
+* $\langle\mathbf x + \mathbf y, \mathbf z\rangle = \langle\mathbf x,\mathbf y\rangle + \langle\mathbf x,\mathbf z\rangle$
 * $\langle\mathbf x, \mathbf 0\rangle = 0$
 
 Remarks:
 
 * In general, $\langle\mathbf x,\mathbf y\rangle \ne \langle\mathbf y,\mathbf x\rangle$ unless $\mathbb F = \mathbb R$.
-* In physics literatures, the inner product is often defined such that it is linear w.r.t the 2nd argument.
+* In math literatures, the inner product is often defined such that it is linear w.r.t the 1st argument.
 
 ### Invertibility of Gram Matrix
 

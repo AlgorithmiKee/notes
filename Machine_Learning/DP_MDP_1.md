@@ -393,7 +393,7 @@ The above algorithm can be reformulated element-wise as follows
 > For $n=0,1,\dots$, run until $v_{n}(s)$ converges  
 > $\quad$ For each $s\in\mathcal S$, do  
 > $$
-> v_{n+1}(s) = r(s, \pi(s)) + \gamma\sum_{s'\in\mathcal S} p(s' \mid s, \pi(s)) [ v_{n}(s') ]
+> v_{n+1}(s) = r(s, \pi(s)) + \gamma\sum_{s'\in\mathcal S} p(s' \mid s, \pi(s)) \cdot v_{n}(s')
 > $$
 
 Remarks:
@@ -474,10 +474,10 @@ Remarks:
 
 * $\mathcal B_{\pi} v$ is well defined even though $v$ itself might not satisfy Bellman equation for any policy. Nevertheless, if $v$ happens to be the value function $v_{\tilde\pi}$ for some policy $\tilde \pi$. Then,
   $$
-  \mathcal B_{\pi} v_{\tilde\pi} = q_{\tilde\pi}(s,\pi(s))
+  \mathcal B_{\pi} v_{\tilde\pi}(s) = q_{\tilde\pi}(s,\pi(s))
   $$
 
-* We will see later that solving Bellman equation is equivalent to search for fixed point of $B_{\pi}$ in function space $\mathcal V$.
+* We will see later that solving Bellman equation is equivalent to search for fixed point of $\mathcal B_{\pi}$ in function space $\mathcal V$.
 
 Properties of Bellman operator:
 
@@ -624,7 +624,7 @@ $$
 \:
 v^*(s) \ge r(s, a) + \gamma \mathbb E_{s' \sim p(\cdot \mid s, a)} [ v^*(s') ]
 $$
-where the equality holds iff $a=\pi^*(s)$. Namely, the optimal action at state $s$ should maximize the sum of immediate reward and the (discounted) expected future reward
+where the equality holds iff $a=\pi^*(s)$. Namely, an optimal action at state $s$ should maximize the sum of the immediate reward and the (discounted) expected future reward
 > $$
 > \begin{align}
 > \pi^*(s) = \argmax_{a\in\mathcal A}
@@ -638,7 +638,8 @@ where the equality holds iff $a=\pi^*(s)$. Namely, the optimal action at state $
 Remarks:
 
 * This equation holds for all $s\in\mathcal S$.
-* Suppose we solved optimal values functoin $v^*(\cdot)$, plugging them into this equation yields the optimal policy.
+* There may be multiple actions that maximize the right-hand side. In such cases, we let $\pi^*(s)$ be any one of those optimizers. Hence, the optimal policy is **not unique** in general.
+* If we have already solved optimal value function $v^*(\cdot)$, then plugging it into this equation yields an optimal policy.
 
 The optimal state value $v^*(s)$ thus satisfies the ***Bellman optimality equations (BOE)***:
 
@@ -1343,22 +1344,22 @@ Taking the limit, we get $x \ge \displaystyle\lim_{n\to\infty} f^n(x) = x^*$. Si
 > \le \max_{x\in\mathcal X} \left\vert f(x) -g(x) \right\vert
 > $$
 
-*Proof*: Let $M_f = \displaystyle\max_{x\in\mathcal X} f(x)$ and $M_g = \displaystyle\max_{x\in\mathcal X} g(x)$. It is sufficient to show that
-$$
-\exists x\in\mathcal X \text{ s.t. }
-\left\vert M_f - M_g \right\vert \le \left\vert f(x) -g(x) \right\vert
-$$
-
-Without loss of generality, assume that $M_f\ge M_g$. Then,
+*Proof*: Let $M_f = \displaystyle\max_{x\in\mathcal X} f(x)$ and $M_g = \displaystyle\max_{x\in\mathcal X} g(x)$. Without loss of generality, assume that $M_f\ge M_g$. Then, $\forall x\in\mathcal X$:
 
 $$
-\left\vert M_f - M_g \right\vert = M_f - M_g \le M_f - g(x),
-\:\forall x\in\mathcal X
+\boxed{\left\vert M_f - M_g \right\vert}
+= M_f - M_g \le M_f - g(x)
+= \boxed{\vert M_f - g(x)\vert}
 $$
 
-Let $x^*$ be the maximizer of $f$, i.e. $M_f=f(x^*)$. We conclude
+Let $\hat x$ be the maximizer of $f$, i.e. $M_f=f(\hat x)$. We conclude
+
 $$
-\left\vert M_f - M_g \right\vert \le f(x^*) - g(x^*) = \vert
+\left\vert M_f - M_g \right\vert
+\le \vert M_f - g(\hat x)\vert
+= \vert f(\hat x) - g(\hat x) \vert
+\le \max_{x\in\mathcal X} \vert f(x) -g(x) \vert
+\tag*{$\blacksquare$}
 $$
 
 ### Cascade of Expectations

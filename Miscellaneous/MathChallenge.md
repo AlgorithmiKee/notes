@@ -1,3 +1,9 @@
+---
+title: "Math Challenge"
+author: "Ke Zhang"
+date: "2023"
+fontsize: 12pt
+---
 # Math Challenge
 
 ## Functions and Sets

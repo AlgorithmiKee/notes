@@ -60,7 +60,7 @@ $$
 
 $\to$ Intuitive goal: Maximize $\mathbb E[\text{sum of all } R_t]$.
 
-The total (discounted) reward is defined as the sum of (discounted) rewards starting from $S_t$
+The total (discounted) reward $G_t$ is defined as the sum of (discounted) rewards starting from $S_t$
 
 $$
 \begin{align}
@@ -89,10 +89,24 @@ $$
 
 In MDP, the agent performs actions determined by current state, according to a ***policy***
 $$
+\begin{align}
 \pi: \mathcal S \to \mathcal A, s\mapsto a=\pi(s)
+\end{align}
 $$
 
 Remark: The policy defined here is **time-invariant** and **deterministic**, i.e. For a certain state $s$, the agent takes the **same** action **whenever** he arrives at $s$.
+
+Following a policy $\pi$ from a fixed initial state $s$, $G_t$ can be written as
+
+$$
+\begin{align*}
+G_t
+&= r(s,a) + \gamma r\,(S_{t+1}, A_{t+1}) + \gamma^2 r(S_{t+2}, A_{t+2}) + \dots \\
+&= r(s,\pi(s)) + \gamma r\,(S_{t+1}, \pi(S_{t+1})) + \gamma^2 r(S_{t+2}, \pi(S_{t+2})) + \dots \\
+\end{align*}
+$$
+
+Hence, all stochasticity of $G_t$ comes from stochasticity in $\{S_k\}_{k \ge t+1}$.
 
 ### State Value Function
 

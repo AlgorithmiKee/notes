@@ -155,7 +155,7 @@ $$
 
 Key observation:
 
-* The immediate reward $R$ is now stochastic: $R\sim p(r\mid s,\pi(s))$. The stochasticity of immediate reward comes from
+* The immediate reward $R$ is now stochastic. The stochasticity of immediate reward comes from
   1. stoachsticity in action $A$ due to stochastic policy
   1. reward probability
 * Starting from the next state, the stochasticity in $R'$ comes from
@@ -173,12 +173,253 @@ G_t
 \end{align}
 $$
 
-Recursive structure:
+Remarks:
+
+* For each $\tau=t,t+1,\cdots$, $R_t \sim p(r\mid S_t, A_t)$.
+* Recursive structure:
+
+  $$
+  \begin{align}
+  G_t = R_t + \gamma G_{t+1}
+  \end{align}
+  $$
+
+### Value functions
+
+State value:
+
+> $$
+> \begin{align}
+> v_{\pi}(s) = \mathbb E
+> \left[ G_t \:\middle|\: S_t =s \right],
+> \quad \forall s \in \mathcal S
+> \end{align}
+> $$
+
+Q-function:
+
+> $$
+> \begin{align}
+> q_{\pi}(s,a)
+> &= \mathbb E\left[ G_t \:\middle|\: S_t = s, A_t = a \right],
+> \quad \forall s\in\mathcal S, \forall a\in\mathcal A
+> \end{align}
+> $$
+
+## Bellman Equations
+
+### Bellman Equations for State Value
+
+Bellman equation for $v_{\pi}$:
+
+> $$
+> \begin{align}
+> v_{\pi}(s)
+> & = \mathbb E_{a\sim\pi(a\mid s)} \Big[\mathbb E_{r\sim p(r\mid s,a)}[r]\Big] + \gamma \mathbb E_{a\sim\pi(a\mid s)} \Big[\mathbb E_{s'\sim p(s'\mid s,a)}[v_{\pi}(s')]\Big],
+> \quad \forall s\in\mathcal S \tag{BE-V}
+> \end{align}
+> $$
+
+Equivalent formulation:
+
+> $$
+> \begin{align}
+> v_{\pi}(s)
+> & = \mathbb E_{a\sim\pi(a\mid s)} \Big[\mathbb E_{r\sim p(r\mid s,a)}[r] + \gamma\mathbb E_{s'\sim p(s'\mid s,a)}[v_{\pi}(s')]\Big] \tag{BE-V1}
+> \\[6pt]
+> v_{\pi}(s)
+> & = \mathbb E_{r\sim p(r\mid s)}[r] + \gamma\mathbb E_{s'\sim p(s'\mid s)}[v_{\pi}(s')] \tag{BE-V2}
+> \end{align}
+> $$
+
+For finite $\mathcal S$:
+
+> $$
+> \begin{align}
+> v_{\pi}(s)
+> & = \sum_{a} \pi(a\mid s) \sum_{r} p(r\mid s,a) \cdot r + \gamma \sum_{a} \pi(a\mid s) \sum_{s'} p(s'\mid s,a)\cdot v_{\pi}(s')
+> \\
+> & = \sum_{a} \pi(a\mid s) \left[\sum_{r} p(r\mid s,a) \cdot r + \gamma \sum_{s'} p(s'\mid s,a)\cdot v_{\pi}(s')\right]
+> \end{align}
+> $$
+
+Illustration:
+
+$$
+s \xrightarrow[R_t]{A_t \:} S_{t+1} \xrightarrow[R_{t+1}]{A_{t+1} \:} \cdots
+$$
+
+*Proof*: We first show the validity of $\text{(BE-V2)}$. Then, we show $\text{(BE)}$ and $\text{(BE-V1)}$ are equivalent to $\text{(BE-V2)}$.
+
+Plugging $G_t = R_t + \gamma G_{t+1}$ into the value function, we get
+
+$$
+\begin{align*}
+v_{\pi}(s)
+&= \mathbb E[ R_t + \gamma G_{t+1} \mid S_t =s ] \\
+&= \underbrace{\mathbb E[R_t \mid S_t=s]}_{\mathrm{(I)}} + \gamma \underbrace{\mathbb E[G_{t+1} \mid S_t=s]}_{\mathrm{(II)}} \\
+\end{align*}
+$$
+
+$\mathrm{(I)} \triangleq$ expected immediate reward:
+
+$$
+\begin{align*}
+\underbrace{\mathbb E[R_t \mid S_t=s]}_{\mathrm{(I)}}
+&= \mathbb E_{r\sim p(r\mid s)} [r]
+\end{align*}
+$$
+
+$\mathrm{(II)} \triangleq$ expected future reward:
+
+$$
+\begin{align*}
+\underbrace{\mathbb E[G_{t+1} \mid S_t=s]}_{\mathrm{(II)}}
+&= \mathbb E_{s'\sim p(s'\mid s)} \Big[ \mathbb E[G_{t+1} \mid S_t=s, S_{t+1}=s'] \Big] \\
+&= \mathbb E_{s'\sim p(s'\mid s)} \Big[ \mathbb E[G_{t+1} \mid S_{t+1}=s'] \Big] \\
+&= \mathbb E_{s'\sim p(s'\mid s)} [v_\pi(s')]
+\end{align*}
+$$
+
+Combining $\text{(I)}$ and $\text{(II)}$, we obtain $\text{(BE-V2)}$:
+
+$$
+\begin{align*}
+v_{\pi}(s)
+&= \underbrace{\mathbb E_{r\sim p(r\mid s)} [r]}_{\mathrm{(I)}}  + \gamma \underbrace{\mathbb E_{s'\sim p(s'\mid s)} [v_\pi(s')]}_{\mathrm{(II)}}
+\end{align*}
+$$
+
+$\text{(BE)}$ and $\text{(BE-V1)}$ follow from $\text{(BE-V2)}$ and the law of total expecation (c.f. Appendix)
+as
+
+$$
+\begin{align*}
+\underbrace{\mathbb E_{r\sim p(r\mid s)} [r]}_{\mathrm{(I)}}
+&= \mathbb E_{a\sim\pi(a\mid s)} \Big[ \mathbb E_{r\sim p(r\mid s,a)} [r] \Big]
+\\
+\underbrace{\mathbb E_{s'\sim p(s'\mid s)} [v_\pi(s')]}_{\mathrm{(II)}}
+&= \mathbb E_{a\sim \pi(a\mid s)} \Big[ \mathbb E_{s'\sim p(s'\mid s,a)} [v_\pi(s')] \Big]
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+### Bellman Equations for Q-Function
+
+Relation between $q_{\pi}$ and $v_{\pi}$:
+
+> $$
+> \begin{align}
+> v_{\pi}(s) &= \mathbb E_{a\sim\pi(a\mid s)} [q_{\pi}(s,a)]
+> \tag{Q2V}
+> \\
+> q_{\pi}(s,a) &= \mathbb E_{r\sim p(r\mid s,a)}[r] + \gamma \mathbb E_{s'\sim p(s'\mid s,a)}[v_{\pi}(s')]
+> \tag{V2Q}
+> \end{align}
+> $$
+
+Bellman equation for $q_{\pi}$:
+
+> $$
+> \begin{align}
+> q_{\pi}(s,a)
+> &= \mathbb E_{r\sim p(r\mid s,a)}[r] + \gamma \mathbb E_{s'\sim p(s'\mid s,a)} \Big[
+>      \mathbb E_{a'\sim\pi(a'\mid s')} [q_{\pi}(s',a')]
+>    \Big]
+> \tag{BE-Q}
+> \end{align}
+> $$
+
+*Proof*: Equation $\text{(Q2V)}$ follows from the law of total expecation:
+
+$$
+\begin{align*}
+v_{\pi}(s)
+&= \mathbb E[ G_t \mid S_t =s ] \\
+&= \mathbb E_{a\sim\pi(a\mid s)} \Big[
+   \underbrace{\mathbb E[ G_t \mid S_t = s, A_t = a]}_{q_{\pi}(s,a)}
+   \Big]
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+To show $\text{(V2Q)}$, we use $G_t = R_t + \gamma G_{t+1}$:
+
+$$
+\begin{align*}
+q_{\pi}(s,a)
+&= \mathbb E[ R_t + \gamma G_{t+1} \mid S_t=s, A_t=a]
+\\
+&= \underbrace{\mathbb E[R_t \mid S_t=s, A_t=a]}_{\mathrm{(I)}} + \gamma \underbrace{\mathbb E[G_{t+1} \mid S_t=s, A_t=a]}_{\mathrm{(II)}}
+\\
+\end{align*}
+$$
+
+The expected immediate reward $\mathrm{(I)}$ is
+
+$$
+\begin{align*}
+\underbrace{\mathbb E[R_t \mid S_t=s, A_t=a]}_{\mathrm{(I)}} = \mathbb E_{r\sim p(r\mid s,a)}[r]
+\end{align*}
+$$
+
+The expected future reward $\mathrm{(II)}$ is
+
+$$
+\begin{align*}
+\underbrace{\mathbb E[G_{t+1} \mid S_t=s, A_t=a]}_{\mathrm{(II)}}
+&= \mathbb E_{s'\sim p(s'\mid s,a)} \Big[ \mathbb E[G_{t+1} \mid S_t=s,  A_t=a, S_{t+1}=s'] \Big] \\
+&= \mathbb E_{s'\sim p(s'\mid s,a)} \Big[ \mathbb E[G_{t+1} \mid S_{t+1}=s'] \Big] \\
+&= \mathbb E_{s'\sim p(s'\mid s,a)} [v_\pi(s')]
+\end{align*}
+$$
+
+Combining $\text{(I)}$ and $\text{(II)}$, we obtain $\text{(Q2V)}$:
+
+$$
+\begin{align*}
+v_{\pi}(s)
+&= \underbrace{\mathbb E_{r\sim p(r\mid s,a)}[r]}_{\mathrm{(I)}}  + \gamma \underbrace{ \mathbb E_{s'\sim p(s'\mid s,a)} [v_\pi(s')]}_{\mathrm{(II)}}
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+Plugging $\text{(Q2V)}$ into $\text{(V2Q)}$ yields $\text{(BE-Q)}$. $\qquad\blacksquare$
+
+## Appendix
+
+### Law of total probability
 
 $$
 \begin{align}
-G_t = R_t + \gamma G_{t+1}
+p(x)
+&= \mathbb E_{\theta\sim p(\theta)} \big[ p(x\mid \theta)\big]
+\\
+p(x\mid z)
+&= \mathbb E_{\theta\sim p(\theta\mid z)} \big[ p(x\mid z,\theta) \big]
 \end{align}
 $$
 
-TODO: factor the probability disctribution
+**Core Inituition**: computing a probability can be seen as
+
+1. introducing an intermediate variable $\theta$,
+2. computing the conditional probability,
+3. and then averaging the conditional probability over $\theta$.
+
+### Law of total expectation
+
+$$
+\begin{align}
+\mathbb E_{x\sim p(x)}[x]
+&= \mathbb E_{\theta\sim p(\theta)} \Big[ \mathbb E_{x\sim p(x\mid \theta)}[x] \Big]
+\\
+\mathbb E_{x\sim p(x\mid z)}[x]
+&= \mathbb E_{\theta\sim p(\theta\mid z)} \Big[ \mathbb E_{x\sim p(x\mid z,\theta)}[x] \Big]
+\end{align}
+$$
+
+**Core Inituition**: computing an expectation can be seen as
+
+1. introducing an intermediate variable $\theta$,
+2. computing the conditional expectation,
+3. and then averaging the conditional expecation over $\theta$.

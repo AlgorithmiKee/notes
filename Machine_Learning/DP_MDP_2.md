@@ -175,7 +175,7 @@ $$
 
 Remarks:
 
-* For each $\tau=t,t+1,\cdots$, $R_t \sim p(r\mid S_t, A_t)$.
+* For each $\tau=t,t+1,\cdots$, $R_\tau \sim p(r\mid S_\tau, A_\tau)$.
 * Recursive structure:
 
   $$
@@ -210,13 +210,13 @@ Q-function:
 
 ### Bellman Equations for State Value
 
-Bellman equation for $v_{\pi}$:
+Bellman equation for $v_{\pi}$: For each $s\in\mathcal S$, it holds that
 
 > $$
 > \begin{align}
 > v_{\pi}(s)
-> & = \mathbb E_{a\sim\pi(a\mid s)} \Big[\mathbb E_{r\sim p(r\mid s,a)}[r]\Big] + \gamma \mathbb E_{a\sim\pi(a\mid s)} \Big[\mathbb E_{s'\sim p(s'\mid s,a)}[v_{\pi}(s')]\Big],
-> \quad \forall s\in\mathcal S \tag{BE-V}
+> & = \mathbb E_{a\sim\pi(a\mid s)} \Big[\mathbb E_{r\sim p(r\mid s,a)}[r]\Big] + \gamma \mathbb E_{a\sim\pi(a\mid s)} \Big[\mathbb E_{s'\sim p(s'\mid s,a)}[v_{\pi}(s')]\Big]
+> \tag{BE-V}
 > \end{align}
 > $$
 
@@ -232,7 +232,7 @@ Equivalent formulation:
 > \end{align}
 > $$
 
-For finite $\mathcal S$:
+For finite $\mathcal S$, $\mathcal A$ and $\mathcal R$, Bellman equation becomes
 
 > $$
 > \begin{align}
@@ -243,13 +243,26 @@ For finite $\mathcal S$:
 > \end{align}
 > $$
 
-Illustration:
+Remarks:
 
-$$
-s \xrightarrow[R_t]{A_t \:} S_{t+1} \xrightarrow[R_{t+1}]{A_{t+1} \:} \cdots
-$$
+* Bellman equation holds for all $s\in\mathcal S$. For finite state space, there are $\vert\mathcal S\vert$ equations in total. There are further equivalent formulation of Bellman equations in the Appendix.
+* In $\text{(BE-V)}$: The 1st term represents the expected immediate reward. The 2nd term in $\text{(BE-V)}$ represents the discounted expected future reward.
+* In $\text{(BE-V2)}$: The distributions $p(r\mid s)$ and $p(s'\mid s)$ are often denoted by $p_{\pi}(r\mid s)$ and $p_{\pi}(s'\mid s)$ since they both implicitly depend on $\pi$. Specifically, they can be obtained from system parameters by applying the law of total probability (c.f. Appendix)
 
-*Proof*: We first show the validity of $\text{(BE-V2)}$. Then, we show $\text{(BE)}$ and $\text{(BE-V1)}$ are equivalent to $\text{(BE-V2)}$.
+  > $$
+  > \begin{align}
+  > p_{\pi}(r \mid s) &= \mathbb E_{a\sim\pi(a\mid s)} \big[p(r \mid s,a)\big] \\
+  > p_{\pi}(s'\mid s) &= \mathbb E_{a\sim\pi(a\mid s)} \big[p(s'\mid s,a)\big] \\
+  > \end{align}
+  > $$
+
+* Illustration:
+
+  $$
+  s \xrightarrow[R_t]{A_t \:} S_{t+1} \xrightarrow[R_{t+1}]{A_{t+1} \:} \cdots
+  $$
+
+*Proof*: We first show the validity of $\text{(BE-V2)}$. Then, we show $\text{(BE-V)}$ and $\text{(BE-V1)}$ are equivalent to $\text{(BE-V2)}$.
 
 Plugging $G_t = R_t + \gamma G_{t+1}$ into the value function, we get
 
@@ -290,7 +303,7 @@ v_{\pi}(s)
 \end{align*}
 $$
 
-$\text{(BE)}$ and $\text{(BE-V1)}$ follow from $\text{(BE-V2)}$ and the law of total expecation (c.f. Appendix)
+$\text{(BE-V)}$ and $\text{(BE-V1)}$ follow from $\text{(BE-V2)}$ and the law of total expecation (c.f. Appendix)
 as
 
 $$
@@ -303,6 +316,73 @@ $$
 \tag*{$\blacksquare$}
 \end{align*}
 $$
+
+#### Vector-Form Bellman Equation
+
+Recall the Bellman equation for finite $\mathcal S$, $\mathcal A$ and $\mathcal R$:
+
+$$
+\begin{align*}
+v_{\pi}(s)
+& = \sum_{a} \pi(a\mid s) \sum_{r} p(r\mid s,a) \cdot r + \gamma \sum_{a} \pi(a\mid s) \sum_{s'} p(s'\mid s,a)\cdot v_{\pi}(s')
+\end{align*}
+$$
+
+Switching the orders of sums in both terms, we get
+
+$$
+\begin{align*}
+v_{\pi}(s)
+& = \sum_{r} \underbrace{\sum_{a} \pi(a\mid s) p(r\mid s,a)}_{p_{\pi}(r\mid s)} \cdot r + \gamma  \sum_{s'} \underbrace{\sum_{a} \pi(a\mid s) p(s'\mid s,a)}_{p_{\pi}(s'\mid s)} \cdot v_{\pi}(s')
+\\
+& = \underbrace{\sum_{r} p_{\pi}(r\mid s) \cdot r}_{r_{\pi}(s)} + \gamma  \sum_{s'} p_{\pi}(s'\mid s) \cdot v_{\pi}(s')
+\end{align*}
+$$
+
+Assume $\mathcal S=\{\varsigma_1,\dots,\varsigma_{\vert\mathcal S\vert}\}$. Consider $v_{\pi}(\varsigma_i), i=1,\dots,\vert\mathcal S\vert$ as unknowns. For a certain $\pi$, the 1st term $r_{\pi}(s)$ is just a known number. The 2nd term is a linear combination of $\varsigma_1,\dots,\varsigma_{\vert\mathcal S\vert}$. Therefore, we have
+
+$$
+\underbrace{
+  \begin{bmatrix}
+    v_{\pi}(\varsigma_1) \\ v_{\pi}(\varsigma_2) \\ \vdots \\ v_{\pi}(\varsigma_n)
+  \end{bmatrix}
+}_{\mathbf v_{\pi}}
+=
+\underbrace{
+  \begin{bmatrix}
+    r_{\pi}(\varsigma_1) \\ r_{\pi}(\varsigma_2) \\ \vdots \\ r_{\pi}(\varsigma_n)
+  \end{bmatrix}
+}_{\mathbf r_{\pi}}
++
+\gamma
+\underbrace{
+  \begin{bmatrix}
+    p_{\pi}(\varsigma_1 \mid \varsigma_1) & \dots & p_{\pi}(\varsigma_n \mid \varsigma_1)  \\
+    p_{\pi}(\varsigma_1 \mid \varsigma_2) & \dots & p_{\pi}(\varsigma_n \mid \varsigma_2)  \\
+    \vdots & \cdots & \vdots \\
+    p_{\pi}(\varsigma_1 \mid \varsigma_n) & \dots & p_{\pi}(\varsigma_n \mid \varsigma_n)
+  \end{bmatrix}
+}_{\mathbf P_{\pi}}
+\cdot
+\underbrace{
+  \begin{bmatrix}
+    v_{\pi}(\varsigma_1) \\ v_{\pi}(\varsigma_2) \\ \vdots \\ v_{\pi}(\varsigma_n)
+  \end{bmatrix}
+}_{\mathbf v_{\pi}}
+$$
+
+> Bellman equation (vector form)
+> $$
+> \begin{align}
+> \mathbf v_{\pi} = \mathbf r_{\pi} + \gamma \mathbf P_{\pi}\mathbf v_{\pi}
+> \end{align}
+> $$
+
+Remarks:
+
+* In finite settings, the Bellman equation has again the same vector form, even though policy and rewards are stochastic. Here, the $\mathbf r_{\pi}$ is a vector of expected immediate rewards w.r.t. $r\sim p_{\pi}(r\mid s)$, which is the statistical average of $p_{\pi}(r\mid s,a)$ over $a\sim\pi(a\mid s)$. The row-stochastic matrix $\mathbf P_{\pi}$ consists of state transition probabilities $p_{\pi}(s'\mid s)$ under $\pi$, which is the statistical average of $p_{\pi}(s'\mid s,a)$ over $a\sim\pi(a\mid s)$.
+
+* The vector-form can again be solve analytically. However, analytical solution is rarely used unless the state space is small. In practice, iterative method is more frequently used (detailed later).
 
 ### Bellman Equations for Q-Function
 
@@ -386,6 +466,34 @@ $$
 
 Plugging $\text{(Q2V)}$ into $\text{(V2Q)}$ yields $\text{(BE-Q)}$. $\qquad\blacksquare$
 
+## Policy Evaluation
+
+In this section, we assume that $\mathcal S$, $\mathcal A$ and $\mathcal R$ are all finite. Under this setting, Bellman equation can be solved (either analytically or numerically) entirely based on the system model.
+
+In contrast, when $\mathcal S$ is continuous, the Bellman equation becomes an integral equation of $v_{\pi}$. It is challanging to derive model-based algorithms to solve Bellman equation without additional assumptions (e.g. all random variables are Gaussian). This difficulty arises because the expectations in the Bellman equation correspond to high-dimensional integrals, which are generally intractable to compute exactly. To address this difficulty, other techniques like function approximation are used (not detailed here).
+
+Algorithm to compute state values:
+
+> **BELLMAN UPDATE (vector form)**  
+> Initialize $\mathbf v_{0}$ arbitrarily.  
+> For $n=0,1,\dots$, run until $\mathbf v_{n}$ converges
+>
+> $$
+> \begin{align}
+> \mathbf v_{n+1} = \mathbf r_{\pi} + \gamma \mathbf P_{\pi} \mathbf v_{n}
+> \end{align}
+> $$
+
+The above algorithm can be reformulated element-wise as follows
+
+> **BELLMAN UPDATE (element-wise form)**  
+> Init $v_{0}(s)$ for all $s\in\mathcal S$  
+> For $n=0,1,\dots$, run until $v_{n}(s)$ converges  
+> $\quad$ For each $s\in\mathcal S$, do  
+> $$
+> v_{n+1}(s) =  \sum_{r} p_{\pi}(r\mid s) \cdot r+ \gamma  \sum_{s'} p_{\pi}(s'\mid s) \cdot v_{\pi}(s')
+> $$
+
 ## Appendix
 
 ### Law of total probability
@@ -423,3 +531,45 @@ $$
 1. introducing an intermediate variable $\theta$,
 2. computing the conditional expectation,
 3. and then averaging the conditional expecation over $\theta$.
+
+### Equivalent Formulation of Bellman equation
+
+In other literatures, the system model is given by $p(r,s'\mid s,a)$ instead of $p(r,s'\mid s,a)$ and $p(r,s'\mid s,a)$. In this setting, Bellman equation becomes
+
+> $$
+> \begin{align}
+> v_{\pi}(s)
+> & = \mathbb E_{a\sim\pi(a\mid s)} \Big[\mathbb E_{r\sim p(r\mid s,a)}[r] + \gamma\mathbb E_{s'\sim p(s'\mid s,a)}[v_{\pi}(s')]\Big]
+> \tag{BE-V1} \\
+> & = \mathbb E_{a\sim\pi(a\mid s)} \Big[\mathbb E_{r,s'\sim p(r,s'\mid s,a)}[r + \gamma v_{\pi}(s')]\Big]
+> \tag{BE-V1*} \\[6pt]
+> v_{\pi}(s)
+> & = \mathbb E_{r\sim p(r\mid s)}[r] + \gamma\mathbb E_{s'\sim p(s'\mid s)}[v_{\pi}(s')]
+> \tag{BE-V2} \\
+> & = \mathbb E_{r,s'\sim p(r,s'\mid s)}[r + \gamma v_{\pi}(s')]
+> \tag{BE-V2*} \\
+> \end{align}
+> $$
+
+TODO: remark on $p(r,s'\mid s)$.
+
+*Proof*: This is direct result of the linearity of expectation.
+
+$$
+\begin{align*}
+\mathbb E_{x\sim p(x)}[g(x)] + \mathbb E_{y\sim p(y)}[h(y)]
+&= \mathbb E_{x,y\sim p(x,y)}[g(x)+h(y)] \\
+\mathbb E_{x\sim p(x \mid z)}[g(x)] + \mathbb E_{y\sim p(y \mid z)}[h(y)]
+&= \mathbb E_{x,y\sim p(x,y \mid z)}[g(x)+h(y)]
+\end{align*}
+$$
+
+or equivalently in simplified notation
+
+$$
+\begin{align*}
+\mathbb E[g(X)] + \mathbb E[h(Y)] &= \mathbb E[g(X)+h(Y)] \\
+\mathbb E[g(X) \mid Z=z] + \mathbb E[h(Y) \mid Z=z] &= \mathbb E[g(X)+h(Y) \mid Z=z]
+\tag*{$\blacksquare$}
+\end{align*}
+$$

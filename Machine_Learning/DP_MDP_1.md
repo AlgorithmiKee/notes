@@ -565,13 +565,18 @@ v_n(s)
 \end{align*}
 $$
 
-For finite state space, the above equation reduces to Bellman updates shown in previous section
-$$
-\begin{align*}
-v_n(s)
-&= r(s, \pi(s)) + \gamma\sum_{s'\in\mathcal S} p(s' \mid s, \pi(s)) \cdot v_{n-1}(s')
-\end{align*}
-$$
+Remarks:
+
+* For finite state space $\mathcal S$, the above equation reduces to Bellman updates shown in previous section
+
+  $$
+  \begin{align*}
+  v_n(s)
+  &= r(s, \pi(s)) + \gamma\sum_{s'\in\mathcal S} p(s' \mid s, \pi(s)) \cdot v_{n-1}(s')
+  \end{align*}
+  $$
+
+* For continuous state space $\mathcal S$, the Bellman operator requires computing an integral in $\mathcal S$, which is generally intractable to compute exactly. The primary purpose of introducing Bellman operator is for theoretical convergence analysis rather than direct algorithm design.
 
 ## Bellman Optimality Equations
 
@@ -820,7 +825,7 @@ Remarks:
   \mathcal B_{*} v_{\pi}(s) = \max_{a\in\mathcal A} q_{\pi}(s,a)
   $$
 
-* We will see later that solving BOE is the same as searching for fixed point of $\mathcal B_*$ in function space $\mathcal V$.
+* We will see later that solving BOE amounts to finding a fixed point of $\mathcal B_*$ in function space $\mathcal V$. However, the primary purpose of introducing $\mathcal B_*$ is for theoretical convergence analysis rather than direct algorithm design.
 
 Properties of Bellman optimality operator:
 

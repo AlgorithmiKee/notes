@@ -484,7 +484,7 @@ Algorithm to compute state values:
 > \end{align}
 > $$
 
-The above algorithm can be reformulated element-wise as follows
+Equivalent element-wise form:
 
 > **BELLMAN UPDATE (element-wise form)**  
 > Init $v_{0}(s)$ for all $s\in\mathcal S$  
@@ -494,19 +494,37 @@ The above algorithm can be reformulated element-wise as follows
 > v_{n+1}(s) =  \sum_{r} p_{\pi}(r\mid s) \cdot r+ \gamma  \sum_{s'} p_{\pi}(s'\mid s) \cdot v_{\pi}(s')
 > $$
 
+Remarks:
+
+* The correctness of Bellman update here follows the same principle as in MDP I. The stochasitcity of policy and rewards does not alter the contractiveness of the affine mapping $f(\mathbf v) = \mathbf r_{\pi} + \gamma \mathbf P_{\pi} \mathbf v$, even though the definition of $\mathbf r_{\pi}$ and $\mathbf P_{\pi}$ are slightly different from those in MDP I. A detailed proof is omitted.
+* In practice, $p_{\pi}(r\mid s)$ and $p_{\pi}(s'\mid s)$ can be pre-computed by
+  $$
+  \begin{align*}
+  p_{\pi}(r \mid s) &= \sum_a \pi(a\mid s) \cdot p(r \mid s,a) \\
+  p_{\pi}(s'\mid s) &= \sum_a \pi(a\mid s) \cdot p(s'\mid s,a)
+  \end{align*}
+  $$
+
 ## Appendix
 
 ### Law of total probability
 
+> $$
+> \begin{align}
+> p(x) &= \mathbb E_{\theta\sim p(\theta)} \big[ p(x\mid \theta)\big]
+> \\
+> p(x\mid z) &= \mathbb E_{\theta\sim p(\theta\mid z)} \big[ p(x\mid z,\theta) \big]
+> \end{align}
+> $$
+
+Alternative notation:
 $$
 \begin{align}
-p(x)
-&= \mathbb E_{\theta\sim p(\theta)} \big[ p(x\mid \theta)\big]
-\\
-p(x\mid z)
-&= \mathbb E_{\theta\sim p(\theta\mid z)} \big[ p(x\mid z,\theta) \big]
+p(x) &= \mathbb E[p(x\mid\Theta)] \\
+p(x\mid z) &= \mathbb E[p(x\mid z,\Theta)] \\
 \end{align}
 $$
+
 
 **Core Inituition**: computing a probability can be seen as
 
@@ -514,27 +532,115 @@ $$
 2. computing the conditional probability,
 3. and then averaging the conditional probability over $\theta$.
 
+*Proof*: For the sake of simplicity, we assume all random variables are continuous. Otherwise, replace the integral with sum. By the law of marginal distribution,
+
+$$
+\begin{align*}
+p(x)
+= \int_\theta p(x,\theta) \,\mathrm{d}\theta
+= \int_\theta p(\theta)\cdot p(x\mid\theta) \,\mathrm{d}\theta
+= \mathbb E_{\theta\sim p(\theta)} \big[ p(x\mid \theta)\big]
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+For  $p(x\mid z)$, we have
+
+$$
+\begin{align*}
+p(x\mid z)
+&= \frac{p(x,z)}{p(z)}
+&&\text{def. of } p(x\mid z)
+\\
+&= \frac{1}{p(z)} \int_\theta p(x,z,\theta) \,\mathrm{d}\theta
+&&\text{marginalization}
+\\
+&= \frac{1}{p(z)} \int_\theta p(z) \cdot p(\theta\mid z) \cdot p(x\mid z,\theta) \,\mathrm{d}\theta
+&&\text{chain rule}
+\\
+&= \int_\theta p(\theta\mid z)\cdot p(x\mid z,\theta) \,\mathrm{d}\theta
+&&\text{cancel out } p(z)
+\\
+&= \mathbb E_{\theta\sim p(\theta\mid z)} \big[ p(x\mid z,\theta) \big]
+&&\text{def. of } \mathbb E_{\theta\sim p(\theta\mid z)}[\,\cdot\,]
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
 ### Law of total expectation
 
+> $$
+> \begin{align}
+> \mathbb E_{x\sim p(x)}[g(x)]
+> &= \mathbb E_{\theta\sim p(\theta)} \Big[ \mathbb E_{x\sim p(x\mid \theta)}[g(x)] \Big]
+> \\
+> \mathbb E_{x\sim p(x\mid z)}[g(x)]
+> &= \mathbb E_{\theta\sim p(\theta\mid z)} \Big[ \mathbb E_{x\sim p(x\mid z,\theta)}[g(x)] \Big]
+> \end{align}
+> $$
+
+Alternative notation:
 $$
 \begin{align}
-\mathbb E_{x\sim p(x)}[x]
-&= \mathbb E_{\theta\sim p(\theta)} \Big[ \mathbb E_{x\sim p(x\mid \theta)}[x] \Big]
-\\
-\mathbb E_{x\sim p(x\mid z)}[x]
-&= \mathbb E_{\theta\sim p(\theta\mid z)} \Big[ \mathbb E_{x\sim p(x\mid z,\theta)}[x] \Big]
+\mathbb E[g(X)] &= \mathbb E \Big[ \mathbb E[g(X)\mid\Theta] \Big] \\
+\mathbb E[g(X)\mid z] &= \mathbb E \Big[ \mathbb E[g(X)\mid z,\Theta] \Big]
 \end{align}
 $$
-
 **Core Inituition**: computing an expectation can be seen as
 
 1. introducing an intermediate variable $\theta$,
 2. computing the conditional expectation,
 3. and then averaging the conditional expecation over $\theta$.
 
+*Proof*: For the sake of simplicity, we assume all random variables are continuous. Otherwise, replace the integral with sum. For $\mathbb E_{x\sim p(x)}[g(x)]$, we have
+
+$$
+\begin{align*}
+\mathbb E_{x\sim p(x)}[g(x)]
+&= \int_x g(x) \cdot p(x) \,\mathrm{d}x
+&&\text{def. of } \mathbb E_{x\sim p(x)}[\,\cdot\,]
+\\
+&= \int_x g(x) \left(\int_\theta p(\theta)\cdot p(x\mid\theta) \,\mathrm{d}\theta\right) \,\mathrm{d}x
+&& \text{by } p(x)= \mathbb E_{\theta\sim p(\theta)} \big[ p(x\mid \theta)\big]
+\\
+&= \int_\theta p(\theta) \int_x g(x) \cdot p(x\mid\theta) \,\mathrm{d}x \,\mathrm{d}\theta
+&& \text{switch the order}
+\\
+&= \int_\theta p(\theta) \, \mathbb E_{x\sim p(x\mid \theta)}[g(x)] \,\mathrm{d}\theta
+&&\text{def. of } \mathbb E_{x\sim p(x\mid\theta)}[\,\cdot\,]
+\\
+&= \mathbb E_{\theta\sim p(\theta)} \big[ \mathbb E_{x\sim p(x\mid \theta)}[g(x)] \big]
+&&\text{def. of } \mathbb E_{\theta\sim p(\theta)}[\,\cdot\,]
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+For $\mathbb E_{x\sim p(x\mid z)}[g(x)]$, we have
+
+$$
+\begin{align*}
+\mathbb E_{x\sim p(x\mid z)}[g(x)]
+&= \int_x g(x) \cdot p(x\mid z) \,\mathrm{d}x
+&&\text{def. of } \mathbb E_{x\sim p(x\mid z)}[\,\cdot\,]
+\\
+&= \int_x g(x) \left(\int_\theta p(\theta\mid z)\cdot p(x\mid z,\theta) \,\mathrm{d}\theta\right) \,\mathrm{d}x
+&& \text{by } p(x\mid z) = \mathbb E_{\theta\sim p(\theta\mid z)} \big[ p(x\mid z,\theta) \big]
+\\
+&= \int_\theta p(\theta\mid z) \int_x g(x) \cdot p(x\mid z,\theta) \,\mathrm{d}x \,\mathrm{d}\theta
+&& \text{switch the order}
+\\
+&= \int_\theta p(\theta\mid z) \, \mathbb E_{x\sim p(x\mid z,\theta)}[g(x)] \,\mathrm{d}\theta
+&&\text{def. of } \mathbb E_{x\sim p(x\mid z,\theta)}[\,\cdot\,]
+\\
+&= \mathbb E_{\theta\sim p(\theta\mid z)} \big[ \mathbb E_{x\sim p(x\mid z,\theta)}[g(x)] \big]
+&&\text{def. of } \mathbb E_{\theta\sim p(\theta\mid z)}[\,\cdot\,]
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
 ### Equivalent Formulation of Bellman equation
 
-In other literatures, the system model is given by $p(r,s'\mid s,a)$ instead of $p(r,s'\mid s,a)$ and $p(r,s'\mid s,a)$. In this setting, Bellman equation becomes
+In some literatures, the system model is given by $p(r,s'\mid s,a)$ instead of $p(r,s'\mid s,a)$ and $p(r,s'\mid s,a)$. In this setting, Bellman equation becomes
 
 > $$
 > \begin{align}
@@ -551,7 +657,14 @@ In other literatures, the system model is given by $p(r,s'\mid s,a)$ instead of 
 > \end{align}
 > $$
 
-TODO: remark on $p(r,s'\mid s)$.
+Remark:
+* The probability $p(r,s'\mid s)$ in $\text{(BE-V2*)}$ implicitly depends on $\pi$ since it is obtained by marginalizing $p(r,s'\mid s,a)$ over $a\sim\pi(a\mid s)$.
+
+$$
+\begin{align*}
+p(r,s'\mid s) = \mathbb E_{a\sim\pi(a\mid s)} \big[ p(r,s'\mid s,a) \big]
+\end{align*}
+$$
 
 *Proof*: This is direct result of the linearity of expectation.
 

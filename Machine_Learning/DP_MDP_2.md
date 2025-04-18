@@ -210,6 +210,39 @@ Remarks:
 
 * $v_{\pi}(s) \triangleq$ the expected total reward of following a stochastic policy $\pi$ fron now onwards.
 * $q_{\pi}(s,a) \triangleq$ the expected total reward of taking a **deterministic** action $a$ now and then following a stochastic policy $\pi$.
+* Relation between $q_{\pi}$ and $v_{\pi}$:
+
+  $$
+  \begin{align*}
+  v_{\pi}(s) &= \mathbb E_{a\sim\pi(a\mid s)} [q_{\pi}(s,a)]
+  \\
+  q_{\pi}(s,a) &= \mathbb E_{r\sim p(r\mid s,a)}[r] + \gamma \mathbb E_{s'\sim p(s'\mid s,a)}[v_{\pi}(s')]
+  \end{align*}
+  $$
+
+  * Proof: c.f. section *Bellman Equations for Q-Function*
+
+Suppose the agent execute some policy $\pi$ on initial state $s$ and then follow another policy $\pi'$ onwards. Then, the expected total reward is
+
+> $$
+> \begin{align}
+> \mathbb E\left[ G_t \:\middle|\: S_t =s \right] = \mathbb E_{a\sim\pi(a\mid s)} \big[q_{\pi'}(s,a)\big]
+> \end{align}
+> $$
+
+If $\pi$ happens to be deterministic (i.e. $a=\pi(s)$), the total reward becomes
+
+> $$
+> \begin{align}
+> \mathbb E\left[ G_t \:\middle|\: S_t =s \right] = q_{\pi'}(s,\pi(s))
+> \end{align}
+> $$
+
+Illustration:
+
+$$
+s \xrightarrow[R]{A\sim\pi(a\mid s) \:} S' \xrightarrow[R']{A'\sim\pi'(a\mid s) \:} \cdots
+$$
 
 ## Bellman Equations
 
@@ -512,99 +545,118 @@ Remarks:
 
 ## Bellman Optimality Equation
 
+### Optimal Policies and Optimal Value Functions
+
 Optimal policy $\pi^*$:
 
-$$
-\begin{align}
-\pi^*
-&\triangleq \argmax_{\pi} v_{\pi}(s) \\
-&= \argmax_{\pi} \mathbb E_{a\sim\pi(a\mid s)} [q_{\pi}(s,a)]
-\end{align}
-$$
+> $$
+> \begin{align}
+> \pi^*
+> &\triangleq \argmax_{\pi} v_{\pi}(s)
+> \end{align}
+> $$
 
 Optimal value function $v^*$:
 
-$$
-\begin{align}
-v^*(s)
-&\triangleq v_{\pi^*}(s) \\
-&= \max_{\pi} v_{\pi}(s) \\
-&= \max_{\pi} \mathbb E_{a\sim\pi(a\mid s)} [q_{\pi}(s,a)]
-\end{align}
-$$
+> $$
+> \begin{align}
+> v^*(s) \triangleq v_{\pi^*}(s) = \max_{\pi} v_{\pi}(s)
+> \end{align}
+> $$
 
 Optimal Q-function $q^*$:
 
-$$
-\begin{align}
-q^*(s,a)
-&\triangleq q_{\pi^*}(s,a) \\
-&= \max_{\pi} q_{\pi}(s,a)
-\end{align}
-$$
+> $$
+> \begin{align}
+> q^*(s,a) \triangleq q_{\pi^*}(s,a) = \max_{\pi} q_{\pi}(s,a)
+> \end{align}
+> $$
 
 Remark:
 
-* the optimal policy is a probability distribution over $\mathcal A$. We will see later that $\pi^*$ is actually deterministic and thus can be written as delta function.
+* The optimization variable $\pi$ is a probability distribution over $\mathcal A$. Optimization problems with PDF as variables are nasty to deal with. However, we will see later that $\pi^*$ is actually deterministic and thus can be written as delta function.
 
----
-Claim:
+Equivalent formulation of $v^*$:
+
+> $$
+> \begin{align}
+> v^*(s)
+> &= \max_{\pi} \mathbb E_{a\sim\pi(a\mid s)} [q_{\pi}(s,a)] \nonumber \\[6pt]
+> &= \mathbb E_{a\sim\pi^*(a\mid s)} [q^*(s,a)] \nonumber \\[6pt]
+> &= \max_{\pi} \mathbb E_{a\sim\pi(a\mid s)} [q^*(s,a)]
+> \end{align}
+> $$
+
+Remarks:
+
+* The 1st reformulation is not useful to solve $v^*$ and $\pi^*$ since the optmization variable $\pi$ apears in both expectation and in Q-function.
+* The 2nd reformulation is again not useful for solving $v^*$ and $\pi^*$ since it explicitly refers to $\pi^*$.
+* The 3rd reformulation serves as the starting point to solve $v^*$ and $\pi^*$. Here, the optimization variable $\pi$ only appears in the expectation. The optimal Q-function inside the expectation does not require direct referencing to $\pi^*$ as $q^*(s,a) = \mathbb E_{r\sim p(r\mid s,a)}[r] + \gamma \mathbb E_{s'\sim p(s'\mid s,a)}[v^*(s')]$
+
+*Proof*: The 1st reformulation follows from the definition of $v^*$ and the relation btw. $v_{\pi}$ and $q_{\pi}$. The 2nd reformulation follows from the relation btw. $v^*$ and $q^*$. It remains to show the 3rd reformulation.
+
+Note that $\forall\pi, \forall s\in\mathcal S, \forall a\in\mathcal A$,
 
 $$
-\begin{align}
-v^*(s) &= \max_{\pi} \mathbb E_{a\sim\pi(a\mid s)} [q^*(s,a)] \\
-\pi^*(s)
-&\triangleq \argmax_{\pi} v_{\pi}(s) \\
-&= \argmax_{\pi} \mathbb E_{a\sim\pi(a\mid s)} [q_{\pi}(s,a)]
-\end{align}
+q_{\pi}(s,a) \le q^*(s,a) \le v^*(s)
 $$
 
-Proof:
+where the 1st inequality follows from the optimality of $q^*$ while the 2nd inequality follows from the optimaliy of $v^*$. Then:
 
-on one hand
+On one hand,
 
 $$
-\begin{align}
-q_{\pi}(s,a) \le q^*(s,a), \forall \pi \implies
+\begin{align*}
 v^*(s)
-&= \max_{\pi} v_{\pi}(s) \\
-&= \max_{\pi} \mathbb E_{a\sim\pi(a\mid s)} [q_{\pi}(s,a)] \\
-&\le \max_{\pi} \mathbb E_{a\sim\pi(a\mid s)} [q^*(s,a)]
-\end{align}
+= \max_{\pi} \mathbb E_{a\sim\pi(a\mid s)} [q_{\pi}(s,a)]
+\le \max_{\pi} \mathbb E_{a\sim\pi(a\mid s)} [q^*(s,a)]
+\end{align*}
 $$
 
-on the other hand
+On the other hand,
 
 $$
-\begin{align}
-q^*(s,a) \le v^*(s), \forall a
-&\implies \mathbb E_{a\sim\pi(a\mid s)} [q^*(s,a)] \le v^*(s), \forall \pi \\
-&\implies \max_\pi \mathbb E_{a\sim\pi(a\mid s)} [q^*(s,a)] \le v^*(s)
-\end{align}
+\begin{align*}
+\mathbb E_{a\sim\pi(a\mid s)} [q^*(s,a)] \le v^*(s), \forall \pi
+\implies \max_\pi \mathbb E_{a\sim\pi(a\mid s)} [q^*(s,a)] \le v^*(s)
+\tag*{$\blacksquare$}
+\end{align*}
 $$
 
----
+### Bellman Optimality Equation for State Value
 
-Claim:
+> **Bellman Optimality Equation** (element-wise form)
+> 
+> $$
+> \begin{align}
+> v^*(s)
+> &= \max_a q^*(s,a)
+> \\
+> &= \max_a \Big\{\mathbb E_{r\sim p(r\mid s,a)}[r] + \gamma \mathbb E_{s'\sim p(s'\mid s,a)}[v^*(s')]\Big\}
+> \end{align}
+> $$
+>
+> Optimal Policy:
+>
+> $$
+> \begin{align}
+> \pi^*(a\mid s) = \delta\left(a-a^*\right)
+> \quad \text{where }
+> a^* = \argmax_{a\in\mathcal A} q^*(s,a)
+> \end{align}
+> $$
 
-$$
-\begin{align}
-v^*(s)
-&= \max_a q^*(s,a)
-\\
-&= \max_a \Big\{
-    \mathbb E_{r\sim p(r\mid s,a)}[r] + \gamma \mathbb E_{s'\sim p(s'\mid s,a)}[v^*(s')]
-  \Big\}
-\\
-\pi^*(a\mid s) &= \delta\left(a-\argmax_{\tilde a\in\mathcal A} q^*(s,\tilde a)\right)
-\end{align}
-$$
+Remarks:
+
+* BOE has again the recursive structure.
+* An optimal policy is **deterministic**. It chooses the action maximizing the optimal Q-function. If there are multiple actions maximizing $q^*$, we may choose any of those maximizers. Hence, the optimal policy is **not unique**.
+* The optimal value function $v^*$ is however unique due to contractive mapping theorem. (Just the same as MDP I)
 
 *Proof*:
 Consider a non-stationary policy $\pi'$ constructed as follows
 
-* $\pi'$ **deterministically** picks $\hat a \triangleq\displaystyle\argmax_{a\in\mathcal A} q^*(s,a)$ at initial state $s$.
-* $\pi'$ thereafter follows the optimal policy $\pi^*$
+1. $\pi'$ **deterministically** picks $\hat a \triangleq\displaystyle\argmax_{a\in\mathcal A} q^*(s,a)$ at initial state $s$.
+2. $\pi'$ thereafter follows the optimal policy $\pi^*$
 
 The value function of $\pi'$ is thus
 
@@ -612,33 +664,34 @@ $$
 v_{\pi'}(s) = q^*(s,\hat a) = \max_{a\in\mathcal A} q^*(s,a)
 $$
 
-To show $v^*(s) = \max_a q^*(s,a) \iff$ To show $v^*(s)\ge v_{\pi'}(s)$ and $v^*(s)\le v_{\pi'}(s)$.
+To show: $v^*(s) = \max_a q^*(s,a) \iff$ To show: $v^*(s) = v_{\pi'}(s)$.
 
-Since $\pi^*$ is an optimal policy, we have
+Since $\pi^*$ is an optimal policy, it is obvious that
 
 $$
 v^*(s) \ge v_{\pi'}(s)
 $$
 
-with the equality if $\pi^* = \pi'$.
-
-On the other side, we have by monotonicity of expectation
+On the other side, we have by the trivial bound of expectation (c.f. Appendix)
 
 $$
-\begin{align}
+\begin{align*}
 v^*(s)
-&= \max_{\pi} \mathbb E_{a\sim\pi(a\mid s)} [q^*(s,a)] \\
-&\le \max_a q^*(s,a) \\
-&= v_{\pi'}(s)
-\end{align}
+= \max_{\pi} \mathbb E_{a\sim\pi(a\mid s)} [q^*(s,a)]
+\le \max_a q^*(s,a)
+= v_{\pi'}(s)
+\end{align*}
 $$
 
 with equality if
 
 $$
-\begin{align}
-\pi(a\mid s) &= \delta\left(a-\argmax_{\tilde a\in\mathcal A} q^*(s,\tilde a)\right)\nonumber
-\end{align}
+\begin{align*}
+\pi(a\mid s) = \delta\left(a-\hat a\right)
+\quad\text{where }
+\hat a = \argmax_{\tilde a\in\mathcal A} q^*(s,\tilde a)
+\tag*{$\blacksquare$}
+\end{align*}
 $$
 
 ## Appendix
@@ -716,12 +769,14 @@ $$
 > $$
 
 Alternative notation:
+
 $$
 \begin{align}
 \mathbb E[g(X)] &= \mathbb E \Big[ \mathbb E[g(X)\mid\Theta] \Big] \\
 \mathbb E[g(X)\mid z] &= \mathbb E \Big[ \mathbb E[g(X)\mid z,\Theta] \Big]
 \end{align}
 $$
+
 **Core Inituition**: computing an expectation can be seen as
 
 1. introducing an intermediate variable $\theta$,
@@ -772,6 +827,21 @@ $$
 &&\text{def. of } \mathbb E_{\theta\sim p(\theta\mid z)}[\,\cdot\,]
 \tag*{$\blacksquare$}
 \end{align*}
+$$
+
+### Trivial Bounds of Expectation
+
+Let $X:\Omega\to\mathbb R^n$ be a random vector with PDF $p_X$ and $g:\mathbb R^n\to\mathbb R$ be bounded. Then
+
+$$
+\begin{align}
+\mathbb E[g(X)] \le \max_x g(x)
+\end{align}
+$$
+
+where the inequality holds iff
+$$
+p_X(x) = \delta(x-x^*) \quad\text{where } x^* \in\argmax_x g(x)
 $$
 
 ### Equivalent Formulation of Bellman equation

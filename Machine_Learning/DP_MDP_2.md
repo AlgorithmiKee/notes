@@ -27,8 +27,8 @@ Preliminary: Dynamic Programming for Markov Decision Process I
 
 There are multiple ways to generalize the MDP:
 
-* deterministic policy $\pi(s)\longrightarrow $ stochastic policy $\pi(a\mid s)$.
-* deterministic rewards $r(s,a)\longrightarrow $ stochastic rewards $p(r\mid s,a)$.
+* deterministic policy $\pi(s)\longrightarrow$ stochastic policy $\pi(a\mid s)$.
+* deterministic rewards $r(s,a)\longrightarrow$ stochastic rewards $p(r\mid s,a)$.
 * infinite time horizon and time invariance $\longrightarrow$ finite time horizon and time dependence.
 
 In the following, we focus on generalization to stochastic policy and stochastic rewards.

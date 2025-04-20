@@ -602,7 +602,7 @@ $$
 
 We haven't proved the existence of $\pi^*$. For now, let's assume its existence and discover what conditions have to be met for $\pi^*$ and $v^*(\cdot)$. This will lead us to Bellman optimality equations,  from which we will derive an algorithm to compute $\pi^*$ (and thus prove its existence).
 
-### Optimal State Values
+### BOE for State Values
 
 Recall the Bellman equation for $v_{\pi}(s)$ holds for any policy. In particular, Bellman equations also hold for $\pi^*$:
 
@@ -755,7 +755,7 @@ Hence, we get BOE in vector form
 > \end{align}
 > $$
 
-### Optimal Q-function
+### BOE for Q-function
 
 Similary, the optimal Q-function is defined as
 $$

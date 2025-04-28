@@ -17,9 +17,11 @@ We aim to address
 2. The variance of your wealth after $n$ rounds
 3. The optimal bet size $\alpha$
 
+This problem models stock trading. The paramters $p_w$, $g$ and $\ell$ are given by the market and can not be influenced by the investor. The investor can choose a proper $\alpha$ -- the percentage of the money invested in stocks, to maximize the growth.
+
 ### Mean and Variance of Wealth
 
-Let $W_n$ denote the wealth after $n$-th round and $X_n = \frac{W_{n}}{W_{n-1}}$ be the ratio ($n=1,2,\dots$). Then,
+Let $W_n$ denote the wealth after $n$-th round and $X_n = \frac{W_{n}}{W_{n-1}}$ be the growth factor ($n=1,2,\dots$). Then,
 
 $$
 \begin{align*}
@@ -70,7 +72,7 @@ $$
 
 ### Naive Approach: Maximizing Expected Wealth
 
-What make an $\alpha$ good? We need to define an objective to measure the goodness of $\alpha$. At fist glance, it seems to make sense to maximze $\mathbb E[W_n]$ over $\alpha$. However, this approach would lead to all-in strategy, which exhibits very high variance (or ***volatility***), as we show as follows.
+What makes an $\alpha$ good? We need to define an objective to measure the goodness of $\alpha$. At fist glance, maximzing $\mathbb E[W_n]$ over $\alpha$ seems reasonable. However, this approach would lead to all-in strategy, which exhibits very high variance (or ***volatility***), as we show as follows.
 
 Taking the gradient
 
@@ -115,26 +117,45 @@ $$
 \mathbb V[W_n]
 &= w_0^2 \cdot \left(\mathbb E[X_1^2]^n - (\mathbb E[X_1]^2)^{n} \right)
 \\
-&= w_0^2 \cdot n  \xi^n \left( \mathbb E[X_1^2] - \mathbb E[X_1]^2 \right)
+&= w_0^2 \cdot n \xi^{n-1} \left( \mathbb E[X_1^2] - \mathbb E[X_1]^2 \right)
 \quad\text{where } \mathbb E[X_1]^2 \le \xi \le \mathbb E[X_1^2]
 \\
-&= w_0^2 \cdot n \xi^n \cdot \mathbb V[X_1]
+&= w_0^2 \cdot n \xi^{n-1} \cdot \mathbb V[X_1]
 \\
-&\ge w_0^2 \cdot n \mathbb E[X_1]^{2n} \cdot \mathbb V[X_1]
+&\ge w_0^2 \cdot n \mathbb E[X_1]^{2(n-1)} \cdot \mathbb V[X_1]
 \\
-&= n \cdot \mathbb E[W_n]^2 \,\mathbb V[X_1]
+&= n \cdot \mathbb E[W_n]^2 \cdot \frac{\mathbb V[X_1]}{\mathbb E[X_1]^2}
 \end{align*}
 $$
 
 where the 2nd step follows from mean value theorem applied to $f(x) = x^n$ (c.f. Appendix).
 
-Hence, maximizing $\mathbb E[W_n]$ also maximizes the lower bound of $\mathbb V[W_n]$, making the variance explode. Intuitively, $\mathbb E[W_n]$ is driven high by very rare situation (e.g. multiple wins in a row).
+Hence, maximizing $\mathbb E[W_n]$ also maximizes the lower bound of $\mathbb V[W_n]$, making the variance explode. Intuitively, $\mathbb E[W_n]$ is driven extremely rare sequences of wins, and not by typical outcomes. Intuition: If we existed in multiverse, we could just care about maximizing $\mathbb E[W_n]$ since we are playing infinitely many such games all at once. But in reality, life is only once and thus the realized wealth matters instead of expected wealth.
 
-### Maximizing Asymptotic Growth Rate
+### Maximizing Averge Growth Factor
 
-In contrast, maximizing asymptotic growth rate, defined as the geometric mean of $X_1,\dots,X_n$
+The average growth factor $\bar X$, defined as the geometric mean of $X_1,\dots,X_n$.
 
+$$
+\begin{align*}
+\bar X = \left( \prod_{i=1}^n X_i \right)^{\frac{1}{n}}
+\end{align*}
+$$
 
+Instead of maximizing the expected final wealth, we maximize the expected average growth factor.
+
+$$
+\begin{align*}
+\max_{\alpha\in[0,1]} \mathbb E[\bar X]
+\iff
+\max_{\alpha\in[0,1]} \mathbb E\left[ \left( \prod_{i=1}^n X_i \right)^{\frac{1}{n}} \right]
+\end{align*}
+$$
+
+Remark: the objective is called expected average growth factor where
+
+* "expected" $\triangleq$ taking statistical mean over random variables $X_1,\dots,X_n$
+* "average" $\triangleq$ taking geometric mean over time horizon $i=1,\dots,n$
 
 ### Simulation Results
 

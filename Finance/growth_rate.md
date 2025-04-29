@@ -7,7 +7,7 @@ fontsize: 12pt
 
 ## Growth Factor and Grow Rate
 
-Suppose your assets worth $w_k$ dollars in year $k$. ($k=1,\dots,n$) Then,
+Suppose your assets are worth $w_k$ dollars in year $k$. ($k=1,\dots,n$) Then,
 
 The growth factor $x_k$ of year $k$ is defined as
 
@@ -17,7 +17,7 @@ x_k \triangleq \frac{w_{k+1}}{w_k}
 \end{align}
 $$
 
-The growth rate $x_k$ of year $k$ is defined as
+The growth rate $r_k$ of year $k$ is defined as
 
 $$
 \begin{align}
@@ -29,7 +29,7 @@ $$
 
 Consider an investment with annual growth factor $x_i$ in year $i$. What is the average growth rate over $n$ years?
 
-Let $\bar x$ be the average growht factor. Then, growing with a constant factor $\bar x$ for $n$ years should be the same as growing $x_1,\dots,x_n$.
+Let $\bar x$ be the average growht factor. Then, growing with a constant factor $\bar x$ for $n$ years should yield the same result as growing at $x_1,\dots,x_n$ over the same period.
 
 $$
 \bar x^n = \prod_{i=1}^n x_i
@@ -55,7 +55,7 @@ Elementary properties:
   > \end{align}
   > $$
 
-* The geometric mean is uppper bounded by arithmetic mean
+* The geometric mean is upper bounded by the arithmetic mean
 
   > $$
   > \begin{align}
@@ -75,10 +75,10 @@ $$
 = \frac{1}{n} \sum_{i=1}^n Y_i
 $$
 
-By CLT,
+By central limit theorem (CLT), the RHS converges in distribution to
 
 $$
-\frac{1}{n} \sum_{i=1}^n Y_i \sim \mathcal N\left(\mu_Y, \frac{\sigma_Y^2}{n}\right)
+\frac{1}{n} \sum_{i=1}^n Y_i  \xrightarrow{d} \mathcal N\left(\mu_Y, \frac{\sigma_Y^2}{n}\right)
 $$
 
 where
@@ -90,7 +90,7 @@ $$
 \end{align*}
 $$
 
-Hence, $\ln\bar X$ is normally distributed with mean $\mu_Y$ and variance $\frac{\sigma_Y^2}{n}$.
+Hence, $\ln\bar X$ is approximately normally distributed for large $n$.
 
 $$
 \begin{align}
@@ -101,24 +101,55 @@ $$
 
 As $n\to\infty$, the variance goes to zero and thus $\ln\bar X$ converges to a deterministic number $\mathbb E[\ln X_1]$.
 
-$$
-\begin{align}
-\lim_{n\to\infty} \ln\bar X &= \mathbb E[\ln X_1] \\
-\lim_{n\to\infty} \bar X &= e^{\mathbb E[\ln X_1]}  \\
-\end{align}
-$$
+> $$
+> \begin{align}
+> \lim_{n\to\infty} \ln\bar X &= \mathbb E[\ln X_1] \\
+> \lim_{n\to\infty} \bar X &= e^{\mathbb E[\ln X_1]}  \\
+> \end{align}
+> $$
+
+Therefore, the long-term average growth rate is $e^{\mathbb E[\ln X_1]}$.
 
 By Jensen's inequality,
 
 $$
-\mathbb E[\ln X_1] \le \ln\mathbb E[X_1] = \ln\mu_X
+\lim_{n\to\infty} \ln\bar X = \mathbb E[\ln X_1] \le \ln\mathbb E[X_1] = \ln\mu_X
 $$
 
-Hence,
+Hence, we get the statistical version of the inequality between geometric mean and arithmetic mean
+
+> $$
+> \begin{align*}
+> \lim_{n\to\infty} \bar X &\le \mu_X \\
+> \end{align*}
+> $$
+
+### A "Fair" Game
+
+Consider a game in which you have 50% chance of winning and 50% chance of losing. If you win, your money is multiplied by 1.6; if you lose, it is multiplied by 0.5. Mathematically, the multiplier can be modeled as a random variable $X$ s.t.
 
 $$
-\begin{align*}
-\lim_{n\to\infty} \ln\bar X &\le \ln\mu_X \\
-\lim_{n\to\infty} \bar X &\le \mu_X \\
-\end{align*}
+X=
+\begin{cases}
+1.6 & \text{with probability 0.5} \\
+0.5 & \text{with probability 0.5} \\
+\end{cases}
 $$
+
+Is this game worth playing?
+
+At first glance, this game seems to be fair since
+
+$$
+\mathbb E[X] = 1.6 \times 0.5 + 0.5 \times 0.5 = 1.05 > 1
+$$
+
+Suppose you start with \$100 and play the game plenty number of times, would you end up with more than \$100?
+
+From our previous analysis, the average growth factor is
+
+$$
+e^{\mathbb E[\ln X]} = e^{0.5\times \ln 1.6 + 0.5\times \ln 0.5} \approx 0.894
+$$
+
+which implies that we will lose $(1-0.894)\times 100\% = 10.6\%$ each round on average. After sufficiently many rounds, we are very likely to end up with \$0!

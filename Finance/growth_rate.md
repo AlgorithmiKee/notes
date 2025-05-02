@@ -51,7 +51,8 @@ Elementary properties:
 
   > $$
   > \begin{align}
-  > \bar x = \exp\left( \frac{1}{n} \sum_{i=1}^n \ln x_i \right)
+  > \bar x &= \exp\left( \frac{1}{n} \sum_{i=1}^n \ln x_i \right) \\
+  > \ln\bar x &= \frac{1}{n} \sum_{i=1}^n \ln x_i
   > \end{align}
   > $$
 
@@ -65,62 +66,54 @@ Elementary properties:
 
 ## Asymptotic Property
 
-Suppose the growth factors $X_1,\dots,X_n$ are iid with mean $\mu_X$ and variance $\sigma_X^2$. Let $\bar X$ be the geometric mean of $X_1,\dots,X_n$.
-
-Let $Y_i = \ln X_i$. Then, $\ln\bar X$ becomes
+Let the growth factor of some investment be modeled by iid random variables $X_1,\dots,X_n$. Let $\bar X$ be the geometric mean of $X_1,\dots,X_n$.
 
 $$
-\ln\bar X
-= \frac{1}{n} \sum_{i=1}^n \ln X_i
-= \frac{1}{n} \sum_{i=1}^n Y_i
+\bar X = \left( \prod_{i=1}^n X_i \right)^{\frac{1}{n}} = \exp\left( \frac{1}{n} \sum_{i=1}^n \ln X_i \right)
 $$
 
-By central limit theorem (CLT), the RHS converges in distribution to
+Taking the log, we can express  $\ln\bar X$ in terms of arithmetic average of $\implies \ln X_1,\dots,\ln X_n$.
 
 $$
-\frac{1}{n} \sum_{i=1}^n Y_i  \xrightarrow{d} \mathcal N\left(\mu_Y, \frac{\sigma_Y^2}{n}\right)
+\ln\bar X = \frac{1}{n} \sum_{i=1}^n \ln X_i
 $$
 
-where
-
-$$
-\begin{align*}
-\mu_Y &= \mathbb E[Y_1] = \mathbb E[\ln X_1] \\
-\sigma_Y^2 &= \mathbb E[Y_1^2] - \mu_Y^2 =  \mathbb E[(\ln X_1)^2] - \mathbb E[\ln X_1]^2
-\end{align*}
-$$
-
-Hence, $\ln\bar X$ is approximately normally distributed for large $n$.
+By assumption, $X_1,\dots,X_n$ are iid $\implies \ln X_1,\dots,\ln X_n$ are also iid. Hence, by the law of large numbers, $\ln\bar X$ converges in distribution to $\mathbb E[\ln X_1]$.
 
 $$
 \begin{align}
-\ln\bar X \sim
-\mathcal N\left(\mathbb E[\ln X_1], \frac{\mathbb E[(\ln X_1)^2] - \mathbb E[\ln X_1]^2}{n}\right)
+\frac{1}{n} \sum_{i=1}^n \ln X_i &\xrightarrow{d} \mathbb E[\ln X_1]
+\quad\text{as } n\to\infty
+\\
+\lim_{n\to\infty} \ln\bar X &= \mathbb E[\ln X_1]
 \end{align}
 $$
 
-As $n\to\infty$, the variance goes to zero and thus $\ln\bar X$ converges to a deterministic number $\mathbb E[\ln X_1]$.
+Therefore, the long-term average growth factor $\bar X$ is
 
 > $$
 > \begin{align}
-> \lim_{n\to\infty} \ln\bar X &= \mathbb E[\ln X_1] \\
-> \lim_{n\to\infty} \bar X &= e^{\mathbb E[\ln X_1]}  \\
+> \lim_{n\to\infty} \bar X &= e^{\mathbb E[\ln X_1]}
 > \end{align}
 > $$
 
-Therefore, the long-term average growth rate is $e^{\mathbb E[\ln X_1]}$.
+The investment is worth it iff
 
-By Jensen's inequality,
+> $$
+> e^{\mathbb E[\ln X_1]} > 1 \iff \mathbb E[\ln X_1] > 0
+> $$
+
+Remark: $\mathbb E[X_1] > 1$ does **NOT** guarantee positive growth rate. The reason is that $\mathbb E[X_1]$ is an over-estimate of the true growth factor due to Jensen's inequality
 
 $$
-\lim_{n\to\infty} \ln\bar X = \mathbb E[\ln X_1] \le \ln\mathbb E[X_1] = \ln\mu_X
+\mathbb E[\ln X_1] \le \ln\mathbb E[X_1]
 $$
 
-Hence, we get the statistical version of the inequality between geometric mean and arithmetic mean
+which gives the statistical version of the inequality between geometric mean and arithmetic mean
 
 > $$
 > \begin{align*}
-> \lim_{n\to\infty} \bar X &\le \mu_X \\
+> e^{\mathbb E[\ln X_1]} &\le \mathbb E[X_1] \\
 > \end{align*}
 > $$
 
@@ -136,7 +129,7 @@ X=
 \end{cases}
 $$
 
-Is this game worth playing?
+Assume each round is statistically independent. Is this game worth playing?
 
 At first glance, this game seems to be fair since
 
@@ -144,7 +137,13 @@ $$
 \mathbb E[X] = 1.6 \times 0.5 + 0.5 \times 0.5 = 1.05 > 1
 $$
 
-Suppose you start with \$100 and play the game plenty number of times, would you end up with more than \$100?
+Suppose we start with \$100. The expected value of our money after playing the game $n$ rounds is
+
+$$
+\mathbb E[100X^n] = 100 \mathbb E[X]^n = 100\cdot 1.05^n
+$$
+
+But do we really likely to get this exponential growth after sufficiently many rounds?
 
 From our previous analysis, the average growth factor is
 
@@ -153,3 +152,27 @@ e^{\mathbb E[\ln X]} = e^{0.5\times \ln 1.6 + 0.5\times \ln 0.5} \approx 0.894
 $$
 
 which implies that we will lose $(1-0.894)\times 100\% = 10.6\%$ each round on average. After sufficiently many rounds, we are very likely to end up with \$0!
+
+Let $Y_n=100X^n$ denote the money we have after $n$ rounds. Then $Y$ takes values in
+
+$$
+100\cdot 1.6^k 0.5^{n-k}, \quad k=0,\dots,n
+$$
+
+where $k$ represents \# wins among $n$ rounds.
+
+The PMF of $Y_n$ is
+
+$$
+P(Y_n=100\cdot 1.6^k 0.5^{n-k}) = \binom{n}{k} 0.5^k 0.5^{n-k} = \binom{n}{k} 0.5^n
+$$
+
+One can verify that $\mathbb E[Y_n] = 100\cdot 1.05^n$ which indeed grows exponentially.
+
+However, the most likely value of $Y$ is obtained when $k=\frac{n}{2}$, which is
+
+$$
+100\cdot 1.6^{\frac{n}{2}} 0.5^{\frac{n}{2}} = 100 \cdot 0.8^{\frac{n}{2}}
+$$
+
+which declines exponentially!

@@ -60,7 +60,7 @@ $$
 
 $\to$ Intuitive goal: Maximize $\mathbb E[\text{sum of all } R_t]$.
 
-The total (discounted) reward is defined as the sum of (discounted) rewards starting from $S_t$
+The total (discounted) reward $G_t$ is defined as the sum of (discounted) rewards starting from $S_t$
 
 $$
 \begin{align}
@@ -89,10 +89,24 @@ $$
 
 In MDP, the agent performs actions determined by current state, according to a ***policy***
 $$
+\begin{align}
 \pi: \mathcal S \to \mathcal A, s\mapsto a=\pi(s)
+\end{align}
 $$
 
 Remark: The policy defined here is **time-invariant** and **deterministic**, i.e. For a certain state $s$, the agent takes the **same** action **whenever** he arrives at $s$.
+
+Following a policy $\pi$ from a fixed initial state $s$, $G_t$ can be written as
+
+$$
+\begin{align*}
+G_t
+&= r(s,a) + \gamma r\,(S_{t+1}, A_{t+1}) + \gamma^2 r(S_{t+2}, A_{t+2}) + \dots \\
+&= r(s,\pi(s)) + \gamma r\,(S_{t+1}, \pi(S_{t+1})) + \gamma^2 r(S_{t+2}, \pi(S_{t+2})) + \dots \\
+\end{align*}
+$$
+
+Hence, all stochasticity of $G_t$ comes from stochasticity in $\{S_k\}_{k \ge t+1}$.
 
 ### State Value Function
 
@@ -551,13 +565,18 @@ v_n(s)
 \end{align*}
 $$
 
-For finite state space, the above equation reduces to Bellman updates shown in previous section
-$$
-\begin{align*}
-v_n(s)
-&= r(s, \pi(s)) + \gamma\sum_{s'\in\mathcal S} p(s' \mid s, \pi(s)) \cdot v_{n-1}(s')
-\end{align*}
-$$
+Remarks:
+
+* For finite state space $\mathcal S$, the above equation reduces to Bellman updates shown in previous section
+
+  $$
+  \begin{align*}
+  v_n(s)
+  &= r(s, \pi(s)) + \gamma\sum_{s'\in\mathcal S} p(s' \mid s, \pi(s)) \cdot v_{n-1}(s')
+  \end{align*}
+  $$
+
+* For continuous state space $\mathcal S$, the Bellman operator requires computing an integral in $\mathcal S$, which is generally intractable to compute exactly. The primary purpose of introducing Bellman operator is for theoretical convergence analysis rather than direct algorithm design.
 
 ## Bellman Optimality Equations
 
@@ -583,7 +602,7 @@ $$
 
 We haven't proved the existence of $\pi^*$. For now, let's assume its existence and discover what conditions have to be met for $\pi^*$ and $v^*(\cdot)$. This will lead us to Bellman optimality equations,  from which we will derive an algorithm to compute $\pi^*$ (and thus prove its existence).
 
-### Optimal State Values
+### BOE for State Values
 
 Recall the Bellman equation for $v_{\pi}(s)$ holds for any policy. In particular, Bellman equations also hold for $\pi^*$:
 
@@ -736,7 +755,7 @@ Hence, we get BOE in vector form
 > \end{align}
 > $$
 
-### Optimal Q-function
+### BOE for Q-function
 
 Similary, the optimal Q-function is defined as
 $$
@@ -806,7 +825,7 @@ Remarks:
   \mathcal B_{*} v_{\pi}(s) = \max_{a\in\mathcal A} q_{\pi}(s,a)
   $$
 
-* We will see later that solving BOE is the same as searching for fixed point of $\mathcal B_*$ in function space $\mathcal V$.
+* We will see later that solving BOE amounts to finding a fixed point of $\mathcal B_*$ in function space $\mathcal V$. However, the primary purpose of introducing $\mathcal B_*$ is for theoretical convergence analysis rather than direct algorithm design.
 
 Properties of Bellman optimality operator:
 

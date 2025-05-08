@@ -5,8 +5,6 @@ date: "2025"
 fontsize: 12pt
 ---
 
-**TODO**: move this file to folder *signal processing* after migraion.
-
 # Orthogonality Principle
 
 [toc]

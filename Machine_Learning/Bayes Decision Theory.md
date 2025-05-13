@@ -11,15 +11,20 @@ Bayes Decision Theory = Making actions to minimize expected cost
 
 [toc]
 
+$$
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+$$
+
 ## Pipeline of Statistical Learning
 
-Many statistical learning tasks can be summarised in the pipleline shown below.
+Many statistical learning tasks can be summarised in the pipeline shown below.
 
 <img src="./figs/Statistical Learning.pdf" alt="Statistical Learning" style="zoom:67%;" />
 
 The learning procedure aims to estimate $p(y \mid x)$ from training data. We can either
 
-* learn a discriminative model: learn $p(y \mid x)$ directly. e.g. linear regression, logistic regression.
+* learn a discriminative model: learn $p(y \mid x)$ directly. e.g. linear regression, logistic regression, or
 * learn a generative model: learn $p(x,y)$. e.g. linear discriminant analysis, naive Bayes classifier.
 
 The technical details about learning $p(y \mid x)$ are not part of this article. Instead, we ask the question: How to use $p(y \mid x)$ to make predictions or decisions?
@@ -30,7 +35,7 @@ By assuming that $p(y \mid x)$​ is either known or has been solidly estimated,
 Consider a collision avoidance system (CAS) on the airplane. The CAS analyses sensor data to predict obstacles in the air. Based on its belief on the presence of obstacles, it makes one of three actions: Make an evasive move, Warn the pilot, Do nothing.
 
 Given the sensor data, which action should CAS take?  
-We define the cost of each action under different circumstance in the table below.
+We define the cost of each action under different circumstances in the table below.
 
 | Actions              | If Obstacle | If No Obstacle |
 | -------------------- | ----------- | -------------- |
@@ -48,9 +53,6 @@ $$
 \text{Warn the pilot:}&\quad       1\%\times 10 + 99\%\times 1 = 1.09 \\
 \text{Do Nothing:}&\quad           1\%\times 1000 + 99\%\times 0 = 10 \\
 \end{align*}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\DeclareMathOperator*{\argmax}{argmax}
-\DeclareMathOperator*{\argmin}{argmin}
 $$
 
 | Actions              | 1% Obstacle  | 99% no Obstacle | Expected Cost |
@@ -67,7 +69,7 @@ Set up:
 
 * **Feature space** $\mathcal{X}$: typically $x \in\mathbb{R}^d$.
 * **Label set** $\mathcal{Y}$: can either be $\mathbb{R}$ (for regression) or a discrete set (for classification)
-* **Action set** $\mathcal{A}$: not necessarily equal to $\mathcal{Y}$ in general. e.g. our previous CAS example.
+* **Action set** $\mathcal{A}$: not necessarily equal to $\mathcal{Y}$ in general, as our previous CAS example.
 * **Loss function** $\ell: \mathcal{Y} \times \mathcal{A} \to \mathbb{R}, (y, a) \mapsto \ell(y, a)$. Also known as ***cost function***.
 * **Decision rule** is a function $f: \mathcal{X} \to \mathcal{A}, x \mapsto a=f(x)$. If the action set and label set coincide, $f$ becomes a label predicting function.
 * **Function class** $\mathcal{F}$: the set of all possible decision rules. In training, we often limit the size of $\mathcal{F}$ to prevent overfitting. In decision theory, we do not restrict $\mathcal{F}$.
@@ -143,7 +145,7 @@ Key fact:
 
 Remark:
 
-* **TBC**: The converse is true if we slightly relax the requirement "$\forall x \in\mathcal X$" to "almost everywhere in $\mathcal X$". c.f. Appendix for a proposed proof.
+* Here, "$\implies$" becomes "$\iff$" if we slightly relax the requirement "$\forall x \in\mathcal X$" to "almost everywhere in $\mathcal X$". c.f. Appendix for a the proof.
 * To minimize the Bayes risk, it is sufficient to minimize the conditional risk for each observation $x$​.
 
 *Proof* $\implies$ : By assumption, we have for any other decision rule $f$ that
@@ -156,7 +158,7 @@ $$
 p(x) R(\hat f(x) \mid x) \le p(x) R(f(x) \mid x), \: \forall x
 $$
 
-Integrate both side w.r.t. $x$. By monotonnicity of integral, we get
+Integrate both side w.r.t. $x$. By monotonicity of integral, we get
 $$
 \begin{align*}
 R(\hat f)
@@ -200,7 +202,7 @@ Remark:
 1. If $\mathcal{A} = \mathcal{Y}$, the optimal decision $\hat{f}(x)$ represents the optimal label prediction subject to $\ell(\cdot, \cdot)$ given $x$.
 1. Minimizing the Bayes risk requires the full statistical information $p(x,y)$. vs. Minimizing the conditional risk only requires partial statistical information $p(y \mid x)$​.
 
-## Case Study
+## Label Prediction
 
 Throughout this section, we consider $\mathcal{A} = \mathcal{Y}$. We interpret each $a\in\mathcal{A}$ as label prediction. The loss $\ell(y,a)$ quantifies the cost of predicting $a$ while the true label is $y$. The optimal decision $\hat{f}(x)$ now becomes the optimal label prediction. In following, we will examine some popular choices of loss functions and their resulting optimal label prediction.
 
@@ -246,7 +248,7 @@ $$
   {\boxed{\argmax_y\: p(x \mid y)}}
 $$
 
-The 0/1 loss penalize all misclassification equally. If we write 0/1 loss in a matrix, we would get with zero diagonal, one elsewhere. e.g. The 0/1 loss for a three-class problem looks like
+The 0/1 loss penalizes all misclassification equally. If we write 0/1 loss in a matrix, we would get zeros on the diagonal, ones elsewhere. e.g. The 0/1 loss for a three-class problem looks like
 
 |   0/1 loss    | $y=1$  | $y=2$ | $y=3$ |
 |---------------|--------|-------|-------|
@@ -276,12 +278,9 @@ The resulting optimal prediction is the **posterior mean** of $Y$ given $x$, i.e
 $$
 \begin{align*}
 \hat{f}(x)
-&= \argmin_a \int_{-\infty}^{\infty} (y-a)^2 p(y \mid x) \:\mathrm{d}y\\
-&= \argmin_a \int_{-\infty}^{\infty} (a^2 -2ay + y^2) p(y \mid x) \:\mathrm{d}y\\
-&= \argmin_a
-    \underbrace{\int_{-\infty}^{\infty} a^2 \, p(y \mid x) \:\mathrm{d}y}_{a^2}
-    -\underbrace{\int_{-\infty}^{\infty} 2ay \, p(y \mid x) \:\mathrm{d}y}_{2a\cdot\mathbb{E}_Y [Y \mid X=x]}
-    +\underbrace{\int_{-\infty}^{\infty} y^2 \, p(y \mid x)  \:\mathrm{d}y}_{\text{irrelevant to } a} \\
+&= \argmin_a \mathbb{E}_{Y} \left[ (Y-a)^2 \mid X=x  \right] \\
+&= \argmin_a \mathbb{E}_{Y} \left[ Y^2 - 2aY + a^2 \mid X=x  \right] \\
+&= \argmin_a \mathbb{E}_{Y} \left[ Y^2 \mid X=x  \right] -2a\cdot\mathbb{E}_{Y} \left[ Y \mid X=x  \right] + a^2 \\
 &= \argmin_a\:  a^2 - 2a\cdot\mathbb{E}_Y [Y \mid X=x]
 \end{align*}
 $$
@@ -475,9 +474,9 @@ Binary classification is very similar to binary hypothesis testing. c.f. separat
       R(f_1) > R(f_2)
       $$
 
-# Appendix
+## Appendix
 
-## Indicator Function
+### Indicator Function
 
 The indicator function $\mathbb{I}[\cdot]$ is define as
 $$
@@ -495,7 +494,7 @@ $$
 
 *Proof*: trivial
 
-## Leibniz's Integral Rule
+### Leibniz's Integral Rule
 
 Let $f: \mathbb{R}\times\mathbb{R}: (x,t) \mapsto f(x,t)$. Suppose everything is continuous, differentiable, bounded etc. (if they need to be)
 
@@ -528,7 +527,7 @@ $$
 \end{align}
 $$
 
-## Total Expectation
+### Total Expectation
 
 Let $X$ and $Y$ be two random variables and $g:\mathbb R^2 \to \mathbb R$ be a function.
 
@@ -560,17 +559,17 @@ $$
 \end{align*}
 $$
 
-## TBC: Measure Theory Based Proof
+### Equivalence of Bayes risk minimization and conditional risk minimization
 
 Show that
 
 > $$
 > \hat{f} = \argmin_{f \in\mathcal F} R(f)
-> \implies
+> \iff
 > \hat{f}(x) = \argmin_{a \in\mathcal A} R(a \mid x) \text{ a.e. in } \mathcal{X}
 > $$
 
-*Proof*  : Let $\mu$ be the measure defined for the $\sigma$-algebra on $\mathcal X$.
+*Proof*: We will show "$\implies$" direction since the other direction was already shown. Let $\mu$ be the measure defined for the $\sigma$-algebra on $\mathcal X$.
 For the sake of contradiction, suppose $\exists \Omega\subset\mathcal X$ with $\mu(\Omega)>0$ s.t.$\forall x \in\Omega$​
 $$
 \hat{f}(x) \ne \argmin_{a \in\mathcal A} R(a \mid x)
@@ -580,21 +579,21 @@ $$
 
 Now, define another decision rule
 $$
-\bar f(x) =
+\tilde f (x) =
 \begin{cases}\displaystyle
 \argmin_{a \in\mathcal A} R(a \mid x), & x \in\Omega \\
 \hat f(x),                             & x \in\mathcal{X}\setminus\Omega
 \end{cases}
 $$
 
-Then, we conclude that $\bar f$ would achieve a lower Bayes risk, which contradicts with $\displaystyle\hat{f} = \argmin_{f \in\mathcal F} R(f)$.
+Then, we conclude that $\tilde f $ would achieve a lower Bayes risk, which contradicts with $\displaystyle\hat{f} = \argmin_{f \in\mathcal F} R(f)$.
 $$
 \begin{align*}
-R(\bar f)
-= \int_\mathcal{X} p(x) R(\bar f(x) \mid x) \mathrm{d}\mu
-&= \int_\mathcal{\mathcal{X}\setminus\Omega} p(x) R(\bar f(x) \mid x) \mathrm{d}\mu + \int_\mathcal{\Omega} p(x) R(\bar f(x) \mid x) \mathrm{d}\mu
+R(\tilde f )
+= \int_\mathcal{X} p(x) R(\tilde f (x) \mid x) \mathrm{d}\mu
+&= \int_\mathcal{\mathcal{X}\setminus\Omega} p(x) R(\tilde f (x) \mid x) \mathrm{d}\mu + \int_\mathcal{\Omega} p(x) R(\tilde f (x) \mid x) \mathrm{d}\mu
 \\
-&= \int_\mathcal{\mathcal{X}\setminus\Omega} p(x) R(\hat f(x) \mid x) \mathrm{d}\mu + \int_\mathcal{\Omega} p(x) R(\bar f(x) \mid x) \mathrm{d}\mu
+&= \int_\mathcal{\mathcal{X}\setminus\Omega} p(x) R(\hat f(x) \mid x) \mathrm{d}\mu + \int_\mathcal{\Omega} p(x) R(\tilde f (x) \mid x) \mathrm{d}\mu
 \\
 &< \int_\mathcal{\mathcal{X}\setminus\Omega} p(x) R(\hat f(x) \mid x) \mathrm{d}\mu + \int_\mathcal{\Omega} p(x) R(\hat f(x) \mid x) \mathrm{d}\mu
 = R(\hat f)

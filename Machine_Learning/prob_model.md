@@ -17,7 +17,7 @@ $$
 Notations:
 
 * $\mathbf x\in\mathcal X$: feature vector. $\mathcal X$ could be $\mathbb R^d$ (for continuous data) or a discrete set (for discrete data)
-* $y\in\mathcal Y$: label. $\mathcal Y$ could be $\mathbb R$ (for regression) or a discrete set (for discrete data)
+* $y\in\mathcal Y$: label. $\mathcal Y$ could be $\mathbb R$ (for regression) or a discrete set (for classification)
 
 ## Overview
 
@@ -42,8 +42,8 @@ How to learn the probability?
 
 * Parametric methods: The PDF of interest belongs to some parametric family (e.g. normal distribution)
 
-  * parameter estimation: MLE, MAP. Based on optimization. $\to$ point estimate of the parameters.
-  * Bayesian model averaging:  $\to$ distribution of the parameters.
+  * **parameter estimation**: MLE, MAP. Based on optimization. $\to$ point estimate $\hat{\boldsymbol{\theta}}$.
+  * Bayesian model averaging:  $\to$ distribution of the parameters $p(\hat{\boldsymbol{\theta}} \mid D)$.
 
 Our focus: parametric methods. In particular, parameter estimation.
 
@@ -52,6 +52,7 @@ Our focus: parametric methods. In particular, parameter estimation.
 Problem formulation:
 
 * Given: training data $D = \{\mathbf x_1, \cdots, \mathbf x_n\}$ iid from $p(\mathbf x \mid \boldsymbol{\theta})$ with unknown $\boldsymbol{\theta}$
+* Optional: prior distribution $p(\boldsymbol{\theta})$
 * Goal: estimate $\boldsymbol{\theta}$
 
 We assume that the data is fully observable, i.e. there is no latent variables. Unsupervised learning with latent variables (e.g. GMM) requires more complex algorithms (e.g. EM algorithm). Not detailed here.
@@ -121,14 +122,14 @@ $$
 \end{align}
 $$
 
-where $\eta^{(t)}$ is called learning rate or step size.
+where $\eta^{(t)}$ is called ***learning rate*** or step size.
 
 If the data set $D$ is large, one can use
 
-* mini-batch to calculate the gradient
+* mini-batch of size $m$ to calculate the gradient
     $$
     \begin{align}
-    & \text{randomly draw } B^{(t)} \subset D \text{ with } \vert B \vert = m
+    & \text{randomly draw } B^{(t)} \subset D \text{ with } \vert B \vert = m \nonumber
     \\
     & \boldsymbol{\theta}^{(t+1)}
     = \boldsymbol{\theta}^{(t)} + \eta^{(t)} \sum_{\mathbf x\in B^{(t)}} \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x \mid \boldsymbol{\theta}^{(t)})
@@ -138,7 +139,7 @@ If the data set $D$ is large, one can use
 * or stochastic gradient (speical case of mini-batch when $m=1$)
     $$
     \begin{align}
-    & \text{randomly draw } \mathbf x^{(t)} \in D
+    & \text{randomly draw } \mathbf x^{(t)} \in D \nonumber
     \\
     & \boldsymbol{\theta}^{(t+1)}
     = \boldsymbol{\theta}^{(t)} + \eta^{(t)} \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x^{(t)} \mid \boldsymbol{\theta}^{(t)})
@@ -205,7 +206,7 @@ Gradient-based optimization:
 * Mini-bath gradient ascent:
     $$
     \begin{align}
-    & \text{randomly draw } B^{(t)} \subset D \text{ with } \vert B \vert = m
+    & \text{randomly draw } B^{(t)} \subset D \text{ with } \vert B \vert = m \nonumber
     \\
     & \boldsymbol{\theta}^{(t+1)}
     = \boldsymbol{\theta}^{(t)} + \eta^{(t)} \left(\sum_{\mathbf x\in B^{(t)}} \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x \mid \boldsymbol{\theta}^{(t)}) + \frac{\partial}{\partial\boldsymbol{\theta}}\ln p(\boldsymbol{\theta}^{(t)}) \right)
@@ -215,14 +216,50 @@ Gradient-based optimization:
 * Stochastic gradient ascent:
     $$
     \begin{align}
-    & \text{randomly draw } \mathbf x^{(t)} \in D
+    & \text{randomly draw } \mathbf x^{(t)} \in D \nonumber
     \\
     & \boldsymbol{\theta}^{(t+1)}
     = \boldsymbol{\theta}^{(t)} + \eta^{(t)} \left(\frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x^{(t)} \mid \boldsymbol{\theta}^{(t)}) + \frac{\partial}{\partial\boldsymbol{\theta}}\ln p(\boldsymbol{\theta}^{(t)}) \right)
     \end{align}
     $$
 
-### Example
+In practice, we often impose a Gaussian prior on $\boldsymbol{\theta}$,
+
+$$
+\begin{align}
+\boldsymbol{\theta} \sim \mathcal N(\mathbf 0, \sigma^2_\mathrm{p}\mathbf I)
+\end{align}
+$$
+
+which gives the log prior
+
+$$
+\begin{align}
+\ln p(\boldsymbol{\theta}) = -\frac{1}{2\sigma^2_\mathrm{p}} \Vert\boldsymbol{\theta}\Vert^2 + \text{const}
+\end{align}
+$$
+
+The resulting MAP estimation is then
+
+> $$
+> \begin{align}
+> \hat{\boldsymbol{\theta}}_\text{MAP}
+> &= \argmax_{\boldsymbol{\theta}} \sum_{i=1}^n \ln p(\mathbf x_i \mid \boldsymbol{\theta}) -\frac{1}{2\sigma^2_\mathrm{p}} \Vert\boldsymbol{\theta}\Vert^2
+> \end{align}
+> $$
+
+The Gaussian prior has regularization effect: It encourages smaller $\boldsymbol{\theta}$ while penalize larger $\boldsymbol{\theta}$ since we maximize the RHS over $\boldsymbol{\theta}$. The smaller $\sigma^2_\mathrm{p}$ is, the stronger is the regularization. This effect is clearer if we look at the gradient ascent
+
+$$
+\begin{align}
+\boldsymbol{\theta}^{(t+1)}
+&= \boldsymbol{\theta}^{(t)} + \eta^{(t)} \left(\sum_{i=1}^n \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x_i \mid \boldsymbol{\theta}^{(t)}) -
+   \frac{\partial}{\partial\boldsymbol{\theta}}\frac{1}{2\sigma^2_\mathrm{p}} \Vert\boldsymbol{\theta}^{(t)}\Vert^2 \right) \nonumber \\
+&= \boldsymbol{\theta}^{(t)} + \eta^{(t)} \left(\sum_{i=1}^n \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x_i \mid \boldsymbol{\theta}^{(t)}) -
+   \frac{1}{\sigma^2_\mathrm{p}} \boldsymbol{\theta}^{(t)} \right) \nonumber \\
+&= \boldsymbol{\theta}^{(t)} \left(1 - \frac{\eta^{(t)}}{\sigma^2_\mathrm{p}}\right) + \eta^{(t)} \sum_{i=1}^n \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x_i \mid \boldsymbol{\theta}^{(t)}) \\
+\end{align}
+$$
 
 ## Superivsed Learning
 
@@ -254,7 +291,7 @@ Remarks:
 * The 1st factorization is called ***discriminative modeling***. Philosophically, a discrimiative model thinks $y$ (e.g. price of a house) as an uncertain consequence of $\mathbf x$ (e.g. housing area). To predict the label under discriminative setting, it is acutally sufficient to estimate $\mathbf{w}$ only.
 * The 2nd factorization is called ***generative modeling***. Philosophically, a discrimiative model thinks $\mathbf x$ (e.g. size and weight) as an uncertain consequence of $y$ (e.g. animal species). To predict the label under generative setting, we must estimate the whole set of parameters $(\boldsymbol{\pi}, \mathbf{w})$.
 * Note that $\boldsymbol{\pi}$ and $\mathbf{w}$ have different meanings under discriminative model and generative models. In discriminative model, $\boldsymbol{\pi}$ parameterizes $p(\mathbf x)$ while $\mathbf{w}$ parameterizes $p(y\mid \mathbf x)$. In generative model, $\boldsymbol{\pi}$ parameterizes $p(y)$ while $\mathbf{w}$ parameterizes $p(\mathbf x\mid y)$.
- 
+
 **Examples**: Discriminative model or generative model?
 
 1. predicting the price of a house given its area $\to$ discriminative model.
@@ -262,29 +299,21 @@ Remarks:
 1. predicting which number given a hand-written digit $\to$ generative model.
 1. predicting which species given the weight and size of an animal $\to$ generative model.
 
-### Parameter Estimation in Discriminative Setting
+### Parameter Estimation in Discriminative Model
 
-The likelihood $p(D\mid\boldsymbol{\theta})$ is by iid assumption
+By iid assumption and that $p(\mathbf x, y \mid \boldsymbol{\theta}) = p(\mathbf x \mid \boldsymbol{\pi}) \, p(y \mid \mathbf x,\mathbf{w})$, the likelihood is
 
 $$
 \begin{align}
 p(D\mid\boldsymbol{\theta})
 &= p(\mathbf x_1, y_1, \cdots, \mathbf x_n, y_n \mid \boldsymbol{\theta}) \\
-&= \prod_{i=1}^n p(\mathbf x_i,y_i \mid \boldsymbol{\theta})
-\end{align}
-$$
-
-By assumption $p(\mathbf x, y \mid \boldsymbol{\theta}) = p(\mathbf x \mid \boldsymbol{\pi}) \cdot p(y \mid \mathbf x,\mathbf{w})$, the likelihood becomes
-
-$$
-\begin{align}
-p(D\mid\boldsymbol{\theta})
+&= \prod_{i=1}^n p(\mathbf x_i,y_i \mid \boldsymbol{\theta}) \\
 &= \prod_{i=1}^n p(\mathbf x_i \mid \boldsymbol{\pi}) \cdot p(y_i \mid \mathbf x_i,\mathbf{w}) \\
 &= \left(\prod_{i=1}^n p(\mathbf x_i \mid \boldsymbol{\pi})\right) \cdot \left(\prod_{i=1}^n p(y_i \mid \mathbf x_i,\mathbf{w})\right)
 \end{align}
 $$
 
-Taking the log, we get the log likelihood of $\boldsymbol{\theta}$
+Taking the log, we get the log likelihood
 
 > $$
 > \begin{align}
@@ -295,39 +324,167 @@ Taking the log, we get the log likelihood of $\boldsymbol{\theta}$
 
 Remarks:
 
-
 * $J_1(\boldsymbol{\pi})$ is in fact the log likelihood of $\mathbf x_1, \dots, \mathbf x_n$ given $\boldsymbol{\pi}$
     $$
-    \begin{align}
+    \begin{align*}
     \ln p(\mathbf x_1, \dots, \mathbf x_n \mid\boldsymbol{\pi})
-    &= \ln \prod_{i=1}^n p(\mathbf x_i\mid\boldsymbol{\pi}) \\
-    &= \sum_{i=1}^n \ln p(\mathbf x_i \mid \boldsymbol{\pi}) \triangleq J_1(\boldsymbol{\pi})
-    \end{align}
+    = \ln \prod_{i=1}^n p(\mathbf x_i\mid\boldsymbol{\pi})
+    = \sum_{i=1}^n \ln p(\mathbf x_i \mid \boldsymbol{\pi})
+    \triangleq J_1(\boldsymbol{\pi})
+    \end{align*}
     $$
 
 * $J_2(\mathbf{w})$ is the log of conditional likelihood of $y_1, \dots, y_n$ given $\mathbf x_1, \dots, \mathbf x_n$ and $\mathbf{w}$
     $$
-    \begin{align}
+    \begin{align*}
     \ln p(y_1, \dots, y_n \mid\mathbf x_1, \dots, \mathbf x_n, \mathbf{w})
     &= \ln \prod_{i=1}^n p(y_i \mid \mathbf x_i, \mathbf{w}) \\
-    &= \sum_{i=1}^n \ln p(y_i \mid \mathbf x_i, \mathbf{w}) \\
-    &\triangleq J_2(\mathbf{w})
-    \end{align}
+    &= \sum_{i=1}^n \ln p(y_i \mid \mathbf x_i, \mathbf{w})
+    \triangleq J_2(\mathbf{w})
+    \end{align*}
     $$
 
 Hence, $\boldsymbol{\pi}$ and $\mathbf{w}$ can be estimated separately
 
+> $$
+> \begin{align}
+> \hat{\boldsymbol{\pi}}_\text{MLE} &= \argmax_{\boldsymbol{\pi}} \sum_{i=1}^n \ln p(\mathbf x_i \mid \boldsymbol{\pi})
+> \\
+> \hat{\mathbf{w}}_\text{MLE} &= \argmax_{\mathbf{w}} \sum_{i=1}^n \ln p(y_i \mid \mathbf x_i,\mathbf{w})
+> \end{align}
+> $$
+
+For label prediction, it is sufficient to learn $\mathbf{w}$ and thus $p(y \mid \mathbf x,\mathbf{w})$. We do not really need to know $p(\mathbf x \mid \boldsymbol{\pi})$ to predict the label $y$. c.f. Appendix for an example about predicting house price.
+
+If we have priors on $\boldsymbol{\theta}$ s.t. $p(\boldsymbol{\theta}) = p(\boldsymbol{\pi})\,p(\mathbf{w})$, the posterior distribution of $\boldsymbol{\theta}$ is then
+
 $$
 \begin{align}
-\hat{\boldsymbol{\pi}}_\text{MLE} &= \argmax_{\boldsymbol{\pi}} \sum_{i=1}^n \ln p(\mathbf x_i \mid \boldsymbol{\pi})
-\\
-\hat{\mathbf{w}}_\text{MLE} &= \argmax_{\mathbf{w}} \sum_{i=1}^n \ln p(y_i \mid \mathbf x_i,\mathbf{w})
+p(\boldsymbol{\theta} \mid D)
+&\propto p(D\mid\boldsymbol{\theta}) \cdot p(\boldsymbol{\theta}) \\
+&= p(D\mid\boldsymbol{\theta}) \, p(\boldsymbol{\pi}) \, p(\mathbf{w}) \\
+&= \left(p(\boldsymbol{\pi}) \, \prod_{i=1}^n p(\mathbf x_i \mid \boldsymbol{\pi})\right) \cdot \left(p(\mathbf{w}) \, \prod_{i=1}^n p(y_i \mid \mathbf x_i,\mathbf{w})\right)
 \end{align}
 $$
 
-For regression and classification, it is sufficient to learn $\mathbf{w}$ and thus $p(y \mid \mathbf x,\mathbf{w})$. We do not really need to know $p(\mathbf x \mid \boldsymbol{\pi})$ to predict the label $y$.
+Taking the log, we get the log posterior
 
-**Example**: predicting house prices. We model the area as a Gaussian $x\sim\mathcal N(\mu_x, \sigma_x^2)$ and the price $y$ as an affine function of $x$ with independent Gaussian noise.
+> $$
+> \begin{align}
+> \ln p(\boldsymbol{\theta} \mid D)
+> &= \underbrace{\ln p(\boldsymbol{\pi}) + \sum_{i=1}^n \ln p(\mathbf x_i \mid \boldsymbol{\pi})}_{J_1(\boldsymbol{\pi})} +
+> \underbrace{\ln p(\mathbf{w}) + \sum_{i=1}^n \ln p(y_i \mid \mathbf x_i,\mathbf{w})}_{J_2(\mathbf{w})} +
+> \text{const}
+> \end{align}
+> $$
+
+Therefore, we get the MAP estimation
+
+> $$
+> \begin{align}
+> \hat{\boldsymbol{\pi}}_\text{MAP}
+> &= \argmax_{\boldsymbol{\pi}} \ln p(\boldsymbol{\pi}) + \sum_{i=1}^n \ln p(\mathbf x_i \mid \boldsymbol{\pi})
+> \\
+> \hat{\mathbf{w}}_\text{MAP}
+> &= \argmax_{\mathbf{w}} \ln p(\mathbf{w}) + \sum_{i=1}^n \ln p(y_i \mid \mathbf x_i,\mathbf{w})
+> \end{align}
+> $$
+
+### Regression as Discriminative Model
+
+Problem formulation:
+
+* Given: training data $D = \{\mathbf x_1, y_1, \cdots, \mathbf x_n, y_n\}$ iid from unknown $p(\mathbf x, y)$
+* Goal: estimate $p(y \mid \mathbf x)$
+
+We model $y$ as a paramterized function of $\mathbf x$ with additive label noise.
+
+> $$
+> \begin{align}
+> y = f_{\boldsymbol{\theta}}(\mathbf x) + \epsilon, \quad \epsilon\sim\mathcal N(0, \sigma^2_\text{n})
+> \end{align}
+> $$
+
+Examples of paramterized function $f_{\boldsymbol{\theta}}: \mathbb R^d \to \mathbb R$:
+
+* linear model: $\boldsymbol{\theta} = \mathbf{w}\in\mathbb R^d$.
+    $$
+    y = \underbrace{\mathbf{w}^\top \mathbf x}_{f_{\boldsymbol{\theta}}(\mathbf x)} + \epsilon
+    $$
+
+* neural net with one hidden layer and activation function $\sigma(\cdot)$.
+    $$
+    \begin{align}
+    \boldsymbol{\theta} &= \{\mathbf{W}_1\in\mathbb R^{h\times d}, \mathbf{b}_1\in\mathbb R^{h}, \mathbf{W}_2\in\mathbb R^{1\times h}, b_2\in\mathbb R\}
+    \\
+    y &= \underbrace{\mathbf{W}_2 \,\sigma(\mathbf{W}_1 \mathbf x + \mathbf{b}_1) + b_2}_{f_{\boldsymbol{\theta}}(\mathbf x)} + \epsilon
+    \end{align}
+    $$
+
+The conditional distribution $p(y \mid \mathbf x)$ is then characterized by $\boldsymbol{\theta}$. Hence, we write $p(y \mid \mathbf x, \boldsymbol{\theta})$
+
+> $$
+> \begin{align}
+> p(y \mid \mathbf x, \boldsymbol{\theta})
+> &= \mathcal N(y ; f_{\boldsymbol{\theta}}(\mathbf x), \sigma^2_\text{n}) \\
+> &= \frac{1}{\sqrt{2\pi \sigma^2_\text{n}}} \exp\left(
+>    -\frac{\left(y - f_{\boldsymbol{\theta}}(\mathbf{x})\right)^2}{2\sigma^2_\text{n}}
+>    \right)
+> \end{align}
+> $$
+
+Remarks:
+
+* The parameter $\boldsymbol{\theta}$ describes the conditional mean
+    $$
+    f_{\boldsymbol{\theta}}(\mathbf x) = \mathbb E_y[y\mid\mathbf x, \boldsymbol{\theta}]
+    $$
+
+* For point estimates (MLE or MAP) of $\boldsymbol{\theta}$, we do not need to know the variance of the noise $\sigma^2_\text{n}$.
+* Scenarios requiring knowledge about $\sigma^2_\text{n}$: uncertainty quantification for label prediction, Bayesian inference (model averaging).
+
+The log of conditional likelihood
+
+$$
+\begin{align}
+\ln p(y_1, \dots, y_n \mid\mathbf x_1, \dots, \mathbf x_n, \boldsymbol{\theta})
+&= \sum_{i=1}^n \ln p(y_i \mid \mathbf x_i, \boldsymbol{\theta}) \\
+&= \sum_{i=1}^n \ln \mathcal N(y ; f_{\boldsymbol{\theta}}(\mathbf x), \sigma^2_\text{n}) \\
+&= -\frac{1}{2\sigma^2_\text{n}} \sum_{i=1}^n \left(y - f_{\boldsymbol{\theta}}(\mathbf{x})\right)^2 + \text{const}
+\end{align}
+$$
+
+Therefore, maximizing the log of conditional likelihood $\iff$ minimizing the sum of square loss
+
+> $$
+> \begin{align}
+> \hat{ \boldsymbol{\theta}}_\text{MLE}
+> &= \argmax_{\boldsymbol{\theta}} \sum_{i=1}^n \ln p(y_i \mid \mathbf x_i, \boldsymbol{\theta}) \\
+> &= \argmin_{\boldsymbol{\theta}} \sum_{i=1}^n \left(y - f_{\boldsymbol{\theta}}(\mathbf{x})\right)^2
+> \end{align}
+> $$
+
+|  Algorithmic Perspective | Statistical Perspective |
+| ----------- | -------------- |
+| $\boldsymbol{\theta}$ parameterizes $f(\mathbf x)$ | $\boldsymbol{\theta}$ parameterizes $p(y \mid \mathbf x)$ |
+| empirical loss minimization $\to\hat{\boldsymbol{\theta}}$ | MLE $\to\hat{\boldsymbol{\theta}}$ |
+| regularized empirical loss minimization $\to\hat{\boldsymbol{\theta}}$ | MAP $\to\hat{\boldsymbol{\theta}}$ |
+| choose square loss | iid Gaussian label noise |
+| quality of fit | likelihood |
+| L2 regularization | Gaussian prior |
+| L1 regularization | Laplacian prior |
+| predict: $f_{\hat{\boldsymbol{\theta}}}(\mathbf x_\text{new})$ | predict: $\mathbb E_y[y\mid\mathbf x_\text{new}, \hat{\boldsymbol{\theta}}]$ |
+| $-$ | uncertainty quantification |
+
+### Parameter Estimation in Generative Setting
+
+TODO
+
+## Appendix
+
+### Example: predicting house prices.
+
+We model the area as a Gaussian $x\sim\mathcal N(\mu_x, \sigma_x^2)$ and the price $y$ as an affine function of $x$ with independent Gaussian noise.
 $$
 y = wx+b + \epsilon, \quad \epsilon\sim\mathcal N(0, \sigma^2)
 $$
@@ -398,7 +555,3 @@ Remark:
 
 * $\hat{\boldsymbol{\pi}}_\text{MLE} = (\hat\mu_x, \hat\sigma_x^2)$ only estimates the distribution of house area. Suppose a new house is $120 \text{ m}^2$. Then, $\hat{\boldsymbol{\pi}}_\text{MLE}$ is useful to compare the size of this house to the market average, but not useful for predicting its price.
 * $\hat{\mathbf{w}}_\text{MLE} = (\hat w, \hat b)$ estimates the distribution of the price given the housing area. For a new $120 \text{ m}^2$ house, we can predict that its price is Gaussian with mean $120\hat w+\hat b$.
-
-### Parameter Estimation in Generative Setting
-
-TODO

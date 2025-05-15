@@ -365,7 +365,7 @@ $$
 \mathbf{w}_j = \frac{\mu_{k,j} - \mu_{l,j}}{\sigma_j^2},\quad
 b = \ln\frac{\pi_k}{\pi_l} - \frac{1}{2} \sum_{j=1}^d \frac{\mu_{k,j}^2 - \mu_{l,j}^2}{\sigma_j^2}
 $$
-*Proof*: Exercise. Simply let $\delta_k(\mathbf{x}) = \delta_k(\mathbf{x})$.
+*Proof*: Exercise. Simply let $\delta_k(\mathbf{x}) = \delta_l(\mathbf{x})$.
 
 LLR and LOR is simplified to
 

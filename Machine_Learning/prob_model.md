@@ -42,8 +42,8 @@ How to learn the probability?
 
 * Parametric methods: The PDF of interest belongs to some parametric family (e.g. normal distribution)
 
-  * **parameter estimation**: MLE, MAP. Based on optimization. $\to$ point estimate $\hat{\boldsymbol{\theta}}$.
-  * Bayesian model averaging:  $\to$ distribution of the parameters $p(\hat{\boldsymbol{\theta}} \mid D)$.
+  * parameter ***estimation***: MLE, MAP. Based on optimization. $\to$ point estimate $\hat{\boldsymbol{\theta}}$.
+  * Bayesian ***inference*** (or model averaging):  $\to$ use the full posterior distribution $p(\boldsymbol{\theta} \mid D)$.
 
 Our focus: parametric methods. In particular, parameter estimation.
 
@@ -354,7 +354,7 @@ Hence, $\boldsymbol{\pi}$ and $\mathbf{w}$ can be estimated separately
 > \end{align}
 > $$
 
-For label prediction, it is sufficient to learn $\mathbf{w}$ and thus $p(y \mid \mathbf x,\mathbf{w})$. We do not really need to know $p(\mathbf x \mid \boldsymbol{\pi})$ to predict the label $y$. c.f. Appendix for an example about predicting house price.
+**Example** (predicting house price): c.f. Appendix.
 
 If we have priors on $\boldsymbol{\theta}$ s.t. $p(\boldsymbol{\theta}) = p(\boldsymbol{\pi})\,p(\mathbf{w})$, the posterior distribution of $\boldsymbol{\theta}$ is then
 
@@ -362,7 +362,7 @@ $$
 \begin{align}
 p(\boldsymbol{\theta} \mid D)
 &\propto p(D\mid\boldsymbol{\theta}) \cdot p(\boldsymbol{\theta}) \\
-&= p(D\mid\boldsymbol{\theta}) \, p(\boldsymbol{\pi}) \, p(\mathbf{w}) \\
+&= p(D\mid\boldsymbol{\theta}) \cdot p(\boldsymbol{\pi}) \, p(\mathbf{w}) \\
 &= \left(p(\boldsymbol{\pi}) \, \prod_{i=1}^n p(\mathbf x_i \mid \boldsymbol{\pi})\right) \cdot \left(p(\mathbf{w}) \, \prod_{i=1}^n p(y_i \mid \mathbf x_i,\mathbf{w})\right)
 \end{align}
 $$
@@ -390,6 +390,11 @@ Therefore, we get the MAP estimation
 > \end{align}
 > $$
 
+Remarks:
+
+* For label prediction, we do not really need to know $p(\mathbf x \mid \boldsymbol{\pi})$. Hence, it is sufficient to estimate $\mathbf{w}$ and thus $p(y \mid \mathbf x,\mathbf{w})$. Once we obtained a point estimate (MLE or MAP) of $\mathbf{w}$, we can predict the label on new data points by decision theory. c.f. notes on Bayesian decision theory.
+* In some applications (like signal reconstruction), $\mathbf x$ is deterministic or has no inherent distribution. In such cases, we omit modeling $p(\mathbf x)$ as it is irrelevant for label prediction anyway.
+
 ### Regression as Discriminative Model
 
 Problem formulation:
@@ -414,14 +419,14 @@ Examples of paramterized function $f_{\boldsymbol{\theta}}: \mathbb R^d \to \mat
 
 * neural net with one hidden layer and activation function $\sigma(\cdot)$.
     $$
-    \begin{align}
+    \begin{align*}
     \boldsymbol{\theta} &= \{\mathbf{W}_1\in\mathbb R^{h\times d}, \mathbf{b}_1\in\mathbb R^{h}, \mathbf{W}_2\in\mathbb R^{1\times h}, b_2\in\mathbb R\}
     \\
     y &= \underbrace{\mathbf{W}_2 \,\sigma(\mathbf{W}_1 \mathbf x + \mathbf{b}_1) + b_2}_{f_{\boldsymbol{\theta}}(\mathbf x)} + \epsilon
-    \end{align}
+    \end{align*}
     $$
 
-The conditional distribution $p(y \mid \mathbf x)$ is then characterized by $\boldsymbol{\theta}$. Hence, we write $p(y \mid \mathbf x, \boldsymbol{\theta})$
+The conditional distribution $p(y \mid \mathbf x)$ is then paramterized by $\boldsymbol{\theta}$. Hence, we write $p(y \mid \mathbf x, \boldsymbol{\theta})$
 
 > $$
 > \begin{align}
@@ -443,38 +448,119 @@ Remarks:
 * For point estimates (MLE or MAP) of $\boldsymbol{\theta}$, we do not need to know the variance of the noise $\sigma^2_\text{n}$.
 * Scenarios requiring knowledge about $\sigma^2_\text{n}$: uncertainty quantification for label prediction, Bayesian inference (model averaging).
 
-The log of conditional likelihood
+The log likelihood
 
 $$
 \begin{align}
-\ln p(y_1, \dots, y_n \mid\mathbf x_1, \dots, \mathbf x_n, \boldsymbol{\theta})
-&= \sum_{i=1}^n \ln p(y_i \mid \mathbf x_i, \boldsymbol{\theta}) \\
-&= \sum_{i=1}^n \ln \mathcal N(y ; f_{\boldsymbol{\theta}}(\mathbf x), \sigma^2_\text{n}) \\
-&= -\frac{1}{2\sigma^2_\text{n}} \sum_{i=1}^n \left(y - f_{\boldsymbol{\theta}}(\mathbf{x})\right)^2 + \text{const}
+p(D \mid\boldsymbol{\theta})
+&= p(\mathbf x_1, y_1, \cdots, \mathbf x_n, y_n \mid\boldsymbol{\theta}) \\
+&= \prod_{i=1}^n p(\mathbf x_i, y_i \mid \boldsymbol{\theta}) \\
+&= \prod_{i=1}^n p(\mathbf x_i) \cdot p(y_i \mid \mathbf x_i, \boldsymbol{\theta}) \\
+&\propto \prod_{i=1}^n p(y_i \mid \mathbf x_i, \boldsymbol{\theta}) \\
 \end{align}
 $$
 
-Therefore, maximizing the log of conditional likelihood $\iff$ minimizing the sum of square loss
+The log likelihood is then
+
+$$
+\begin{align}
+\ln p(D \mid\boldsymbol{\theta})
+&= \ln \prod_{i=1}^n p(y_i \mid \mathbf x_i, \boldsymbol{\theta}) + \text{const} \nonumber \\
+&= \sum_{i=1}^n \ln p(y_i \mid \mathbf x_i, \boldsymbol{\theta}) + \text{const} \\
+&= \sum_{i=1}^n \ln \mathcal N(y_i ; f_{\boldsymbol{\theta}}(\mathbf x_i), \sigma^2_\text{n}) + \text{const} \nonumber \\
+&= -\frac{1}{2\sigma^2_\text{n}} \sum_{i=1}^n \left(y_i - f_{\boldsymbol{\theta}}(\mathbf{x}_i)\right)^2 + \text{const}
+\end{align}
+$$
+
+Therefore, maximizing the log likelihood $\iff$ minimizing the sum of square loss.
 
 > $$
 > \begin{align}
-> \hat{ \boldsymbol{\theta}}_\text{MLE}
+> \hat{\boldsymbol{\theta}}_\text{MLE}
 > &= \argmax_{\boldsymbol{\theta}} \sum_{i=1}^n \ln p(y_i \mid \mathbf x_i, \boldsymbol{\theta}) \\
-> &= \argmin_{\boldsymbol{\theta}} \sum_{i=1}^n \left(y - f_{\boldsymbol{\theta}}(\mathbf{x})\right)^2
+> &= \argmin_{\boldsymbol{\theta}} \sum_{i=1}^n \left(y_i - f_{\boldsymbol{\theta}}(\mathbf{x}_i)\right)^2
 > \end{align}
 > $$
+
+If we have prior on $\boldsymbol{\theta}$, we can perform the MAP estimation. The posterior is
+
+$$
+\begin{align}
+p(\boldsymbol{\theta} \mid D)
+&= p(\boldsymbol{\theta}) \cdot p(D \mid\boldsymbol{\theta}) \\
+&\propto p(\boldsymbol{\theta}) \cdot \prod_{i=1}^n p(y_i \mid \mathbf x_i, \boldsymbol{\theta}) \\
+\end{align}
+$$
+
+The log posterior is then
+
+$$
+\begin{align}
+\ln p(\boldsymbol{\theta} \mid D)
+&= \ln p(\boldsymbol{\theta}) + \ln \prod_{i=1}^n p(y_i \mid \mathbf x_i, \boldsymbol{\theta}) + \text{const} \\
+&= \ln p(\boldsymbol{\theta}) -\frac{1}{2\sigma^2_\text{n}} \sum_{i=1}^n \left(y_i - f_{\boldsymbol{\theta}}(\mathbf{x}_i)\right)^2 + \text{const}
+\end{align}
+$$
+
+If we use a Gaussian prior
+
+$$
+\begin{align}
+\boldsymbol{\theta} \sim \mathcal N(\mathbf 0, \sigma^2_\mathrm{p}\mathbf I)
+\end{align}
+$$
+
+which gives the log prior
+
+$$
+\begin{align}
+\ln p(\boldsymbol{\theta}) = -\frac{1}{2\sigma^2_\mathrm{p}} \Vert\boldsymbol{\theta}\Vert^2 + \text{const}
+\end{align}
+$$
+
+The log posterior becomes
+
+$$
+\begin{align}
+\ln p(\boldsymbol{\theta} \mid D)
+&= -\frac{1}{2} \left[
+    \frac{1}{\sigma^2_\text{n}} \sum_{i=1}^n \left(y_i - f_{\boldsymbol{\theta}}(\mathbf{x}_i)\right)^2 +
+    \frac{1}{\sigma^2_\mathrm{p}} \Vert\boldsymbol{\theta}\Vert^2
+   \right] + \text{const}
+\end{align}
+$$
+
+Therefore, MAP with Gaussian prior $\iff$ minimizing L2 regularized the sum of square loss.
+
+> $$
+> \begin{align}
+> \hat{\boldsymbol{\theta}}_\text{MAP}
+> &= \argmax_{\boldsymbol{\theta}}
+>    \sum_{i=1}^n \ln p(y_i \mid \mathbf x_i, \boldsymbol{\theta}) + \ln p(\boldsymbol{\theta}) \\
+> &= \argmin_{\boldsymbol{\theta}}
+>    \sum_{i=1}^n \left(y_i - f_{\boldsymbol{\theta}}(\mathbf{x}_i)\right)^2 +
+>    \frac{\sigma^2_\text{n}}{\sigma^2_\mathrm{p}} \Vert\boldsymbol{\theta}\Vert^2
+> \end{align}
+> $$
+
+Remarks:
+
+* $\lambda \triangleq \sigma^2_\text{n} / \sigma^2_\text{p}$ is the hyper parameter for regularization. The larger $\lambda$ is, the stronger is the regularization -- the heavier are large parameters penalized. The hyper parameter $\lambda$ balances between prior belief and observed data.
+* If we have a strong prior belief (i.e. small $\sigma^2_\text{p}$ ) that all parameters should be close to 0, then we have stong regularization (i.e. large $\lambda$ ) and rely more on the prior belief.
+* If the label noise is small (i.e. small $\sigma^2_\text{n}$ ), then we have weaker regularization (i.e. small $\lambda$ ) and rely more on the observed data.
 
 |  Algorithmic Perspective | Statistical Perspective |
 | ----------- | -------------- |
 | $\boldsymbol{\theta}$ parameterizes $f(\mathbf x)$ | $\boldsymbol{\theta}$ parameterizes $p(y \mid \mathbf x)$ |
-| empirical loss minimization $\to\hat{\boldsymbol{\theta}}$ | MLE $\to\hat{\boldsymbol{\theta}}$ |
-| regularized empirical loss minimization $\to\hat{\boldsymbol{\theta}}$ | MAP $\to\hat{\boldsymbol{\theta}}$ |
-| choose square loss | iid Gaussian label noise |
-| quality of fit | likelihood |
-| L2 regularization | Gaussian prior |
+| choose square loss | assume label noise is iid Gaussian |
+| sum of square loss | negative log likelihood |
+| minimize sum of square loss $\to\hat{\boldsymbol{\theta}}$ | MLE $\to\hat{\boldsymbol{\theta}}$ |
+| minimize sum of square loss + regularizer $\to\hat{\boldsymbol{\theta}}$ | MAP $\to\hat{\boldsymbol{\theta}}$ |
 | L1 regularization | Laplacian prior |
+| L2 regularization | Gaussian prior |
 | predict: $f_{\hat{\boldsymbol{\theta}}}(\mathbf x_\text{new})$ | predict: $\mathbb E_y[y\mid\mathbf x_\text{new}, \hat{\boldsymbol{\theta}}]$ |
 | $-$ | uncertainty quantification |
+| $-$ | model averaging instead of point estimate |
 
 ### Parameter Estimation in Generative Setting
 
@@ -482,7 +568,7 @@ TODO
 
 ## Appendix
 
-### Example: predicting house prices.
+### Example: predicting house prices
 
 We model the area as a Gaussian $x\sim\mathcal N(\mu_x, \sigma_x^2)$ and the price $y$ as an affine function of $x$ with independent Gaussian noise.
 $$

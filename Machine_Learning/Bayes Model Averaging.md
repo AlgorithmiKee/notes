@@ -1,94 +1,157 @@
 # Bayes Model Averaging
 
+## Recap: Point Estimate by MAP
+
+Recall: MAP estimation
+
+* Given: observations $D = \{\mathbf x_1, \dots, \mathbf x_n\} \stackrel{\text{iid}}{\sim} p(\mathbf x \mid \boldsymbol{\theta})$ with prior $p(\boldsymbol{\theta})$
+* Goal: estimate $\boldsymbol{\theta}$
+
+The MAP estimate is the **mode of the posterior**
+
+$$
+\begin{align}
+\hat{\boldsymbol{\theta}}_\text{MAP}
+&= \argmax_{\boldsymbol{\theta}} p(\boldsymbol{\theta} \mid D)
+\end{align}
+$$
+
+For a new data point $\mathbf x_*$, the ***plug-in predictive distribution*** is fully charactered by the point estimate $\hat{\boldsymbol{\theta}}_\text{MAP}$
+
+$$
+\begin{align}
+p(\mathbf x_* \mid \hat{\boldsymbol{\theta}}_\text{MAP})
+\end{align}
+$$
+
+Remark:
+
+* For simplicity, we often call $p(\mathbf x_* \mid \hat{\boldsymbol{\theta}}_\text{MAP})$ ***plug-in predictive***.
+* The term "plug-in" hightlights the fact that we plug a single point estimate $\hat{\boldsymbol{\theta}}_\text{MAP}$ into $p(\mathbf x_* \mid \boldsymbol{\theta})$
+
+## Bayesian Inference
+
+Key idea of ***Bayesian inference***:
+
+> * Use the full posterior distribution $p(\boldsymbol{\theta} \mid D)$ instead of just using its mode (i.e. a point estimate)
+
+Philosophy: Frequentist statistics vs. Bayesian statistics
+
+* Frequentist statistics: $\boldsymbol{\theta}$ is unknown but fixed. It makes no sense to talk about the probability of $\boldsymbol{\theta}$ (either prior or posterior). The true PDF of $\mathbf x$ is thus an unknown but fixed function. The observations are used to estimate the PDF of $\mathbf x$ as accurately as possible.
+* Bayesian statistics: $\boldsymbol{\theta}$ is a random variable. There are (infinitely) many possible PDFs of $\mathbf x$, some of which are more likely (or more important) than the others. After we made observations, we update the PDF of $\boldsymbol{\theta}$ and thus updated the importance of each possible PDF of $\mathbf x$.
+
+For a new data point $\mathbf x_*$, each $\boldsymbol{\theta}$ gives $p(\mathbf x_* \mid \boldsymbol{\theta})$. Averaging over all possible $\boldsymbol{\theta}$, we have the ***prior predictive***:
+
+> $$
+> \begin{align}
+> p(\mathbf x_*)
+> &= \int p(\mathbf x_* \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta}) \:\mathrm{d}\boldsymbol{\theta} \\
+> \end{align}
+> $$
+
+Remarks:
+
+* The proof is very simple as the RHS is just the marginalization of the joint density $p(\mathbf x_*, \boldsymbol{\theta})$.
+* The RHS can also be seen as a weighted average of $p(\mathbf x_* \mid \boldsymbol{\theta})$ w.r.t. the prior $p(\boldsymbol{\theta})$, which measures the importance of each $\boldsymbol{\theta}$. If $p(\boldsymbol{\theta})$ is high, then $p(\mathbf x_* \mid \boldsymbol{\theta})$ has higher contribution to $p(\mathbf x_*)$. Let $\hat{\boldsymbol{\theta}}$ be the mode of the prior. Then, $p(\mathbf x_* \mid \hat{\boldsymbol{\theta}})$ has the highest (but **not the entire!**) contribution to $p(\mathbf x_*)$.
+* The formula holds even **before** we made any observations! Bayesian statistics allows prior distribution which may come from our experience.
+
+After we made observations $D = \{\mathbf x_1, \dots, \mathbf x_n\}$, we update the prior $p(\boldsymbol{\theta})$ to posterior $p(\boldsymbol{\theta} \mid D)$. Now, we can average $p(\mathbf x_* \mid \boldsymbol{\theta})$ w.r.t. the posterior, which leads to ***posterior predictive***:
+
+> $$
+> \begin{align}
+> p(\mathbf x_* \mid D)
+> &= \int p(\mathbf x_* \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid D) \:\mathrm{d}\boldsymbol{\theta}
+> \end{align}
+> $$
+
+Remarks:
+
+* The LHS is now conditioned on $D$, i.e. we updated $p(\mathbf x_*)$ to $p(\mathbf x_* \mid D)$ after observing $D$.
+* Updating the prior to posterior $\iff$ updating the importance of $p(\mathbf x_* \mid \boldsymbol{\theta})$ for each $\boldsymbol{\theta}$. Let $\hat{\boldsymbol{\theta}}$ be the mode of the posterior. Then, $p(\mathbf x_* \mid \hat{\boldsymbol{\theta}})$ has the highest (but **not the entire!**) contribution to $p(\mathbf x_*)$.
+* The integral on the RHS is intractable to compute in general, except for a few special case (which will be discussed later).
+
+*Proof*: TODO
+
+## Bayesian Inference vs MAP
+
+Both methods
+
+* treat parameters $\boldsymbol{\theta}$ as a random variable and assume a prior $p(\boldsymbol{\theta})$.
+* update the prior to the posterior $p(\boldsymbol{\theta} \mid D)$ after observing $D$
+* outputs $p(\mathbf x)$
+
+Difference: How is $p(\mathbf x)$ computed?
+
+| Bayesian Inference | MAP estimate |
+| ------------------ | ------------ |
+| uses the full posterior distribution | only uses the mode of the posterior |
+| integration-based (average w.r.t. the posterior) | optimization-based (maximize the posterior) |
+
+## Point Estimates in Supervised Learning
+
+## Bayesian Linear Regression
+
 **Preliminary**: fixed-desgin linear regression, ordinary least square
 
 In this article, we illustrate *Bayes model averaging* (BMA) for
 random-design linear regression problem:
 
 * Given: training dataset $D=\{(\mathbf{x}_i, y_i)\}_{i=1}^n \stackrel{\text{iid}}{\sim} p(\mathbf x, y)$ where $(\mathbf{x}_i, y_i) \in \mathbb R^d \times \mathbb R$.
-* Statistical model: $y_i = \mathbf{w}^\top \mathbf{x}_i + \varepsilon_i, \quad \varepsilon_i \stackrel{\text{iid}}{\sim} \mathcal{N}(0, \sigma^2)$
+* Statistical model: $y_i = \mathbf{w}^\top \mathbf{x}_i + \varepsilon_i, \quad \varepsilon_i \stackrel{\text{iid}}{\sim} \mathcal{N}(0, \sigma^2_\text{n})$
 * Additional assumption: $\varepsilon_i$ and $\mathbf{x}_i$ are statistically independent
+* Goal: Predict the label for a new data point $\mathbf{x}_*$ using the **full** posterior distribution $p(\mathbf w \mid D)$
 
-## Classical Approach
+### Main Results about Point Estimates
 
-The ground-truth parameter $\mathbf w$ can be estimated either by MLE or MAP. We will demonstrate that the optimization problem for random-design linear regression is equivalent to that of fixed-design linear regression. The key idea is that the training samples $\mathbf x_i$ are indepedent of the parameter $\mathbf w$.
-
-### MLE
-
-Aim: maximize log likelihood:
+* Discriminative model:
 
 $$
 \begin{align}
-\ln p(D \vert \mathbf w)
-&= \ln \prod_{i=1}^n p(\mathbf{x}_i, y_i \vert\mathbf{w}) \\
-&= \ln \prod_{i=1}^n p(y_i \vert \mathbf{x}_i, \mathbf{w}) p(\mathbf{x}_i) \\
-&= \underbrace{
-    \ln \prod_{i=1}^n p(y_i \vert \mathbf{x}_i, \mathbf{w})
-  }_\text{log of cond. likelihood} +
-  \underbrace{
-    \ln\prod_{i=1}^n p(\mathbf{x}_i)
-  }_{\text{indep. of } \mathbf w} \\
+p(y_i \mid \mathbf{x}_i, \mathbf{w})
+&= \mathcal{N}(y_i \mid \mathbf{w}^\top \mathbf{x}_i, \sigma^2_\text{n}) \\
+&= \frac{1}{\sqrt{2\pi \sigma^2_\text{n}}} \exp\left(-\frac{(y_i - \mathbf{w}^\top \mathbf{x}_i)^2}{2\sigma^2_\text{n}}\right) \nonumber \\
 \end{align}
 $$
 
-where
+* Log likelihood:
 
 $$
 \begin{align}
-p(y_i \vert \mathbf{x}_i, \mathbf{w})
-&= \mathcal{N}(y_i \vert \mathbf{w}^\top \mathbf{x}_i, \sigma^2) \\
-&= \frac{1}{\sqrt{2\pi \sigma^2}} \exp\left(-\frac{(y_i - \mathbf{w}^\top \mathbf{x}_i)^2}{2\sigma^2}\right) \nonumber \\
-\implies
-\ln p(y_i \vert \mathbf{x}_i, \mathbf{w})
-&= -\frac{1}{2\sigma^2} (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 + \text{const.} \nonumber
+\ln p(D \mid \mathbf w)
+&= \ln \prod_{i=1}^n p(\mathbf{x}_i, y_i \mid\mathbf{w}) + \text{const} \\
+&= -\frac{1}{2\sigma^2_\text{n}} (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 + \text{const} 
 \end{align}
 $$
 
-Hence, MLE is equivalent to ordinary LS as
+
+* MLE $\iff$ least square
 
 $$
 \begin{align}
-\max_{\mathbf w} \ln p(D \vert \mathbf w)
-&\iff  \max_{\mathbf w} \ln \prod_{i=1}^n p(y_i \vert \mathbf{x}_i, \mathbf{w}) \\
-&\iff  \max_{\mathbf w} \sum_{i=1}^n \ln p(y_i \vert \mathbf{x}_i, \mathbf{w}) \\
-&\iff  \max_{\mathbf w} -\frac{1}{2\sigma^2} \sum_{i=1}^n (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 \\
-&\iff  \min_{\mathbf w} \sum_{i=1}^n (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 \\
+\hat{\mathbf w}_\text{MLE}
+&= \argmin_{\mathbf w} \sum_{i=1}^n (y_i - \mathbf{w}^\top \mathbf{x}_i)^2
 \end{align}
 $$
 
-### MAP
-
-Aim: maximize posterior probability:
+* Log posterior with Gaussian prior
 
 $$
 \begin{align}
-\ln p(\mathbf w \vert D)
-&\propto \ln p(D \vert \mathbf w) p(\mathbf w) \\
-&= \ln p(D \vert \mathbf w) + \ln p(\mathbf w) \\
-&= \ln \prod_{i=1}^n p(y_i \vert \mathbf{x}_i, \mathbf{w}) + \underbrace{\ln \prod_{i=1}^n p(\mathbf{x}_i)}_{\text{indep. of } \mathbf w} + \ln p(\mathbf w)
+\ln p(\mathbf w \mid D)
+&= \ln \prod_{i=1}^n p(\mathbf{x}_i, y_i \mid\mathbf{w}) + \ln p(\mathbf{w}) + \text{const} \\
+&= -\frac{1}{2\sigma^2_\text{n}} (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 -
+    \frac{1}{2\sigma^2_\text{p}} \Vert\boldsymbol{\theta}\Vert^2 +
+    \text{const} 
 \end{align}
 $$
 
-Hence, MAP is equivalent to regularised LS
+* MAP with Gaussian prior $\iff$ ridge regression
 
 $$
 \begin{align}
-\max_{\mathbf w} \ln p(\mathbf w \vert D)
-&\iff \max_{\mathbf w} \ln p(D \vert \mathbf w) p(\mathbf w) \\
-&\iff \max_{\mathbf w} \ln \prod_{i=1}^n p(y_i \vert \mathbf{x}_i, \mathbf{w}) + \ln p(\mathbf w) \\
-&\iff  \max_{\mathbf w} \sum_{i=1}^n \ln p(y_i \vert \mathbf{x}_i, \mathbf{w}) + \ln p(\mathbf w) \\
-&\iff  \max_{\mathbf w} -\frac{1}{2\sigma^2} \sum_{i=1}^n (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 + \ln p(\mathbf w) \\
-&\iff  \min_{\mathbf w}  \frac{1}{2\sigma^2}\sum_{i=1}^n (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 - \ln p(\mathbf w)
-\end{align}
-$$
-
-For Guassian prior $p(\mathbf w) \sim \mathcal N(0, \lambda I)$, the MAP coincides with L2-regularised LS
-
-$$
-\begin{align}
-\max_{\mathbf w} \ln p(\mathbf w \vert D)
-\xLeftrightarrow[]{p(\mathbf w) \sim \mathcal N(0, \lambda I) \vphantom{\int_l}}
-\min_{\mathbf w} \sum_{i=1}^n (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 + \lambda \Vert \mathbf w \Vert^2_2
+\hat{\mathbf w}_\text{MAP}
+&= \argmin_{\mathbf w} \sum_{i=1}^n (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 +
+   \frac{\sigma^2_\text{n}}{\sigma^2_\text{p}} \Vert\boldsymbol{\theta}\Vert^2
 \end{align}
 $$
 
@@ -100,16 +163,16 @@ Bayes view: For a test data point $\mathbf x_\text{test}$, all we are interested
 
 $$
 \begin{align}
-p(y_\text{test} \vert \mathbf x_\text{test}, D)
-&= \int p(y_\text{test}, \mathbf w \vert \mathbf x_\text{test}, D) \: \mathrm d \mathbf w \\
-&= \int p(y_\text{test} \vert  \mathbf w, \mathbf x_\text{test}, D) p(\mathbf w \vert D) \: \mathrm d \mathbf w
+p(y_\text{test} \mid \mathbf x_\text{test}, D)
+&= \int p(y_\text{test}, \mathbf w \mid \mathbf x_\text{test}, D) \: \mathrm d \mathbf w \\
+&= \int p(y_\text{test} \mid  \mathbf w, \mathbf x_\text{test}, D) p(\mathbf w \mid D) \: \mathrm d \mathbf w
 \end{align}
 $$
 
 Remark:
 
 * The integral on the RHS is a model averaging. It averages $\mathbf w^\top \mathbf x_\text{test}$ for every possible $\mathbf w$.
-* In general, this integral aka $p(y_\text{test} \vert \mathbf x_\text{test}, D)$ has no closed-form solution. However, if everything is Gaussian, we can indeed solve this integral since we only need to solve the mean and variance of $p(y_\text{test} \vert \mathbf x_\text{test}, D)$.
+* In general, this integral aka $p(y_\text{test} \mid \mathbf x_\text{test}, D)$ has no closed-form solution. However, if everything is Gaussian, we can indeed solve this integral since we only need to solve the mean and variance of $p(y_\text{test} \mid \mathbf x_\text{test}, D)$.
 
 Key idea: Consider the joint distribution
 $$
@@ -208,7 +271,7 @@ $$
 Conditioned on $X_B = \mathbf x_B$, the distribution of $X_A$
 $$
 \begin{align}
-p(\mathbf x_A \vert \mathbf x_B) 
+p(\mathbf x_A \mid \mathbf x_B) 
 &= \frac{p(\mathbf x_A, \mathbf x_B ; \boldsymbol\mu, \boldsymbol\Sigma)}{p(\mathbf x_B ; \boldsymbol\mu, \boldsymbol\Sigma)}  \\
 &= \frac{p(\mathbf x_A, \mathbf x_B ; \boldsymbol\mu, \boldsymbol\Sigma)}{\int p(\mathbf x_A, \mathbf x_B ; \boldsymbol\mu, \boldsymbol\Sigma) \:\mathrm{d}\mathbf x_A}
 \end{align}
@@ -217,8 +280,8 @@ $$
 is also Gaussian
 $$
 \begin{align}
-X_A \,\vert\, \mathbf x_B &\sim \mathcal{N}(\boldsymbol\mu_{A \vert B}, \boldsymbol\Sigma_{A \vert B}) \\
-\boldsymbol\mu_{A \vert B} &= \boldsymbol\mu_{A} + \boldsymbol\Sigma_{AB} \boldsymbol\Sigma_{BB}^{-1} (\mathbf x_B - \boldsymbol\mu_B)\\
-\boldsymbol\Sigma_{A \vert B} &= \boldsymbol\Sigma_{AA} - \boldsymbol\Sigma_{AB}\boldsymbol\Sigma_{BB}^{-1} \boldsymbol\Sigma_{BA}
+X_A \,\mid\, \mathbf x_B &\sim \mathcal{N}(\boldsymbol\mu_{A \mid B}, \boldsymbol\Sigma_{A \mid B}) \\
+\boldsymbol\mu_{A \mid B} &= \boldsymbol\mu_{A} + \boldsymbol\Sigma_{AB} \boldsymbol\Sigma_{BB}^{-1} (\mathbf x_B - \boldsymbol\mu_B)\\
+\boldsymbol\Sigma_{A \mid B} &= \boldsymbol\Sigma_{AA} - \boldsymbol\Sigma_{AB}\boldsymbol\Sigma_{BB}^{-1} \boldsymbol\Sigma_{BA}
 \end{align}
 $$

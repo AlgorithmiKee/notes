@@ -33,14 +33,14 @@ Remark:
 
 Key idea of ***Bayesian inference***:
 
-> * Use the full posterior distribution $p(\boldsymbol{\theta} \mid D)$ instead of just using its mode (i.e. a point estimate)
+> Use the **full** posterior distribution $p(\boldsymbol{\theta} \mid D)$ instead of just using its mode (i.e. a point estimate)
 
 Philosophy: Frequentist statistics vs. Bayesian statistics
 
 * Frequentist statistics: $\boldsymbol{\theta}$ is unknown but fixed. It makes no sense to talk about the probability of $\boldsymbol{\theta}$ (either prior or posterior). The true PDF of $\mathbf x$ is thus an unknown but fixed function. The observations are used to estimate the PDF of $\mathbf x$ as accurately as possible.
 * Bayesian statistics: $\boldsymbol{\theta}$ is a random variable. There are (infinitely) many possible PDFs of $\mathbf x$, some of which are more likely (or more important) than the others. After we made observations, we update the PDF of $\boldsymbol{\theta}$ and thus updated the importance of each possible PDF of $\mathbf x$.
 
-For a new data point $\mathbf x_*$, each $\boldsymbol{\theta}$ gives $p(\mathbf x_* \mid \boldsymbol{\theta})$. Averaging over all possible $\boldsymbol{\theta}$, we have the ***prior predictive***:
+For a new data point $\mathbf x_*$, each $\boldsymbol{\theta}$ gives $p(\mathbf x_* \mid \boldsymbol{\theta})$. Averaging over all possible $\boldsymbol{\theta}$, we have the ***prior predictive distribution***:
 
 > $$
 > \begin{align}
@@ -55,7 +55,7 @@ Remarks:
 * The RHS can also be seen as a weighted average of $p(\mathbf x_* \mid \boldsymbol{\theta})$ w.r.t. the prior $p(\boldsymbol{\theta})$, which measures the importance of each $\boldsymbol{\theta}$. If $p(\boldsymbol{\theta})$ is high, then $p(\mathbf x_* \mid \boldsymbol{\theta})$ has higher contribution to $p(\mathbf x_*)$. Let $\hat{\boldsymbol{\theta}}$ be the mode of the prior. Then, $p(\mathbf x_* \mid \hat{\boldsymbol{\theta}})$ has the highest (but **not the entire!**) contribution to $p(\mathbf x_*)$.
 * The formula holds even **before** we made any observations! Bayesian statistics allows prior distribution which may come from our experience.
 
-After we made observations $D = \{\mathbf x_1, \dots, \mathbf x_n\}$, we update the prior $p(\boldsymbol{\theta})$ to posterior $p(\boldsymbol{\theta} \mid D)$. Now, we can average $p(\mathbf x_* \mid \boldsymbol{\theta})$ w.r.t. the posterior, which leads to ***posterior predictive***:
+After we made observations $D = \{\mathbf x_1, \dots, \mathbf x_n\}$, we update the prior $p(\boldsymbol{\theta})$ to posterior $p(\boldsymbol{\theta} \mid D)$. Now, we can average $p(\mathbf x_* \mid \boldsymbol{\theta})$ w.r.t. the posterior, which leads to ***posterior predictive distribution***:
 
 > $$
 > \begin{align}
@@ -70,22 +70,124 @@ Remarks:
 * Updating the prior to posterior $\iff$ updating the importance of $p(\mathbf x_* \mid \boldsymbol{\theta})$ for each $\boldsymbol{\theta}$. Let $\hat{\boldsymbol{\theta}}$ be the mode of the posterior. Then, $p(\mathbf x_* \mid \hat{\boldsymbol{\theta}})$ has the highest (but **not the entire!**) contribution to $p(\mathbf x_*)$.
 * The integral on the RHS is intractable to compute in general, except for a few special case (which will be discussed later).
 
-*Proof*: TODO
+*Proof*: This follows from the law of total expectation and the independence between $\mathbf x_*$ and $D$.
 
-## Bayesian Inference vs MAP
+$$
+\begin{align*}
+p(\mathbf x_* \mid D)
+&= \int p(\mathbf x_*, \boldsymbol{\theta} \mid D) \:\mathrm{d}\boldsymbol{\theta}
+\\
+&= \int p(\mathbf x_* \mid \boldsymbol{\theta}, D) \cdot p(\boldsymbol{\theta} \mid D) \:\mathrm{d}\boldsymbol{\theta}
+\\
+&= \int p(\mathbf x_* \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid D) \:\mathrm{d}\boldsymbol{\theta}
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+### Bayesian Inference vs MAP
 
 Both methods
 
 * treat parameters $\boldsymbol{\theta}$ as a random variable and assume a prior $p(\boldsymbol{\theta})$.
 * update the prior to the posterior $p(\boldsymbol{\theta} \mid D)$ after observing $D$
-* outputs $p(\mathbf x)$
+* outputs a predictive distribution of $\mathbf x$
 
-Difference: How is $p(\mathbf x)$ computed?
+Difference: How is the predictive distribution computed?
 
 | Bayesian Inference | MAP estimate |
 | ------------------ | ------------ |
 | uses the full posterior distribution | only uses the mode of the posterior |
 | integration-based (average w.r.t. the posterior) | optimization-based (maximize the posterior) |
+| output: posterior distribution | output: plug-in distribution |
+
+### Example: Learning a Bernoulli Distribution with Beta Prior
+
+Consider a Bernoulli distribution with unknown success rate $\theta\in[0,1]$.
+
+$$
+p(x) =
+\begin{cases}
+\theta   & \text{if } x=1 \\
+1-\theta & \text{if } x=0
+\end{cases}
+$$
+
+Suppose we have iid observations $D=\{1, 1, 0, \dots, 0, 1\}$ containing $n_1$ ones and $n_0$ zeros. Then, the likelihood is
+
+$$
+p(D \mid \theta) = \theta^{n_1} (1-\theta)^{n_0}
+$$
+
+Assume we have a Beta prior on $\theta\sim\operatorname{Beta}(\alpha,\beta)$:
+
+$$
+p(\theta) = \frac{\theta^{\alpha-1} (1-\theta)^{\beta-1}}{B(\alpha,\beta)}
+$$
+
+where $B(\alpha,\beta)$ is a normalization constant (not detailed here). Then, the posterior is
+
+$$
+\begin{align*}
+p(\theta \mid D)
+&\propto p(D \mid \theta) \cdot p(\theta) \\
+&= \theta^{n_1} (1-\theta)^{n_0} \cdot \theta^{\alpha-1} (1-\theta)^{\beta-1} \\
+&= \theta^{n_1+\alpha-1} (1-\theta)^{n_0+\beta-1}
+\end{align*}
+$$
+
+By the normalization property of Beta distribution (not detailed here), the posterior is in fact also a Beta distribution
+
+$$
+\begin{align*}
+p(\theta \mid D)
+&= \frac{\theta^{n_1+\alpha-1} (1-\theta)^{n_0+\beta-1}}{B(n_1+\alpha,n_0+\beta)} \\
+&= \operatorname{Beta}(\theta; n_1+\alpha,n_0+\beta)
+\end{align*}
+$$
+
+Hence, the posterior predictive $p(x_* \mid D)$ at $x_*=1$ is
+
+$$
+\begin{align*}
+p(x_*=1 \mid D)
+&= \int p(x_*=1 \mid \theta) \cdot p(\theta \mid D) \:\mathrm{d}\theta \\
+&= \int \theta \cdot p(\theta \mid D) \:\mathrm{d}\theta \\
+&= \mathbb E[\theta \mid D] \\
+&= \frac{n_1+\alpha}{n_1+n_0+\alpha+\beta}
+\end{align*}
+$$
+
+Likewise,
+
+$$
+\begin{align*}
+p(x_*=0 \mid D)
+&= \int p(x_*=0 \mid \theta) \cdot p(\theta \mid D) \:\mathrm{d}\theta \\
+&= \int (1-\theta) \cdot p(\theta \mid D) \:\mathrm{d}\theta \\
+&= 1 - \mathbb E[\theta \mid D] \\
+&= \frac{n_0+\beta}{n_1+n_0+\alpha+\beta}
+\end{align*}
+$$
+
+### Example: Learning a Gaussian Distribution with Gaussian Prior
+
+Consider a multivariate Gaussian with known covariance matirx $\boldsymbol\Sigma$ but unknown mean vector $\boldsymbol\mu$.
+
+$$
+\mathbf x \sim \mathcal N(\boldsymbol\mu, \boldsymbol\Sigma)
+$$
+
+Suppose we have iid observations $D=\{\mathbf x_1, \dots, \mathbf x_n\}$. Then, the likelihood is
+
+$$
+p(D \mid \theta) = \prod_{i=1}^n \mathcal N(\mathbf x_i; \boldsymbol\mu, \boldsymbol\Sigma)
+$$
+
+Assume we have a Gaussian prior on $\boldsymbol\mu$:
+
+$$
+\boldsymbol\mu \sim \mathcal N(\boldsymbol\mu_\text{p}, \boldsymbol\Sigma_\text{p})
+$$
 
 ## Point Estimates in Supervised Learning
 
@@ -157,27 +259,27 @@ $$
 
 ## Model Averaging
 
-Both MLE and MAP results in a single estimate of $\mathbf w$, which is used to predict $y_\text{test}$ given a test data point $\mathbf x_\text{test}$.
+Both MLE and MAP results in a single estimate of $\mathbf w$, which is used to predict $y_*$ given a test data point $\mathbf x_*$.
 
-Bayes view: For a test data point $\mathbf x_\text{test}$, all we are interested in is
+Bayes view: For a test data point $\mathbf x_*$, all we are interested in is
 
 $$
 \begin{align}
-p(y_\text{test} \mid \mathbf x_\text{test}, D)
-&= \int p(y_\text{test}, \mathbf w \mid \mathbf x_\text{test}, D) \: \mathrm d \mathbf w \\
-&= \int p(y_\text{test} \mid  \mathbf w, \mathbf x_\text{test}, D) p(\mathbf w \mid D) \: \mathrm d \mathbf w
+p(y_* \mid \mathbf x_*, D)
+&= \int p(y_*, \mathbf w \mid \mathbf x_*, D) \: \mathrm d \mathbf w \\
+&= \int p(y_* \mid  \mathbf w, \mathbf x_*, D) p(\mathbf w \mid D) \: \mathrm d \mathbf w
 \end{align}
 $$
 
 Remark:
 
-* The integral on the RHS is a model averaging. It averages $\mathbf w^\top \mathbf x_\text{test}$ for every possible $\mathbf w$.
-* In general, this integral aka $p(y_\text{test} \mid \mathbf x_\text{test}, D)$ has no closed-form solution. However, if everything is Gaussian, we can indeed solve this integral since we only need to solve the mean and variance of $p(y_\text{test} \mid \mathbf x_\text{test}, D)$.
+* The integral on the RHS is a model averaging. It averages $\mathbf w^\top \mathbf x_*$ for every possible $\mathbf w$.
+* In general, this integral aka $p(y_* \mid \mathbf x_*, D)$ has no closed-form solution. However, if everything is Gaussian, we can indeed solve this integral since we only need to solve the mean and variance of $p(y_* \mid \mathbf x_*, D)$.
 
 Key idea: Consider the joint distribution
 $$
 \begin{align}
-p(y_1, \dots, y_n, y_\text{test}) \sim \mathcal (\mathbf{0}, \boldsymbol\Sigma)
+p(y_1, \dots, y_n, y_*) \sim \mathcal (\mathbf{0}, \boldsymbol\Sigma)
 \end{align}
 $$
 

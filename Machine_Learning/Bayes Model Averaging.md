@@ -98,7 +98,7 @@ Difference: How is the predictive distribution computed?
 | ------------------ | ------------ |
 | uses the full posterior distribution | only uses the mode of the posterior |
 | integration-based (average w.r.t. the posterior) | optimization-based (maximize the posterior) |
-| output: posterior distribution | output: plug-in distribution |
+| output: posterior predictive | output: plug-in predictive |
 
 ### Example: Learning a Bernoulli Distribution with Beta Prior
 
@@ -180,13 +180,87 @@ $$
 Suppose we have iid observations $D=\{\mathbf x_1, \dots, \mathbf x_n\}$. Then, the likelihood is
 
 $$
-p(D \mid \theta) = \prod_{i=1}^n \mathcal N(\mathbf x_i; \boldsymbol\mu, \boldsymbol\Sigma)
+\begin{align*}
+p(D \mid \boldsymbol\mu)
+&= \prod_{i=1}^n \mathcal N(\mathbf x_i; \boldsymbol\mu, \boldsymbol\Sigma)
+\\
+&\propto \prod_{i=1}^n \exp\left( -\frac{1}{2}(\mathbf x_i-\boldsymbol\mu)^\top \boldsymbol\Sigma^{-1} (\mathbf x_i-\boldsymbol\mu) \right)
+\\
+&= \exp\left( -\frac{1}{2} \sum_{i=1}^n (\mathbf x_i-\boldsymbol\mu)^\top \boldsymbol\Sigma^{-1} (\mathbf x_i-\boldsymbol\mu) \right)
+\\
+&\propto \exp\left( -\frac{1}{2} \sum_{i=1}^n \Big( \boldsymbol\mu^\top \boldsymbol\Sigma^{-1} \boldsymbol\mu -2 \boldsymbol\mu^\top \boldsymbol\Sigma^{-1} \mathbf x_i \Big) \right)
+\\
+&= \exp\left( -\frac{n}{2}\boldsymbol\mu^\top \boldsymbol\Sigma^{-1} \boldsymbol\mu + \boldsymbol\mu^\top \boldsymbol\Sigma^{-1} \sum_{i=1}^n  \mathbf x_i \right)
+\end{align*}
+$$
+
+Let $\bar{\mathbf x} \triangleq \frac{1}{n} \sum_{i=1}^n  \mathbf x_i$ denote the sample mean. Then, the likelihood becomes
+
+$$
+\begin{align*}
+p(D \mid \boldsymbol\mu)
+&\propto \exp\left( -\frac{n}{2}\boldsymbol\mu^\top \boldsymbol\Sigma^{-1} \boldsymbol\mu + n\boldsymbol\mu^\top \boldsymbol\Sigma^{-1} \bar{\mathbf x} \right)
+\end{align*}
 $$
 
 Assume we have a Gaussian prior on $\boldsymbol\mu$:
 
 $$
-\boldsymbol\mu \sim \mathcal N(\boldsymbol\mu_\text{p}, \boldsymbol\Sigma_\text{p})
+\boldsymbol\mu \sim \mathcal N(\boldsymbol\mu_0, \boldsymbol\Sigma_0)
+$$
+
+Hence, the posterior is
+
+$$
+\begin{align*}
+p(\boldsymbol\mu \mid D)
+&\propto p(D \mid \boldsymbol\mu) \cdot p(\boldsymbol\mu)
+\\
+&\propto \exp\left( -\frac{n}{2}\boldsymbol\mu^\top \boldsymbol\Sigma^{-1} \boldsymbol\mu + n\boldsymbol\mu^\top \boldsymbol\Sigma^{-1} \bar{\mathbf x} \right) \cdot
+  \exp\left( -\frac{1}{2}\boldsymbol\mu^\top \boldsymbol\Sigma^{-1}_0 \boldsymbol\mu + \boldsymbol\mu^\top \boldsymbol\Sigma^{-1}_0 \boldsymbol\mu_0 \right)
+\\
+&= \exp\left( -\frac{1}{2} \boldsymbol\mu^\top \left( n\boldsymbol\Sigma^{-1} + \boldsymbol\Sigma^{-1}_0 \right) \boldsymbol\mu +
+  \boldsymbol\mu^\top \left(n\boldsymbol\Sigma^{-1}\bar{\mathbf x} + \boldsymbol\Sigma^{-1}_0 \boldsymbol\mu_0 \right) \right)
+\end{align*}
+$$
+
+Identify the posterior mean $\boldsymbol\mu_n$ and posterior covariance matrix $\boldsymbol\Sigma_n$.
+
+$$
+\begin{align*}
+\boldsymbol\Sigma_n^{-1}
+&\triangleq \left( n\boldsymbol\Sigma^{-1} + \boldsymbol\Sigma^{-1}_0 \right)
+\\
+\boldsymbol\mu_n
+&\triangleq \boldsymbol\Sigma_n  \left(n\boldsymbol\Sigma^{-1}\bar{\mathbf x} + \boldsymbol\Sigma^{-1}_0 \boldsymbol\mu_0 \right)
+\end{align*}
+$$
+
+The posterior is hence Gaussian
+
+$$
+\boldsymbol\mu \mid D \sim \mathcal N(\boldsymbol\mu_n, \boldsymbol\Sigma_n)
+$$
+
+The posterior predictive distribution is
+
+$$
+\begin{align*}
+p(\mathbf x_* \mid D)
+&= \int p(\mathbf x_* \mid \boldsymbol\mu) \cdot p(\boldsymbol\mu \mid D) \:\mathrm{d}\boldsymbol\mu
+\\
+&= \int \mathcal N(\mathbf x_* ; \boldsymbol\mu, \boldsymbol\Sigma) \cdot \mathcal N(\boldsymbol\mu ; \boldsymbol\mu_n, \boldsymbol\Sigma_n) \:\mathrm{d}\boldsymbol\mu
+\end{align*}
+$$
+
+By the convolution rule of multivariate Gaussian (see Appendix), the posterior predictive is also Gaussian
+
+$$
+\begin{align*}
+\mathbf x_* \mid D
+\sim
+\mathcal N(\boldsymbol\mu_n, \boldsymbol\Sigma + \boldsymbol\Sigma_n)
+\end{align*}
 $$
 
 ## Point Estimates in Supervised Learning
@@ -386,4 +460,15 @@ X_A \,\mid\, \mathbf x_B &\sim \mathcal{N}(\boldsymbol\mu_{A \mid B}, \boldsymbo
 \boldsymbol\mu_{A \mid B} &= \boldsymbol\mu_{A} + \boldsymbol\Sigma_{AB} \boldsymbol\Sigma_{BB}^{-1} (\mathbf x_B - \boldsymbol\mu_B)\\
 \boldsymbol\Sigma_{A \mid B} &= \boldsymbol\Sigma_{AA} - \boldsymbol\Sigma_{AB}\boldsymbol\Sigma_{BB}^{-1} \boldsymbol\Sigma_{BA}
 \end{align}
+$$
+
+### Convolution Rule
+
+$$
+\begin{align*}
+\int \mathcal N(\mathbf x_* ; \boldsymbol\mu, \boldsymbol\Sigma) \cdot
+     \mathcal N(\boldsymbol\mu ; \boldsymbol\mu_n, \boldsymbol\Sigma_n) \:\mathrm{d}\boldsymbol\mu
+=
+\mathcal N(\mathbf x_* ; \boldsymbol\mu_n, \boldsymbol\Sigma + \boldsymbol\Sigma_n)
+\end{align*}
 $$

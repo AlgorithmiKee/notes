@@ -45,6 +45,7 @@ For a new data point $\mathbf x_*$, each $\boldsymbol{\theta}$ gives $p(\mathbf 
 > $$
 > \begin{align}
 > p(\mathbf x_*)
+> &= \mathbb E_{\boldsymbol{\theta} \sim p(\boldsymbol{\theta})} \left[ p(\mathbf x_* \mid \boldsymbol{\theta}) \right] \\
 > &= \int p(\mathbf x_* \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta}) \:\mathrm{d}\boldsymbol{\theta} \\
 > \end{align}
 > $$
@@ -60,6 +61,7 @@ After we made observations $D = \{\mathbf x_1, \dots, \mathbf x_n\}$, we update 
 > $$
 > \begin{align}
 > p(\mathbf x_* \mid D)
+> &= \mathbb E_{\boldsymbol{\theta} \sim p(\boldsymbol{\theta} \mid D)} \left[ p(\mathbf x_* \mid \boldsymbol{\theta}) \right] \\
 > &= \int p(\mathbf x_* \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid D) \:\mathrm{d}\boldsymbol{\theta}
 > \end{align}
 > $$
@@ -88,17 +90,62 @@ $$
 
 Both methods
 
-* treat parameters $\boldsymbol{\theta}$ as a random variable and assume a prior $p(\boldsymbol{\theta})$.
-* update the prior to the posterior $p(\boldsymbol{\theta} \mid D)$ after observing $D$
-* outputs a predictive distribution of $\mathbf x$
+* treat parameters $\boldsymbol{\theta}$ as a random variable
+* assume a prior $p(\boldsymbol{\theta})$.
+* update the prior to a  posterior $p(\boldsymbol{\theta} \mid D)$ after observing $D$
+* use the posterior to compute compute $p(\mathbf x_*)$
 
-Difference: How is the predictive distribution computed?
+Difference: How is $p(\mathbf x_*)$ computed?
 
 | Bayesian Inference | MAP estimate |
 | ------------------ | ------------ |
 | uses the full posterior distribution | only uses the mode of the posterior |
+| preserves uncertainty in the posterior | discards uncertainty in the posterior |
 | integration-based (average w.r.t. the posterior) | optimization-based (maximize the posterior) |
 | output: posterior predictive | output: plug-in predictive |
+
+> **Connection**: MAP estimation can be seen as a special case of Bayesian inference if we place all probabity mass at on the mode of the posterior $p(\boldsymbol{\theta} \mid D)$. In this case, the posterior predictive simplifies to the plug-in predictive.
+
+Recall that the posterior predictive is
+
+$$
+\begin{align*}
+p(\mathbf x_* \mid D)
+&= \int p(\mathbf x_* \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid D) \:\mathrm{d}\boldsymbol{\theta}
+\end{align*}
+$$
+
+The mode of the posterior $p(\boldsymbol{\theta} \mid D)$ is by definition $\hat{\boldsymbol{\theta}}_\text{MAP}$. Replacing the posterior $p(\boldsymbol{\theta} \mid D)$ with the point density $\delta(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}_\text{MAP})$ in the posterior predictive, we conclude that the posterior predictive becomes plug-in predictive.
+
+$$
+\begin{align*}
+p(\mathbf x_* \mid D)
+&= \int p(\mathbf x_* \mid \boldsymbol{\theta}) \cdot \delta(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}_\text{MAP}) \:\mathrm{d}\boldsymbol{\theta}
+\\
+&= p(\mathbf x_* \mid \hat{\boldsymbol{\theta}}_\text{MAP})
+\end{align*}
+$$
+
+Even though both MAP estimation and Bayesian inference require the posterior, they have the following distinction:
+
+* In MAP estimation, we do not have to compute the posterior exactly since MAP is equivalent to maximize the log of unnormalized posterior (which is generally easier to optimize)
+
+$$
+\begin{align*}
+\hat{\boldsymbol{\theta}}_\text{MAP}
+&= \argmax_{\boldsymbol{\theta}} p(\boldsymbol{\theta} \mid D) \\
+&= \argmax_{\boldsymbol{\theta}} \ln p(D \mid \boldsymbol{\theta}) + \ln p(\boldsymbol{\theta})
+\end{align*}
+$$
+
+* Bayesian inference, however, requires computing the posterior exactly, which is generally has no closed-form solution except for a few special cases. One of those special cases is where the prior $p(\boldsymbol{\theta})$ and the resulting posterior $p(\boldsymbol{\theta} \mid D)$ belong to the same distribution family $\mathcal P$. We call such $p(\boldsymbol{\theta})$ a ***conjugate prior*** **to the likelihood** $p(D \mid \boldsymbol{\theta})$. Examples of conjugate priors will be illustrated in the next sections.
+
+$$
+\begin{align*}
+\underbrace{p(\boldsymbol{\theta} \mid D)}_{\text{posterior }\in\mathcal P}
+\propto p(D \mid \boldsymbol{\theta}) \cdot \underbrace{p(\boldsymbol{\theta})}_{\text{prior }\in\mathcal P}
+\end{align*}
+$$
 
 ### Example: Learning a Bernoulli Distribution with Beta Prior
 
@@ -118,7 +165,9 @@ $$
 p(D \mid \theta) = \theta^{n_1} (1-\theta)^{n_0}
 $$
 
-Assume we have a Beta prior on $\theta\sim\operatorname{Beta}(\alpha,\beta)$:
+which is proportional to the PMF of binomial distribution $\operatorname{Bin}(n_1+n_0, \theta)$.
+
+The conjugate prior to binomial distribuion is Beta distribution, i.e. $\theta\sim\operatorname{Beta}(\alpha,\beta)$ with
 
 $$
 p(\theta) = \frac{\theta^{\alpha-1} (1-\theta)^{\beta-1}}{B(\alpha,\beta)}
@@ -250,6 +299,10 @@ p(\mathbf x_* \mid D)
 &= \int p(\mathbf x_* \mid \boldsymbol\mu) \cdot p(\boldsymbol\mu \mid D) \:\mathrm{d}\boldsymbol\mu
 \\
 &= \int \mathcal N(\mathbf x_* ; \boldsymbol\mu, \boldsymbol\Sigma) \cdot \mathcal N(\boldsymbol\mu ; \boldsymbol\mu_n, \boldsymbol\Sigma_n) \:\mathrm{d}\boldsymbol\mu
+\\
+&= \int \mathcal N(\mathbf x_* - \boldsymbol\mu ; \mathbf 0, \boldsymbol\Sigma) \cdot \mathcal N(\boldsymbol\mu ; \boldsymbol\mu_n, \boldsymbol\Sigma_n) \:\mathrm{d}\boldsymbol\mu
+\\
+
 \end{align*}
 $$
 

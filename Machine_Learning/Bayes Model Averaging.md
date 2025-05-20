@@ -223,7 +223,9 @@ $$
 Consider a multivariate Gaussian with known covariance matirx $\boldsymbol\Sigma$ but unknown mean vector $\boldsymbol\mu$.
 
 $$
+\begin{align}
 \mathbf x \sim \mathcal N(\boldsymbol\mu, \boldsymbol\Sigma)
+\end{align}
 $$
 
 Suppose we have iid observations $D=\{\mathbf x_1, \dots, \mathbf x_n\}$. Then, the likelihood is
@@ -255,7 +257,9 @@ $$
 Assume we have a Gaussian prior on $\boldsymbol\mu$:
 
 $$
+\begin{align}
 \boldsymbol\mu \sim \mathcal N(\boldsymbol\mu_0, \boldsymbol\Sigma_0)
+\end{align}
 $$
 
 Hence, the posterior is
@@ -276,19 +280,21 @@ $$
 Identify the posterior mean $\boldsymbol\mu_n$ and posterior covariance matrix $\boldsymbol\Sigma_n$.
 
 $$
-\begin{align*}
+\begin{align}
 \boldsymbol\Sigma_n^{-1}
 &\triangleq \left( n\boldsymbol\Sigma^{-1} + \boldsymbol\Sigma^{-1}_0 \right)
 \\
 \boldsymbol\mu_n
 &\triangleq \boldsymbol\Sigma_n  \left(n\boldsymbol\Sigma^{-1}\bar{\mathbf x} + \boldsymbol\Sigma^{-1}_0 \boldsymbol\mu_0 \right)
-\end{align*}
+\end{align}
 $$
 
 The posterior is hence Gaussian
 
 $$
+\begin{align}
 \boldsymbol\mu \mid D \sim \mathcal N(\boldsymbol\mu_n, \boldsymbol\Sigma_n)
+\end{align}
 $$
 
 The posterior predictive distribution is
@@ -301,18 +307,118 @@ p(\mathbf x_* \mid D)
 &= \int \mathcal N(\mathbf x_* ; \boldsymbol\mu, \boldsymbol\Sigma) \cdot \mathcal N(\boldsymbol\mu ; \boldsymbol\mu_n, \boldsymbol\Sigma_n) \:\mathrm{d}\boldsymbol\mu
 \\
 &= \int \mathcal N(\mathbf x_* - \boldsymbol\mu ; \mathbf 0, \boldsymbol\Sigma) \cdot \mathcal N(\boldsymbol\mu ; \boldsymbol\mu_n, \boldsymbol\Sigma_n) \:\mathrm{d}\boldsymbol\mu
-\\
-
 \end{align*}
 $$
 
 By the convolution rule of multivariate Gaussian (see Appendix), the posterior predictive is also Gaussian
 
 $$
-\begin{align*}
-\mathbf x_* \mid D
-\sim
+\begin{align}
+\mathbf x_* \mid D \sim
 \mathcal N(\boldsymbol\mu_n, \boldsymbol\Sigma + \boldsymbol\Sigma_n)
+\end{align}
+$$
+
+Remarks:
+
+* We differentiate three covariance matrices
+  * $\boldsymbol\Sigma_0$: prior uncertainty about $\boldsymbol\mu$, i.e. the variance of $\boldsymbol\mu$ before observing any data.
+  * $\boldsymbol\Sigma_n$: posterior uncertainty about $\boldsymbol\mu$, i.e. the variance of $\boldsymbol\mu$ after observing $D=\{\mathbf x_1, \dots, \mathbf x_n\}$. It converges to zero matrix as the number of of observations goes to infinity.
+  * $\boldsymbol\Sigma$: inherent and irreducible noise in $\mathbf x_*$, independent of $\boldsymbol\mu$, assumed to be known in our set-up.
+* The posterior uncertainty (variance) of $\mathbf x_*$ consists of posterior uncertainry about the parameter $\boldsymbol\mu$ plus the inherent noise.
+
+* The mode of $p(\boldsymbol\mu \mid D)$ is exactly $\boldsymbol\mu_n$. The plug-in predictive is thus
+  $$
+  \mathbf x_* \mid \boldsymbol\mu_n, \boldsymbol\Sigma \sim
+  \mathcal N(\boldsymbol\mu_n, \boldsymbol\Sigma)
+  $$
+
+* Comparing the plug-in predictive with the posterior predicitve, we see that the former discards uncertainty of the posterior $p(\boldsymbol\mu \mid D)$.
+
+To gain more insight about the posterior predictive, we reformulate $\boldsymbol\mu_n$ as
+
+$$
+\begin{align*}
+\boldsymbol\mu_n
+&= \boldsymbol\Sigma_n \left(n\boldsymbol\Sigma^{-1}\bar{\mathbf x} + \boldsymbol\Sigma^{-1}_0 \boldsymbol\mu_0 \right)
+\\
+&= \boldsymbol\Sigma_n \left(n\boldsymbol\Sigma^{-1}\bar{\mathbf x} - n\boldsymbol\Sigma^{-1} \boldsymbol\mu_0 + n\boldsymbol\Sigma^{-1} \boldsymbol\mu_0 + \boldsymbol\Sigma^{-1}_0 \boldsymbol\mu_0 \right)
+\\
+&= \boldsymbol\Sigma_n n \boldsymbol\Sigma^{-1} \left( \bar{\mathbf x} - \boldsymbol\mu_0 \right) +
+   \boldsymbol\Sigma_n \underbrace{\left( n \boldsymbol\Sigma^{-1} + \boldsymbol\Sigma^{-1}_0 \right)}_{\boldsymbol\Sigma_n^{-1}} \boldsymbol\mu_0
+\end{align*}
+$$
+
+Therefore,
+
+$$
+\begin{align}
+\boldsymbol\mu_n
+&= \boldsymbol\mu_0 +
+   n\boldsymbol\Sigma_n \boldsymbol\Sigma^{-1} \left( \bar{\mathbf x} - \boldsymbol\mu_0 \right)
+\end{align}
+$$
+
+Remarks:
+
+* The posterior mean $\boldsymbol\mu_n$ is the prior mean $\boldsymbol\mu_0$ plus a correction term toward the sample mean $\bar{\mathbf x}$. The difference $\bar{\mathbf x} - \boldsymbol\mu_0$ quantifies "the new information" brought by observations -- similar idea as innovation in Kalman filter.
+* If the noise is low (i.e. $\boldsymbol\Sigma$ is small), the correction towards $\bar{\mathbf x}$ is stronger. i.e. We trust more on the data if they are high-quality.
+* The correction towards $\bar{\mathbf x}$ is stronger as $n$ increases, i.e. The more data we have, the more we trust on sample mean.
+
+The 3rd remark follows from the fact that
+
+$$
+\lim_{n\to\infty} n\boldsymbol\Sigma_n \boldsymbol\Sigma^{-1} = \mathbf I
+$$
+
+*Proof*: Recall that $\boldsymbol\Sigma_n^{-1} \triangleq \left( n\boldsymbol\Sigma^{-1} + \boldsymbol\Sigma^{-1}_0 \right)$. Multiplying both sides with $\boldsymbol\Sigma_n$, we get
+
+$$
+\mathbf I
+=\boldsymbol\Sigma_n \left( n\boldsymbol\Sigma^{-1} + \boldsymbol\Sigma^{-1}_0 \right)
+=n\boldsymbol\Sigma_n \boldsymbol\Sigma^{-1} + \boldsymbol\Sigma_n \boldsymbol\Sigma^{-1}_0
+$$
+
+Using the fact that $\lim_{n\to\infty} \boldsymbol\Sigma_n = \mathbf 0$, we conclude
+
+$$
+\begin{align*}
+\lim_{n\to\infty} n\boldsymbol\Sigma_n \boldsymbol\Sigma^{-1}
+&= \lim_{n\to\infty} \mathbf I - \boldsymbol\Sigma_n \boldsymbol\Sigma^{-1}_0 \\
+&= \mathbf I - \lim_{n\to\infty} \boldsymbol\Sigma_n \boldsymbol\Sigma^{-1}_0 \\
+&= \mathbf I - \mathbf 0 \\
+&= \mathbf I
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+In 1D speical case, the posterior of $\boldsymbol\mu_n$ is
+
+$$
+\begin{align}
+\mu \mid D \sim \mathcal N(\mu_n, \sigma_n^2)
+\end{align}
+$$
+
+where
+
+$$
+\begin{align*}
+\frac{1}{\sigma_n^2}
+&= \left( \frac{n}{\sigma^{2}} + \frac{1}{\sigma^{2}_0} \right)
+\\
+\mu_n
+&= \sigma_n^2 \left( \frac{n}{\sigma^{2}}\bar{x} + \frac{1}{\sigma^{2}_0}\mu_0 \right)
+\end{align*}
+%%%%%%%%%
+\implies
+%%%%%%%%%
+\begin{align*}
+\sigma_n^2
+&= \frac{\sigma^{2} \sigma^{2}_0}{n\sigma^{2}_0 + \sigma^{2}}
+\\
+\mu_n
+&= \mu_0 + \frac{n\sigma^{2}_0}{n\sigma^{2}_0 + \sigma^{2}} \left( \bar{x} - \mu_0 \right)
 \end{align*}
 $$
 

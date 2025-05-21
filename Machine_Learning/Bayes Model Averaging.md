@@ -358,7 +358,7 @@ Remarks:
 
 * We differentiate three covariance matrices
   * $\boldsymbol\Sigma_0$: prior uncertainty about $\boldsymbol\mu$, i.e. the variance of $\boldsymbol\mu$ before observing any data.
-  * $\boldsymbol\Sigma_n$: posterior uncertainty about $\boldsymbol\mu$, i.e. the variance of $\boldsymbol\mu$ after observing $D=\{\mathbf x_1, \dots, \mathbf x_n\}$. It converges to zero matrix as the number of of observations goes to infinity.
+  * $\boldsymbol\Sigma_n$: posterior uncertainty about $\boldsymbol\mu$, i.e. the variance of $\boldsymbol\mu$ after observing $D=\{\mathbf x_1, \dots, \mathbf x_n\}$. It arises due to lask of data and reduces to zero as the number of of observations increases.
   * $\boldsymbol\Sigma$: inherent and irreducible noise in $\mathbf x_*$, independent of $\boldsymbol\mu$, assumed to be known in our set-up.
 * The posterior uncertainty (variance) of $\mathbf x_*$ consists of posterior uncertainry about the parameter $\boldsymbol\mu$ plus the inherent noise.
 
@@ -420,9 +420,7 @@ $$
 \begin{align*}
 \lim_{n\to\infty} n\boldsymbol\Sigma_n \boldsymbol\Sigma^{-1}
 &= \lim_{n\to\infty} \mathbf I - \boldsymbol\Sigma_n \boldsymbol\Sigma^{-1}_0 \\
-&= \mathbf I - \lim_{n\to\infty} \boldsymbol\Sigma_n \boldsymbol\Sigma^{-1}_0 \\
-&= \mathbf I - \mathbf 0 \\
-&= \mathbf I
+&= \mathbf I - \underbrace{\lim_{n\to\infty} \boldsymbol\Sigma_n \boldsymbol\Sigma^{-1}_0}_{\mathbf 0}
 \tag*{$\blacksquare$}
 \end{align*}
 $$
@@ -510,7 +508,7 @@ $$
       \cdot
       \overbrace{p(\boldsymbol{\theta} \mid \mathbf x_1)}^{\text{prio at } t=2}
     }{
-      \underbrace{p(\mathbf x_2)}_\text{normalization const}
+      \underbrace{p(\mathbf x_2 \mid \mathbf x_1)}_\text{normalization const}
     }
 && \text{see Appendix}
 \\
@@ -535,6 +533,73 @@ $$
 D_0 \triangleq \varnothing
 \end{align}
 $$
+
+First, we initialize $p(\boldsymbol{\theta} \mid D_0) = p(\boldsymbol{\theta})$, i.e. the prior on $\boldsymbol{\theta}$ before we observe any data. For $t=1, \dots, n$:
+
+The **posterior** at time $t$ is
+
+> $$
+> \begin{align}
+> \overbrace{
+>   p(\boldsymbol{\theta} \mid D_{t})
+> }^{\text{post. at } t}
+> &= \frac{
+>       \overbrace{p(\mathbf x_t \mid \boldsymbol{\theta})}^{\text{lld. of } \mathbf x_t}
+>       \cdot
+>       \overbrace{p(\boldsymbol{\theta} \mid D_{t-1})}^{\text{post. at } t-1}
+>     }{
+>       \underbrace{p(\mathbf x_t \mid D_{t-1})}_\text{normalization const}
+>     }
+> \\[24pt]
+> &\propto p(\mathbf x_t \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid  D_{t-1})
+> \end{align}
+> $$
+
+Remarks:
+
+* The normalization constant in the posterior is $p(\mathbf x_t \mid D_{t-1}) \ne p(\mathbf x_t)$, even though we assume $\mathbf x_1,\dots,\mathbf x_t \stackrel{\text{iid}}{\sim} p(\mathbf x \mid \boldsymbol{\theta})$, which translates into **conditional indepdence** of $\mathbf x_1,\dots,\mathbf x_t$ given $\boldsymbol{\theta}$.
+* At time $t$, we treat $p(\boldsymbol{\theta} \mid D_{t-1})$ as the "prior" before observing $\mathbf x_{t}$. Although, strictly speaking, the term *prior* in reserved for $p(\boldsymbol{\theta})$, i.e. the distribution of $\boldsymbol{\theta}$ before seeing any data.
+* Again, $p(\boldsymbol{\theta} \mid D_{t})$ can interpreted both as the posterior at time $t$ and as the "prior" at time $t+1$.
+
+*Proof*: By definition of $D_t$, we reformulate the posterior into
+
+$$
+p(\boldsymbol{\theta} \mid D_{t}) = p(\boldsymbol{\theta} \mid D_{t-1}, \mathbf x_t)
+$$
+
+By assumption $\mathbf x_1,\dots,\mathbf x_t \stackrel{\text{iid}}{\sim} p(\mathbf x \mid \boldsymbol{\theta})$, we have the conditional independence
+
+$$
+D_{t-1} \perp \mathbf x_t \mid \boldsymbol{\theta}
+$$
+
+Therefore, the conclusion follows from the propoerty of conditional indepdence:
+
+$$
+\begin{align*}
+X \perp Y \mid Z \implies
+p(z \mid x,y) = \frac{p(z \mid x) \cdot p(y \mid z)}{p(y \mid x)}
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+The **posterior predictive** at time $t$ is
+
+> $$
+> \begin{align}
+> p(\mathbf x_{t+1} \mid D_t)
+> &= \mathbb E_{\boldsymbol{\theta} \sim p(\boldsymbol{\theta} \mid D_{t})}
+>    \left[ p(\mathbf x_{t+1} \mid \boldsymbol{\theta} ) \right]
+> \\
+> &= \int p(\mathbf x_{t+1} \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid D_{t}) \:\mathrm{d} \boldsymbol{\theta}
+> \end{align}
+> $$
+
+
+Remarks:
+
+* Here, we use $\mathbf x_{t+1}$ instead of $\mathbf x_*$ to denote unseen data. The posterior predicitve gives the distribution of $\mathbf x_{t+1}$ before we observe it. The posterior predictive allows us to forecast $\mathbf x_{t+1}$.
+* In practice, the posterior predicitve has no closed-from solution. One exception is when every random variables are Gaussian.
 
 # Bayesian Model Averaging
 

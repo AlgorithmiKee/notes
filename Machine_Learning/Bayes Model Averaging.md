@@ -98,16 +98,19 @@ Remarks:
 * Updating the prior to posterior $\iff$ updating the importance of $p(\mathbf x_* \mid \boldsymbol{\theta})$ for each $\boldsymbol{\theta}$. Let $\hat{\boldsymbol{\theta}}$ be the mode of the posterior. Then, $p(\mathbf x_* \mid \hat{\boldsymbol{\theta}})$ has the highest (but **not the entire!**) contribution to $p(\mathbf x_*)$.
 * The integral on the RHS is intractable to compute in general, except for a few special case (which will be discussed later).
 
-*Proof*: This follows from the law of total expectation and the independence between $\mathbf x_*$ and $D$.
+*Proof*: This follows from the law of total expectation and the conditional independence between $\mathbf x_*$ and $D$ given $\boldsymbol{\theta}$.
 
 $$
 \begin{align*}
 p(\mathbf x_* \mid D)
 &= \int p(\mathbf x_*, \boldsymbol{\theta} \mid D) \:\mathrm{d}\boldsymbol{\theta}
+&& \text{marginalization}
 \\
 &= \int p(\mathbf x_* \mid \boldsymbol{\theta}, D) \cdot p(\boldsymbol{\theta} \mid D) \:\mathrm{d}\boldsymbol{\theta}
+&& \text{factorization}
 \\
 &= \int p(\mathbf x_* \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid D) \:\mathrm{d}\boldsymbol{\theta}
+&& \mathbf x_* \perp D\mid \boldsymbol{\theta}
 \tag*{$\blacksquare$}
 \end{align*}
 $$
@@ -180,7 +183,7 @@ $$
 
 ## Examples of Bayesian Inference
 
-In general, the posterior and the posterior predictive requires numerical approximation since they have no closed-form solution. Here, we show two exceptions.
+In general, the posterior and the posterior predictive requires numerical approximation since they have no closed-form solution. Here, we show two exceptions where the prior and the posterior belong to the same parameteric family.
 
 ### Learning a Bernoulli Distribution with Beta Prior
 
@@ -368,7 +371,7 @@ Remarks:
   \mathcal N(\boldsymbol\mu_n, \boldsymbol\Sigma)
   $$
 
-* Comparing the plug-in predictive with the posterior predicitve, we see that the former discards uncertainty of the posterior $p(\boldsymbol\mu \mid D)$.
+* Comparing the plug-in predictive with the posterior predictive, we see that the former discards uncertainty of the posterior $p(\boldsymbol\mu \mid D)$.
 
 To gain more insight about the posterior predictive, we reformulate $\boldsymbol\mu_n$ as
 
@@ -463,7 +466,7 @@ x_* \mid D \sim \mathcal N(\mu_n, \sigma^2 + \sigma_n^2)
 \end{align}
 $$
 
-## Iterative Bayesian Inference
+## Recurisve Bayesian Inference
 
 Key idea: Posterior today $\triangleq$ Prior tomorrow
 
@@ -479,101 +482,102 @@ p(\boldsymbol{\theta} \mid \mathbf x_1, \mathbf x_2)
 p(\boldsymbol{\theta} \mid \mathbf x_1, \dots, \mathbf x_n)
 $$
 
-Motivation: Suppose we collected the data in a sequential manner instead of all at once. Do we have to wait until the complete data collection to perform Inference?
+Motivation: Suppose we collected the data in a sequential manner instead of all at once. Do we have to wait until the complete data collection to perform Inference? The answer is no as we can perform recursive Bayesian inference.
 
-Let $p(\boldsymbol{\theta})$ be the prior before we observe anything.  After we see $\mathbf x_1$, we update the prior $p(\boldsymbol{\theta})$ to the posterior
+> **RECURSIVE BAYESIAN INFERENCE**  
+> init $p(\boldsymbol{\theta})$ before observing any data  
+> For $t=1, \dots, n$, do:  
+> $\quad$ assume we have $p(\boldsymbol{\theta} \mid \mathbf x_{1:t-1})$  
+> $\quad$ **predict**: compute $p(\mathbf x_t \mid \mathbf x_{1:t-1})$ before observing $\mathbf x_t$  
+> $\quad$ **update**: compute $p(\boldsymbol{\theta} \mid \mathbf x_{1:t})$ after observing $\mathbf x_t$  
 
-$$
-\begin{align}
-p(\boldsymbol{\theta} \mid \mathbf x_1)
-&= \frac{p(\mathbf x_1 \mid \boldsymbol{\theta}) p(\boldsymbol{\theta})}{p(\mathbf x_1)} \\
-&\propto p(\mathbf x_1 \mid \boldsymbol{\theta}) p(\boldsymbol{\theta})
-\end{align}
-$$
+Remarks:
 
-Before we observe $\mathbf x_2$, $p(\boldsymbol{\theta} \mid \mathbf x_1)$ becomes our new prior belief on $\boldsymbol{\theta}$. Namely, there are two ways to interpret $p(\boldsymbol{\theta} \mid \mathbf x_1)$:
+* Here, we use the short-hand notation $\mathbf x_{1:t} \triangleq \{ \mathbf x_1, \dots, \mathbf x_t \}$.
+* For $t=1$, we let $\mathbf x_{1:0} \triangleq \varnothing$ and $p(\boldsymbol{\theta} \mid \mathbf x_{1:0}) = p(\boldsymbol{\theta} \mid \varnothing) = p(\boldsymbol{\theta})$.
+* $p(\boldsymbol{\theta} \mid \mathbf x_{1:t-1})$ is the posterior at time $t-1$. We use it as the prior at time $t$. (Strictly speaking, the term *prior* is reserved for the distribution before seeing any data, i.e., $p(\boldsymbol{\theta})$. However, in recursive inference, we often use the previous posterior as the new "prior")
 
-* posterior of $\boldsymbol{\theta}$ after we observe $\mathbf x_1$
-* prior of $\boldsymbol{\theta}$ before we observe $\mathbf x_2$
+Next, we give more details about the prediction step and update step.
 
-After we observe $\mathbf x_2$, we update our belief on $\boldsymbol{\theta}$ again to incooperate the information brought by $\mathbf x_2$.
+### Prediction Step
 
-$$
-\begin{align}
-\overbrace{
-  p(\boldsymbol{\theta} \mid \mathbf x_1, \mathbf x_2)
-}^{\text{post at } t=2}
-&= \frac{
-      \overbrace{p(\mathbf x_2 \mid \boldsymbol{\theta})}^{\text{lld at } t=2}
-      \cdot
-      \overbrace{p(\boldsymbol{\theta} \mid \mathbf x_1)}^{\text{prio at } t=2}
-    }{
-      \underbrace{p(\mathbf x_2 \mid \mathbf x_1)}_\text{normalization const}
-    }
-&& \text{see Appendix}
-\\
-&\propto p(\mathbf x_2 \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid \mathbf x_1)
-\end{align}
-$$
-
-This procedure can continue until we collected the complete data set or until infinity when there is no inherent ending.
-
-Now, we will derive the general framework for iterative Bayesian inference. To make the notation cleaner, we let $D_t$ denote the data collected until (inclusive) time $t$.
-
-$$
-\begin{align}
-D_t \triangleq \{ \mathbf x_1, \dots, \mathbf x_t \}
-\end{align}
-$$
-
-At time $t=0$, there is no observations available. We simply write
-
-$$
-\begin{align}
-D_0 \triangleq \varnothing
-\end{align}
-$$
-
-First, we initialize $p(\boldsymbol{\theta} \mid D_0) = p(\boldsymbol{\theta})$, i.e. the prior on $\boldsymbol{\theta}$ before we observe any data. For $t=1, \dots, n$:
-
-The **posterior** at time $t$ is
+At time $t$, the **prediction** step computes the posterior **predictive** using past observations $\mathbf x_{1:t-1}$
 
 > $$
 > \begin{align}
-> \overbrace{
->   p(\boldsymbol{\theta} \mid D_{t})
-> }^{\text{post. at } t}
-> &= \frac{
->       \overbrace{p(\mathbf x_t \mid \boldsymbol{\theta})}^{\text{lld. of } \mathbf x_t}
->       \cdot
->       \overbrace{p(\boldsymbol{\theta} \mid D_{t-1})}^{\text{post. at } t-1}
->     }{
->       \underbrace{p(\mathbf x_t \mid D_{t-1})}_\text{normalization const}
->     }
-> \\[24pt]
-> &\propto p(\mathbf x_t \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid  D_{t-1})
+> p(\mathbf x_{t} \mid \mathbf x_{1:t-1})
+> &= \mathbb E_{\boldsymbol{\theta} \sim p(\boldsymbol{\theta} \mid \mathbf x_{1:t-1})}
+>    \left[ p(\mathbf x_{t} \mid \boldsymbol{\theta} ) \right]
+> \\
+> &= \int p(\mathbf x_{t} \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid \mathbf x_{1:t-1}) \:\mathrm{d} \boldsymbol{\theta}
 > \end{align}
 > $$
 
 Remarks:
 
-* The normalization constant in the posterior is $p(\mathbf x_t \mid D_{t-1}) \ne p(\mathbf x_t)$, even though we assume $\mathbf x_1,\dots,\mathbf x_t \stackrel{\text{iid}}{\sim} p(\mathbf x \mid \boldsymbol{\theta})$, which translates into **conditional indepdence** of $\mathbf x_1,\dots,\mathbf x_t$ given $\boldsymbol{\theta}$.
-* At time $t$, we treat $p(\boldsymbol{\theta} \mid D_{t-1})$ as the "prior" before observing $\mathbf x_{t}$. Although, strictly speaking, the term *prior* in reserved for $p(\boldsymbol{\theta})$, i.e. the distribution of $\boldsymbol{\theta}$ before seeing any data.
-* Again, $p(\boldsymbol{\theta} \mid D_{t})$ can interpreted both as the posterior at time $t$ and as the "prior" at time $t+1$.
+* Here, we use $\mathbf x_{t}$ instead of $\mathbf x_*$ to denote the yet unseen data at time $t$. The posterior predictive gives the forecast of $\mathbf x_{t}$ before we observe it.
+* Note that $p(\mathbf x_t \mid \mathbf x_{1:t-1}) \ne p(\mathbf x_t)$, due to assumption $\mathbf x_1,\dots,\mathbf x_t \stackrel{\text{iid}}{\sim} p(\mathbf x \mid \boldsymbol{\theta})$, which translates into conditional indepdence of $\mathbf x_1,\dots,\mathbf x_t$ given $\boldsymbol{\theta}$. Conditional independence $\not\Rightarrow$ independence
 
-*Proof*: By definition of $D_t$, we reformulate the posterior into
+*Proof*: The predictive distribution follows from the law of total proability and conditional independence.
 
 $$
-p(\boldsymbol{\theta} \mid D_{t}) = p(\boldsymbol{\theta} \mid D_{t-1}, \mathbf x_t)
+\begin{align*}
+p(\mathbf x_{t} \mid \mathbf x_{1:t-1})
+&= \int p(\mathbf x_{t}, \boldsymbol{\theta} \mid \mathbf x_{1:t-1}) \:\mathrm{d} \boldsymbol{\theta}
+&& \text{marginalization}
+\\
+&= \int p(\mathbf x_{t} \mid \boldsymbol{\theta}, \mathbf x_{1:t-1}) \cdot p(\boldsymbol{\theta} \mid \mathbf x_{1:t-1}) \:\mathrm{d} \boldsymbol{\theta}
+&& \text{factorization}
+\\
+&= \int p(\mathbf x_{t} \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid \mathbf x_{1:t-1}) \:\mathrm{d} \boldsymbol{\theta}
+&& \mathbf x_{1:t-1} \perp \mathbf x_t \mid \boldsymbol{\theta}
+\\
+&= \mathbb E_{\boldsymbol{\theta} \sim p(\boldsymbol{\theta} \mid \mathbf x_{1:t-1})}
+   \left[ p(\mathbf x_{t} \mid \boldsymbol{\theta}) \right]
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+### Update Step
+
+At time $t$, the **update** step computes (or updates) the **posterior** using  new observation $\mathbf x_t$.
+
+> $$
+> \begin{align}
+> \overbrace{
+>   p(\boldsymbol{\theta} \mid \mathbf x_{1:t})
+> }^{\text{post. at } t}
+> &= \frac{
+>       \overbrace{p(\mathbf x_t \mid \boldsymbol{\theta})}^{\text{lld. of } \mathbf x_t}
+>       \cdot
+>       \overbrace{p(\boldsymbol{\theta} \mid \mathbf x_{1:t-1})}^{\text{post. at } t-1}
+>     }{
+>       \underbrace{p(\mathbf x_t \mid \mathbf x_{1:t-1})}_\text{normalization const}
+>     }
+> \\[24pt]
+> &\propto p(\mathbf x_t \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid  \mathbf x_{1:t-1})
+> \end{align}
+> $$
+
+Remarks:
+
+* The normalization constant in the posterior is obtained by plugging the actual observation $\mathbf x_t$ into the predictive distribution computed in prediction step.
+* Again, $p(\boldsymbol{\theta} \mid \mathbf x_{1:t})$ can be interpreted both as the posterior at time $t$ and as the "prior" at time $t+1$.
+* Intuitively, recursive Bayesian inference allows us to carry forward our belief about the parameters, refining them as we observe new data, rather than starting from scratch.
+
+*Proof*: By definition of $\mathbf x_{1:t}$, we reformulate the posterior into
+
+$$
+p(\boldsymbol{\theta} \mid \mathbf x_{1:t}) = p(\boldsymbol{\theta} \mid \mathbf x_{1:t-1}, \mathbf x_t)
 $$
 
 By assumption $\mathbf x_1,\dots,\mathbf x_t \stackrel{\text{iid}}{\sim} p(\mathbf x \mid \boldsymbol{\theta})$, we have the conditional independence
 
 $$
-D_{t-1} \perp \mathbf x_t \mid \boldsymbol{\theta}
+\mathbf x_{1:t-1} \perp \mathbf x_t \mid \boldsymbol{\theta}
 $$
 
-Therefore, the conclusion follows from the propoerty of conditional indepdence:
+Therefore, the conclusion follows from the property of conditional indepdence:
 
 $$
 \begin{align*}
@@ -583,23 +587,24 @@ p(z \mid x,y) = \frac{p(z \mid x) \cdot p(y \mid z)}{p(y \mid x)}
 \end{align*}
 $$
 
-The **posterior predictive** at time $t$ is
+In general, the integrals involved in the prediction and update steps are intractable. However, when both the prior and likelihood are Gaussian, the posterior remains Gaussian, leading to closed-form solutions. e.g. in the Kalman filter.
 
-> $$
-> \begin{align}
-> p(\mathbf x_{t+1} \mid D_t)
-> &= \mathbb E_{\boldsymbol{\theta} \sim p(\boldsymbol{\theta} \mid D_{t})}
->    \left[ p(\mathbf x_{t+1} \mid \boldsymbol{\theta} ) \right]
-> \\
-> &= \int p(\mathbf x_{t+1} \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid D_{t}) \:\mathrm{d} \boldsymbol{\theta}
-> \end{align}
-> $$
+### Connection to Filtering
 
+So far, we have assumed that the parameter vector $\boldsymbol{\theta}$ is time-invariant, meaning the observations $\mathbf x_{1:n}$ are conditionally independent given $\boldsymbol{\theta}$. A ***Bayesian filtering*** problem generalizes this by allowing the parameter vector (or state) to vary over time. Specifically, we assume
 
-Remarks:
+* The state is time-dependent, denoted by $\boldsymbol{\theta}_t$.
+* The state evolves according to a Markov process $\boldsymbol{\theta}_t \sim p(\boldsymbol{\theta}_t \mid \boldsymbol{\theta}_{t-1})$
+* The observation only depends on current state $\mathbf x_t \sim p(\mathbf x_t \mid \boldsymbol{\theta}_{t})$
 
-* Here, we use $\mathbf x_{t+1}$ instead of $\mathbf x_*$ to denote unseen data. The posterior predicitve gives the distribution of $\mathbf x_{t+1}$ before we observe it. The posterior predictive allows us to forecast $\mathbf x_{t+1}$.
-* In practice, the posterior predicitve has no closed-from solution. One exception is when every random variables are Gaussian.
+Together, the sequence $\{ \boldsymbol{\theta}_{t}, \mathbf x_t \}_{t=1:n}$ forms a hidden Markov model.
+
+> **Note**: In standard Bayesian filtering literature, the state vector is typically denoted by $\mathbf x_t$, and the observation is deonted by $\mathbf y_t$. We're keeping the notation consistent with the rest of our notes for clarity.
+
+Kalman filter is a special case of Bayesian filter where
+
+* Both the state evolution and observation model are described by stochastic linear dynamics.
+* All random variables (state, observation and noise) are Gaussian.
 
 # Bayesian Model Averaging
 

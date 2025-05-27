@@ -1,3 +1,9 @@
+---
+title: "Everything about Multivariate Gaussian"
+date: "2024"
+author: "Ke Zhang"
+---
+
 # Everything about Multivariate Gaussian
 
 ## Basics

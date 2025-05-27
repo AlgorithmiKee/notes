@@ -197,30 +197,30 @@ Gradient-based optimization:
 
 * Gradient ascent:
     $$
-    \begin{align}
+    \begin{align*}
     \boldsymbol{\theta}^{(t+1)}
     &= \boldsymbol{\theta}^{(t)} + \eta^{(t)} \left(\sum_{i=1}^n \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x_i \mid \boldsymbol{\theta}^{(t)}) + \frac{\partial}{\partial\boldsymbol{\theta}}\ln p(\boldsymbol{\theta}^{(t)}) \right)\\
-    \end{align}
+    \end{align*}
     $$
 
 * Mini-bath gradient ascent:
     $$
-    \begin{align}
-    & \text{randomly draw } B^{(t)} \subset D \text{ with } \vert B \vert = m \nonumber
+    \begin{align*}
+    & \text{randomly draw } B^{(t)} \subset D \text{ with } \vert B \vert = m
     \\
     & \boldsymbol{\theta}^{(t+1)}
     = \boldsymbol{\theta}^{(t)} + \eta^{(t)} \left(\sum_{\mathbf x\in B^{(t)}} \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x \mid \boldsymbol{\theta}^{(t)}) + \frac{\partial}{\partial\boldsymbol{\theta}}\ln p(\boldsymbol{\theta}^{(t)}) \right)
-    \end{align}
+    \end{align*}
     $$
 
 * Stochastic gradient ascent:
     $$
-    \begin{align}
-    & \text{randomly draw } \mathbf x^{(t)} \in D \nonumber
+    \begin{align*}
+    & \text{randomly draw } \mathbf x^{(t)} \in D
     \\
     & \boldsymbol{\theta}^{(t+1)}
     = \boldsymbol{\theta}^{(t)} + \eta^{(t)} \left(\frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x^{(t)} \mid \boldsymbol{\theta}^{(t)}) + \frac{\partial}{\partial\boldsymbol{\theta}}\ln p(\boldsymbol{\theta}^{(t)}) \right)
-    \end{align}
+    \end{align*}
     $$
 
 In practice, we often impose a Gaussian prior on $\boldsymbol{\theta}$,
@@ -234,9 +234,9 @@ $$
 which gives the log prior
 
 $$
-\begin{align}
+\begin{align*}
 \ln p(\boldsymbol{\theta}) = -\frac{1}{2\sigma^2_\mathrm{p}} \Vert\boldsymbol{\theta}\Vert^2 + \text{const}
-\end{align}
+\end{align*}
 $$
 
 The resulting MAP estimation is then
@@ -299,7 +299,7 @@ Remarks:
 1. predicting which number given a hand-written digit $\to$ generative model.
 1. predicting which species given the weight and size of an animal $\to$ generative model.
 
-### Parameter Estimation in Discriminative Model
+### Overview of Discriminative Model
 
 By iid assumption and that $p(\mathbf x, y \mid \boldsymbol{\theta}) = p(\mathbf x \mid \boldsymbol{\pi}) \, p(y \mid \mathbf x,\mathbf{w})$, the likelihood is
 
@@ -354,7 +354,7 @@ Hence, $\boldsymbol{\pi}$ and $\mathbf{w}$ can be estimated separately
 > \end{align}
 > $$
 
-**Example** (predicting house price): c.f. Appendix.
+**Example** (predicting house price): see Appendix.
 
 If we have priors on $\boldsymbol{\theta}$ s.t. $p(\boldsymbol{\theta}) = p(\boldsymbol{\pi})\,p(\mathbf{w})$, the posterior distribution of $\boldsymbol{\theta}$ is then
 
@@ -392,8 +392,42 @@ Therefore, we get the MAP estimation
 
 Remarks:
 
-* For label prediction, we do not really need to know $p(\mathbf x \mid \boldsymbol{\pi})$. Hence, it is sufficient to estimate $\mathbf{w}$ and thus $p(y \mid \mathbf x,\mathbf{w})$. Once we obtained a point estimate (MLE or MAP) of $\mathbf{w}$, we can predict the label on new data points by decision theory. c.f. notes on Bayesian decision theory.
+* For label prediction, we do not really need to know $p(\mathbf x \mid \boldsymbol{\pi})$. Hence, it is sufficient to estimate $\mathbf{w}$ (either by MLE or MAP) and thus $p(y \mid \mathbf x,\mathbf{w})$.
 * In some applications (like signal reconstruction), $\mathbf x$ is deterministic or has no inherent distribution. In such cases, we omit modeling $p(\mathbf x)$ as it is irrelevant for label prediction anyway.
+* In general, the optimization problem on the RHS is solved numerically (e.g. stochastic gradient descent/ascent). In special cases (e.g. linear model), it has closed-form solutions.
+
+By plugging the point estimate $\hat{\mathbf{w}}$ into the model likelihood $p(y \mid \mathbf{x}, \mathbf{w})$, we obtain  the ***(plug-in) predictive distribution***:
+
+$$
+p(y\mid\mathbf x, \hat{\mathbf{w}})
+$$
+
+For a new input $\mathbf{x}_*$, we use decision theory to make a prediction based on the predictive distribution (see notes on Bayesian decision theory).
+
+$$
+\begin{align}
+\hat y
+&= \argmin_{a \in \mathcal Y} \mathbb E_y[\ell(y, a) \mid \mathbf x_*, \hat{\mathbf{w}}] \\
+\end{align}
+$$
+
+Main results:
+
+* regression with square loss $\ell(y, a) = (y-a)^2 \implies$ predict the conditional mean
+
+    $$
+    \begin{align}
+    \hat y &= \mathbb E_y[y\mid\mathbf x_*, \hat{\mathbf{w}}]
+    \end{align}
+    $$
+
+* classification with 0/1 loss $\ell(y, a) = \mathbb I[y \ne a] \implies$ predict the conditional mode
+
+    $$
+    \begin{align}
+    \hat y &= \argmax_y p(y\mid\mathbf x_*, \hat{\mathbf{w}})
+    \end{align}
+    $$
 
 ### Regression as Discriminative Model
 
@@ -453,9 +487,9 @@ The log likelihood
 $$
 \begin{align}
 p(D \mid\boldsymbol{\theta})
-&= p(\mathbf x_1, y_1, \cdots, \mathbf x_n, y_n \mid\boldsymbol{\theta}) \\
-&= \prod_{i=1}^n p(\mathbf x_i, y_i \mid \boldsymbol{\theta}) \\
-&= \prod_{i=1}^n p(\mathbf x_i) \cdot p(y_i \mid \mathbf x_i, \boldsymbol{\theta}) \\
+&= p(\mathbf x_1, y_1, \cdots, \mathbf x_n, y_n \mid\boldsymbol{\theta}) \nonumber \\
+&= \prod_{i=1}^n p(\mathbf x_i, y_i \mid \boldsymbol{\theta}) \nonumber \\
+&= \prod_{i=1}^n p(\mathbf x_i) \cdot p(y_i \mid \mathbf x_i, \boldsymbol{\theta}) \nonumber \\
 &\propto \prod_{i=1}^n p(y_i \mid \mathbf x_i, \boldsymbol{\theta}) \\
 \end{align}
 $$
@@ -513,9 +547,9 @@ $$
 which gives the log prior
 
 $$
-\begin{align}
+\begin{align*}
 \ln p(\boldsymbol{\theta}) = -\frac{1}{2\sigma^2_\mathrm{p}} \Vert\boldsymbol{\theta}\Vert^2 + \text{const}
-\end{align}
+\end{align*}
 $$
 
 The log posterior becomes
@@ -549,6 +583,23 @@ Remarks:
 * If we have a strong prior belief (i.e. small $\sigma^2_\text{p}$ ) that all parameters should be close to 0, then we have stong regularization (i.e. large $\lambda$ ) and rely more on the prior belief.
 * If the label noise is small (i.e. small $\sigma^2_\text{n}$ ), then we have weaker regularization (i.e. small $\lambda$ ) and rely more on the observed data.
 
+Once we computed the point estimate, we obtain the plug-in predictive distribution
+
+$$
+p(y\mid\mathbf x, \hat{\boldsymbol{\theta}}) = \mathcal N(y ; f_{\hat{\boldsymbol{\theta}}}(\mathbf x), \sigma^2_\text{n})
+$$
+
+For a new input $\mathbf x_*$, assuming square loss is used, the optimal prediction is the mean under the predictive distribution
+
+$$
+\begin{align}
+\hat y
+&= \mathbb E_y [y\mid\mathbf x_*, \hat{\boldsymbol{\theta}}] \nonumber \\
+&= \mathbb E_y \left[ \mathcal N(y ; f_{\hat{\boldsymbol{\theta}}}(\mathbf x_*), \sigma^2_\text{n}) \right] \nonumber \\
+&= f_{\hat{\boldsymbol{\theta}}}(\mathbf x_*)
+\end{align}
+$$
+
 |  Algorithmic Perspective | Statistical Perspective |
 | ----------- | -------------- |
 | $\boldsymbol{\theta}$ parameterizes $f(\mathbf x)$ | $\boldsymbol{\theta}$ parameterizes $p(y \mid \mathbf x)$ |
@@ -558,7 +609,7 @@ Remarks:
 | minimize sum of square loss + regularizer $\to\hat{\boldsymbol{\theta}}$ | MAP $\to\hat{\boldsymbol{\theta}}$ |
 | L1 regularization | Laplacian prior |
 | L2 regularization | Gaussian prior |
-| predict: $f_{\hat{\boldsymbol{\theta}}}(\mathbf x_\text{new})$ | predict: $\mathbb E_y[y\mid\mathbf x_\text{new}, \hat{\boldsymbol{\theta}}]$ |
+| predict: $f_{\hat{\boldsymbol{\theta}}}(\mathbf x_*)$ | predict: $\mathbb E_y[y\mid\mathbf x_*, \hat{\boldsymbol{\theta}}]$ |
 | $-$ | uncertainty quantification |
 | $-$ | model averaging instead of point estimate |
 

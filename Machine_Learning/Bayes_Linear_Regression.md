@@ -94,6 +94,14 @@ Remarks:
     \end{align}
     $$
 
+In the following, we assume a spherical Gaussian prior on $\mathbf{w}$, i.e.
+
+$$
+\begin{align}
+\mathbf{w} \sim \mathcal N(\mathbf{0}, \sigma^2_\text{p}\mathbf{I})
+\end{align}
+$$
+
 We will show later that the posterior is Gaussian
 
 $$
@@ -102,13 +110,118 @@ $$
 \end{align}
 $$
 
-where the posterior mean $\boldsymbol{\mu} \triangleq \mathbb E[\mathbf{w} \mid D]$ and posterior covariance matrix $\boldsymbol{\Sigma} \triangleq \mathbb V[\mathbf{w} \mid D]$ will be calculated later.
+where the posterior mean $\boldsymbol{\mu} \triangleq \mathbb E[\mathbf{w} \mid D]$ and posterior covariance matrix $\boldsymbol{\Sigma} \triangleq \mathbb V[\mathbf{w} \mid D]$ will be calculated later. The key idea is the sufficiency of computing the mean and variance rather than evaluating any integral if everything is Gaussian.
 
-Recall the probabilitstic model
+### The Full Posterior
+
+By Bayesian rule,
 
 $$
 \begin{align}
-y_* = \mathbf{w}^\top \mathbf{x}_* + \varepsilon, \quad \varepsilon, \quad
+p(\mathbf{w} \mid D)
+&= \frac{p(D \mid \mathbf{w}) \cdot p(\mathbf{w})}{p(D)} \\
+&\propto p(D \mid \mathbf{w}) \cdot p(\mathbf{w}) \\
+&= \left( \prod_{i=1}^n p(\mathbf{x}_i, y_i \mid \mathbf{w}) \right) \cdot p(\mathbf{w}) \\
+&= \left( \prod_{i=1}^n p(y_i \mid \mathbf{x}_i, \mathbf{w}) \, p(\mathbf{x}_i) \right) \cdot p(\mathbf{w}) \\
+&\propto \left( \prod_{i=1}^n p(y_i \mid \mathbf{x}_i, \mathbf{w}) \right) \cdot p(\mathbf{w})
+\end{align}
+$$
+
+For the sake of derivation, we will show that the log posterior is quadratic form of $\mathbf{w}$, which proves that the posterior is Gaussian. Recall that
+
+$$
+\begin{align*}
+y_i \mid \mathbf{x}_i, \mathbf{w} \sim \mathcal N(\mathbf{w}^\top \mathbf{x}_i, \sigma^2_\text{n})
+&\implies
+\ln p(y_i \mid \mathbf{x}_i, \mathbf{w}) = -\frac{1}{2\sigma^2_\text{n}} (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 + \text{const.}
+\\
+\mathbf{w} \sim \mathcal N(\mathbf{0}, \sigma^2_\text{p}\mathbf{I})
+&\implies
+\ln p(\mathbf{w}) = -\frac{1}{2\sigma^2_\text{p}} \Vert\mathbf{w}\Vert^2 + \text{const.}
+\end{align*}
+$$
+
+Hence, the log posterior is
+
+$$
+\begin{align}
+\ln p(\mathbf{w} \mid D)
+&= \sum_{i=1}^n \ln p(y_i \mid \mathbf{x}_i, \mathbf{w}) + \ln p(\mathbf{w}) + \text{const.}
+\\
+&= -\frac{1}{2\sigma^2_\text{n}} \sum_{i=1}^n (y_i - \mathbf{w}^\top \mathbf{x}_i)^2
+   -\frac{1}{2\sigma^2_\text{p}} \Vert\mathbf{w}\Vert^2 + \text{const.}
+\\
+&= -\frac{1}{2\sigma^2_\text{n}} \Vert\mathbf{y} - \mathbf{X}\mathbf{w}\Vert^2
+   -\frac{1}{2\sigma^2_\text{p}} \Vert\mathbf{w}\Vert^2 + \text{const.}
+\\
+&= -\frac{1}{2} \left[
+      \sigma^{-2}_\text{n}(\mathbf{y} - \mathbf{X}\mathbf{w})^\top (\mathbf{y} - \mathbf{X}\mathbf{w})
+      +\sigma^{-2}_\text{p} \mathbf{w}^\top \mathbf{w}
+    \right] + \text{const.}
+\\
+&= -\frac{1}{2} \left[
+      \sigma^{-2}_\text{n} \left( \mathbf{w}^\top \mathbf{X}^\top \mathbf{X} \mathbf{w} - 2 \mathbf{y}^\top \mathbf{X} \mathbf{w} \right)
+      +\sigma^{-2}_\text{p} \mathbf{w}^\top \mathbf{w}
+    \right] + \text{const.}
+\\
+&= -\frac{1}{2} \left[
+       \mathbf{w}^\top \left( \sigma^{-2}_\text{n} \mathbf{X}^\top \mathbf{X} + \sigma^{-2}_\text{p}\mathbf{I} \right) \mathbf{w} - 2 \sigma^{-2}_\text{n} \mathbf{y}^\top \mathbf{X} \mathbf{w}
+    \right] + \text{const.}
+\\
+\end{align}
+$$
+
+where
+
+$$
+\begin{align}
+\mathbf{X} =
+\begin{bmatrix}
+\mathbf{x}_1^\top \\ \vdots \\ \mathbf{x}_n^\top
+\end{bmatrix}
+\in\mathbb R^{n \times d}
+\quad
+\mathbf{y} =
+\begin{bmatrix}
+y_1 \\ \vdots \\ y_n
+\end{bmatrix}
+\in\mathbb R^{n}
+\end{align}
+$$
+
+By the property of multivariate Gaussian, we conclude that the posterior is also Gaussian
+
+$$
+\begin{align}
+\mathbf{w} \mid D \sim \mathcal N(\boldsymbol{\mu}, \boldsymbol{\Sigma})
+\end{align}
+$$
+
+with posterior mean and posterior variance
+
+$$
+\begin{align}
+\boldsymbol{\Sigma}
+&= \left( \sigma^{-2}_\text{n} \mathbf{X}^\top \mathbf{X} + \sigma^{-2}_\text{p} \mathbf{I} \right)^{-1} \\
+\boldsymbol{\mu}
+&= \sigma^{-2}_\text{n} \boldsymbol{\Sigma} \mathbf{X}^\top \mathbf{y}
+\end{align}
+$$
+
+Remarks:
+
+* We avoid using $\boldsymbol{\mu}_{\mathbf{w} \mid D}, \boldsymbol{\Sigma}_{\mathbf{w} \mid D}$ for the posterior mean and covariance matrix for the sake of clean notation.
+* If we have a strong prior (small $\sigma_\text{p}$), then $\boldsymbol{\Sigma}\approx\sigma^{2}_\text{p} \mathbf{I}$ and $\boldsymbol{\mu}\approx\mathbf{0}$, which drives the weights $\mathbf{w}$ close to zero.
+* If the label noise is low (small $\sigma_\text{n}$), then $\boldsymbol{\Sigma}\approx\sigma^{2}_\text{n} \left( \mathbf{X}^\top \mathbf{X} \right)^{-1}$ and $\boldsymbol{\mu}\approx\left( \mathbf{X}^\top \mathbf{X} \right)^{-1} \mathbf{X}^\top \mathbf{y}$ which drives the weights $\mathbf{w}$ close to the least square estimate.
+* Compared to MAP estimate (which only computes the mode $\boldsymbol{\mu}$), Bayesian inference also computes $\boldsymbol{\Sigma}$, which quantifies the uncertainty of the weights.
+
+### The Posterior Predictive
+
+Having derived the posterior $p(\mathbf{w} \mid D)$, we are ready to derive the posterior predictive $p(y_* \mid \mathbf{x}_*, D)$. Recall the probabilitstic model
+
+$$
+\begin{align}
+y_* = \mathbf{w}^\top \mathbf{x}_* + \varepsilon, \quad
 \varepsilon \sim \mathcal N(\mathrm{0}, \sigma^2_\text{n})
 \end{align}
 $$
@@ -135,7 +248,16 @@ $$
 \end{align*}
 $$
 
-Therefore, the posterior predicitve can be obtained without evaluating the integral.
+Remarks:
+
+* The uncertainty in $y_*$ consists of two parts.
+  * ***Predictive variance*** $\mathbf{x}_*^\top \boldsymbol{\Sigma} \mathbf{x}_*$, which arises due to lack of data.
+  * ***Irreducible noise*** $\sigma^2_\text{n}$.
+* The predictive variance $\mathbf{x}_*^\top \boldsymbol{\Sigma} \mathbf{x}_*$ tends to be (proof omitted)
+  * low when $\mathbf{x}_*$ lies near the subspace spanned by the training data.
+  * large when $\mathbf{x}_*$ is far from or orthogonal to the training data.
+
+Therefore, the posterior predicitve is
 
 $$
 \begin{align}
@@ -146,11 +268,16 @@ y_* \mid \mathbf{x}_*, D \sim \mathcal N(
 \end{align}
 $$
 
-### The Full Posterior
+with
 
-We avoid using $\boldsymbol{\mu}_{\mathbf{w} \mid D}, \boldsymbol{\Sigma}_{\mathbf{w} \mid D}$ for the posterior mean and covariance matrix for the sake of clean notation.
-
-### The Posterior Predictive
+$$
+\begin{align}
+\boldsymbol{\Sigma}
+&= \left( \sigma^{-2}_\text{n} \mathbf{X}^\top \mathbf{X} + \sigma^{-2}_\text{p} \mathbf{I} \right)^{-1} \\
+\boldsymbol{\mu}
+&= \sigma^{-2}_\text{n} \boldsymbol{\Sigma} \mathbf{X}^\top \mathbf{y}
+\end{align}
+$$
 
 ## Appendix
 

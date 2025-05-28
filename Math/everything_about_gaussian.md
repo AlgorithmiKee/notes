@@ -49,6 +49,25 @@ Special cases:
     \right)
     $$
 
+### Normalization Property
+
+Let $A\in\mathbb{R}^{d\times d}$ be a s.p.d. matrix and $b\in\mathbb{R}^{d}$ be a vector. If $p_X(\cdot)$ is proportional to exp of the quadratic form
+
+$$
+p_X(x) \propto \exp\left( -\frac{1}{2} x^\top A x + b^\top x \right)
+$$
+
+Then, $X$ must be multivariate Gaussian with mean and variance.
+
+$$
+\begin{align*}
+X &\sim \mathcal N(\mu, \Sigma) \\
+\text{where}\quad
+\Sigma &= A^{-1} \\
+\mu &= \Sigma b = A^{-1} b
+\end{align*}
+$$
+
 ## Invariance
 
 The Gaussian distribution is invariant under affine transformation, summation, marginallisation, and conditioning. i.e. "Once Gaussian, always Gaussian".

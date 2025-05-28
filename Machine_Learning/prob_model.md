@@ -431,6 +431,8 @@ Main results:
 
 ### Regression as Discriminative Model
 
+TODO: move this section as H2 out of supervised learning. add H3 MLE, MAP, and potentially inference.
+
 Problem formulation:
 
 * Given: training data $D = \{\mathbf x_1, y_1, \cdots, \mathbf x_n, y_n\}$ iid from unknown $p(\mathbf x, y)$

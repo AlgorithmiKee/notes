@@ -16,7 +16,7 @@ fontsize: 12pt
 * Additional assumption: $\varepsilon_i$ and $\mathbf{x}_i$ are statistically independent
 * Goal: Predict the label for a new data point $\mathbf{x}_*$ using the **full** posterior distribution $p(\mathbf w \mid D)$
 
-## Recap: Point Estimates for Linear Regression
+## Recap: Point Estimates for Model Parameters
 
 * Discriminative model parameterized by $\mathbf{w}$:
 
@@ -69,11 +69,11 @@ $$
 \end{align}
 $$
 
-## Bayesian Inference for Linear Regression
+## Bayesian Inference for Model Parameters
 
-Both MLE and MAP uses training dataset $D$ to compute a point estimate $\hat{\mathbf{w}}$, leading to plug-in predictive $p(y_* \mid \mathbf{x}_*, \hat{\mathbf{w}})$.
+Both MLE and MAP use training dataset $D$ to compute a point estimate $\hat{\mathbf{w}}$, leading to plug-in predictive $p(y_* \mid \mathbf{x}_*, \hat{\mathbf{w}})$.
 
-Bayesian inference uses the full posterior $p(\mathbf w \mid D)$ to highlight the importance of every  $\mathbf w\in\mathbb R^d$, leading to posterior predictive $p(y_* \mid \mathbf x_*, D)$.
+Bayesian inference uses the full posterior $p(\mathbf w \mid D)$ to account for the contribution of every  $\mathbf w\in\mathbb R^d$, leading to posterior predictive $p(y_* \mid \mathbf x_*, D)$.
 
 $$
 \begin{align}
@@ -85,8 +85,8 @@ $$
 
 Remarks:
 
-* The integral on the RHS averages the conditional density $p(y_* \mid \mathbf x_*, \mathbf w)$ w.r.t. the posterior $p(\mathbf w \mid D)$. In general, this integral is intractable. However, if everthing is Gaussian, we indeed have closed-form solution.
-* The plug-in predictive can be seen as a special case where we place all proability mass on a single $\hat{\mathbf{w}}$.
+* The integral on the RHS averages the conditional density $p(y_* \mid \mathbf x_*, \mathbf w)$ w.r.t. the posterior $p(\mathbf w \mid D)$. In general, this integral is intractable. However, if everything is Gaussian, we indeed have closed-form solution.
+* The plug-in predictive can be seen as a special case where we place all probability mass on a single $\hat{\mathbf{w}}$.
     $$
     \begin{align}
     p(y_* \mid \mathbf x_*, \hat{\mathbf{w}})
@@ -189,7 +189,7 @@ y_1 \\ \vdots \\ y_n
 \end{align}
 $$
 
-By the property of multivariate Gaussian, we conclude that the posterior is also Gaussian
+By the property of multivariate Gaussian, the posterior is also Gaussian:
 
 $$
 \begin{align}
@@ -202,22 +202,24 @@ with posterior mean and posterior variance
 $$
 \begin{align}
 \boldsymbol{\Sigma}
-&= \left( \sigma^{-2}_\text{n} \mathbf{X}^\top \mathbf{X} + \sigma^{-2}_\text{p} \mathbf{I} \right)^{-1} \\
+&= \left( \sigma^{-2}_\text{n} \mathbf{X}^\top \mathbf{X} + \sigma^{-2}_\text{p} \mathbf{I} \right)^{-1} \\[6pt]
 \boldsymbol{\mu}
-&= \sigma^{-2}_\text{n} \boldsymbol{\Sigma} \mathbf{X}^\top \mathbf{y}
+&= \sigma^{-2}_\text{n} \boldsymbol{\Sigma} \mathbf{X}^\top \mathbf{y} \\
+&= \left( \mathbf{X}^\top \mathbf{X} + \lambda\mathbf{I} \right)^{-1} \mathbf{X}^\top \mathbf{y},
+\qquad \lambda \triangleq \sigma^{2}_\text{n} / \sigma^{2}_\text{p}
 \end{align}
 $$
 
 Remarks:
 
-* We avoid using $\boldsymbol{\mu}_{\mathbf{w} \mid D}, \boldsymbol{\Sigma}_{\mathbf{w} \mid D}$ for the posterior mean and covariance matrix for the sake of clean notation.
-* If we have a strong prior (small $\sigma_\text{p}$), then $\boldsymbol{\Sigma}\approx\sigma^{2}_\text{p} \mathbf{I}$ and $\boldsymbol{\mu}\approx\mathbf{0}$, which drives the weights $\mathbf{w}$ close to zero.
-* If the label noise is low (small $\sigma_\text{n}$), then $\boldsymbol{\Sigma}\approx\sigma^{2}_\text{n} \left( \mathbf{X}^\top \mathbf{X} \right)^{-1}$ and $\boldsymbol{\mu}\approx\left( \mathbf{X}^\top \mathbf{X} \right)^{-1} \mathbf{X}^\top \mathbf{y}$ which drives the weights $\mathbf{w}$ close to the least square estimate.
-* Compared to MAP estimate (which only computes the mode $\boldsymbol{\mu}$), Bayesian inference also computes $\boldsymbol{\Sigma}$, which quantifies the uncertainty of the weights.
+* For cleaner notation, we avoid using $\boldsymbol{\mu}_{\mathbf{w} \mid D}, \boldsymbol{\Sigma}_{\mathbf{w} \mid D}$ for the posterior mean and covariance matrix.
+* Given the training data, the Bayesian inference says that the weights $\mathbf{w}$ are roughly around $\boldsymbol{\mu}$ with variance $\boldsymbol{\Sigma}$. In contrast, MAP estimation only computes the mode of the posterior, which coincides with the mean $\boldsymbol{\mu}$ due to Gaussian-ness.
+* If we have a strong prior (small $\sigma_\text{p}$), then $\boldsymbol{\Sigma}\approx\sigma^{2}_\text{p} \mathbf{I}$ and $\boldsymbol{\mu}\approx\mathbf{0}$, which pushes the weights $\mathbf{w}$ close to zero.
+* If the label noise is low (small $\sigma_\text{n}$), then $\boldsymbol{\Sigma}\approx\sigma^{2}_\text{n} \left( \mathbf{X}^\top \mathbf{X} \right)^{-1}$ and $\boldsymbol{\mu}\approx\left( \mathbf{X}^\top \mathbf{X} \right)^{-1} \mathbf{X}^\top \mathbf{y}$ which pushes the weights $\mathbf{w}$ close to the least square estimate.
 
 ### The Posterior Predictive
 
-Having derived the posterior $p(\mathbf{w} \mid D)$, we are ready to derive the posterior predictive $p(y_* \mid \mathbf{x}_*, D)$. Recall the probabilitstic model
+Having derived the posterior $p(\mathbf{w} \mid D)$, we are ready to derive the posterior predictive $p(y_* \mid \mathbf{x}_*, D)$. Recall the probabilistic model
 
 $$
 \begin{align}
@@ -226,7 +228,7 @@ y_* = \mathbf{w}^\top \mathbf{x}_* + \varepsilon, \quad
 \end{align}
 $$
 
-Given training data $D$ and new input $\mathbf{x}_*$, the label $y_*$ is Gaussian because it is a sum of two indepdent Gaussian random variables $\mathbf{w}^\top \mathbf{x}_*$ and $\varepsilon$. Hence, it is sufficient to compute the mean and variance of $y_*$ (given $\mathbf{x}_*$ and $D$) in order to obtain the posterior predictive.
+Given training data $D$ and new input $\mathbf{x}_*$, the label $y_*$ is Gaussian because it is a sum of two independent Gaussian random variables $\mathbf{w}^\top \mathbf{x}_*$ and $\varepsilon$. Hence, it is sufficient to compute the mean and variance of $y_*$ (given $\mathbf{x}_*$ and $D$) in order to obtain the posterior predictive.
 
 $$
 \begin{align*}
@@ -257,7 +259,7 @@ Remarks:
   * low when $\mathbf{x}_*$ lies near the subspace spanned by the training data.
   * large when $\mathbf{x}_*$ is far from or orthogonal to the training data.
 
-Therefore, the posterior predicitve is
+Therefore, the posterior predictive is
 
 $$
 \begin{align}
@@ -276,6 +278,58 @@ $$
 &= \left( \sigma^{-2}_\text{n} \mathbf{X}^\top \mathbf{X} + \sigma^{-2}_\text{p} \mathbf{I} \right)^{-1} \\
 \boldsymbol{\mu}
 &= \sigma^{-2}_\text{n} \boldsymbol{\Sigma} \mathbf{X}^\top \mathbf{y}
+\end{align}
+$$
+
+## Recursive Least Square
+
+What if the data is collected sequentially instead of all at once? We can apply ***recursive Bayesian inference*** for model parameters in our linear model. This procedure is called ***recurisve least square***.
+
+Let $p(y\mid \mathbf{x})$ be parameterized by $\boldsymbol{\theta}$. The general framework of recurive Bayesian inference is
+
+> **RECURSIVE BAYESIAN INFERENCE**  
+> init $p(\boldsymbol{\theta})$ before observing any data  
+> For $t=1, \dots, n$, do:  
+> $\quad$ assume we have $p(\boldsymbol{\theta} \mid D_{1:t-1})$ where $D_{1:t-1} = \{\mathbf x_{1:t-1}, y_{1:t-1}\}$  
+> $\quad$ **predict**: compute $p(y_t \mid \mathbf x_t, D_{1:t-1})$ before observing $(\mathbf x_t, y_t)$:  
+> $$
+>   p(y_t \mid \mathbf x_t, D_{1:t-1}) = \int p(y_t \mid \mathbf{x}_t, \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid D_{1:t-1}) \:\mathrm d\boldsymbol{\theta}
+> $$
+> $\quad$ **update**: compute $p(\boldsymbol{\theta} \mid D_{1:t})$ after observing $(\mathbf x_t, y_t)$:
+> $$
+>   p(\boldsymbol{\theta} \mid D_{1:t}) \propto p(y_t \mid \mathbf{x}_t, \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid D_{1:t-1})
+> $$
+
+Here, the parameters $\boldsymbol{\theta}$ are just the weights $\mathbf{w}$ and every distribution involved is Gaussian. Therefore, it sufficies to compute the mean and variance for each distribution.
+
+> **RECURSIVE LEAST SQUARE**  
+> init $p(\mathbf{w})$ before observing any data  
+> For $t=1, \dots, n$, do:  
+> $\quad$ assume we have $\mathbb E\big[\mathbf{w} \mid D_{1:t-1}\big]$ and $\mathbb V\big[\mathbf{w} \mid D_{1:t-1}\big]$ where $D_{1:t-1} = \{\mathbf x_{1:t-1}, y_{1:t-1}\}$  
+> $\quad$ **predict**: compute $\mathbb E\big[y_t \mid \mathbf x_t, D_{1:t-1}\big]$ and $\mathbb V\big[y_t \mid \mathbf x_t, D_{1:t-1}\big]$ before observing $(\mathbf x_t, y_t)$  
+> $\quad$ **update**: compute $\mathbb E\big[\mathbf{w} \mid D_{1:t}\big]$ and $\mathbb V\big[\mathbf{w} \mid D_{1:t}\big]$ after observing $(\mathbf x_t, y_t)$
+
+### Prediction Step
+
+We already showed the posterior preditve in offline Bayesian inferece.
+
+$$
+\begin{align}
+y_* \mid \mathbf{x}_*, D \sim \mathcal N(
+    \boldsymbol{\mu}^\top \mathbf{x}_*, \:
+    \mathbf{x}_*^\top \boldsymbol{\Sigma} \mathbf{x}_* + \sigma^2_\text{n}
+)
+\end{align}
+$$
+
+Here, just let $D = D_{1:t-1}$, $\mathbf{x}_* = \mathbf x_t$ and $y_* = y_t$
+
+$$
+\begin{align}
+\mathbb E\big[y_t \mid \mathbf x_t, D_{1:t-1}\big]
+&= \mathbf x_t^\top \boldsymbol{\mu}_{t-1} \\
+\mathbb V\big[y_t \mid \mathbf x_t, D_{1:t-1}\big]
+&= \mathbf x_t^\top \boldsymbol{\Sigma}_{t-1} \mathbf x_t + \sigma^2_\text{n} \\
 \end{align}
 $$
 

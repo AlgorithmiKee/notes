@@ -9,6 +9,11 @@ fontsize: 12pt
 
 [toc]
 
+$$
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+$$
+
 Preliminary knowledge required:
 
 * conditional, marginal, joint probabilities
@@ -258,16 +263,15 @@ $$
 
 ### Learning a Gaussian Distribution with Gaussian Prior
 
-Consider a multivariate Gaussian with known covariance matirx $\boldsymbol\Sigma$ but unknown mean vector $\boldsymbol\mu$.
+Suppose we have iid observations $D=\{\mathbf x_1, \dots, \mathbf x_n\}$ drawn from a multivariate Gaussian with known covariance matirx $\boldsymbol\Sigma$ but unknown mean vector $\boldsymbol\mu$.
 
 $$
 \begin{align}
-\mathbf x \sim \mathcal N(\boldsymbol\mu, \boldsymbol\Sigma)
+\mathbf x_i \sim \mathcal N(\boldsymbol\mu, \boldsymbol\Sigma),\quad
+i=1,\dots,n
 \end{align}
 $$
-
-Suppose we have iid observations $D=\{\mathbf x_1, \dots, \mathbf x_n\}$. Then, the likelihood is
-
+Then, the likelihood is
 $$
 \begin{align*}
 p(D \mid \boldsymbol\mu)
@@ -315,19 +319,7 @@ p(\boldsymbol\mu \mid D)
 \end{align*}
 $$
 
-Identify the posterior mean $\boldsymbol\mu_n$ and posterior covariance matrix $\boldsymbol\Sigma_n$.
-
-$$
-\begin{align}
-\boldsymbol\Sigma_n^{-1}
-&\triangleq \left( n\boldsymbol\Sigma^{-1} + \boldsymbol\Sigma^{-1}_0 \right)
-\\
-\boldsymbol\mu_n
-&\triangleq \boldsymbol\Sigma_n  \left(n\boldsymbol\Sigma^{-1}\bar{\mathbf x} + \boldsymbol\Sigma^{-1}_0 \boldsymbol\mu_0 \right)
-\end{align}
-$$
-
-The posterior is hence Gaussian
+Note that the log posterior is a quadratic function of $\boldsymbol{\mu}$. By the normalization property of Gaussian distribution, the posterior is also Gaussian
 
 $$
 \begin{align}
@@ -335,21 +327,25 @@ $$
 \end{align}
 $$
 
-The posterior predictive distribution is
-
+with posterior mean and posterior variance
 $$
-\begin{align*}
-p(\mathbf x_* \mid D)
-&= \int p(\mathbf x_* \mid \boldsymbol\mu) \cdot p(\boldsymbol\mu \mid D) \:\mathrm{d}\boldsymbol\mu
+\begin{align}
+\boldsymbol\Sigma_n^{-1}
+&= n\boldsymbol\Sigma^{-1} + \boldsymbol\Sigma^{-1}_0
 \\
-&= \int \mathcal N(\mathbf x_* ; \boldsymbol\mu, \boldsymbol\Sigma) \cdot \mathcal N(\boldsymbol\mu ; \boldsymbol\mu_n, \boldsymbol\Sigma_n) \:\mathrm{d}\boldsymbol\mu
-\\
-&= \int \mathcal N(\mathbf x_* - \boldsymbol\mu ; \mathbf 0, \boldsymbol\Sigma) \cdot \mathcal N(\boldsymbol\mu ; \boldsymbol\mu_n, \boldsymbol\Sigma_n) \:\mathrm{d}\boldsymbol\mu
-\end{align*}
+\boldsymbol\mu_n
+&= \boldsymbol\Sigma_n  \left(n\boldsymbol\Sigma^{-1}\bar{\mathbf x} + \boldsymbol\Sigma^{-1}_0 \boldsymbol\mu_0 \right)
+\end{align}
 $$
-
-By the convolution rule of multivariate Gaussian (see Appendix), the posterior predictive is also Gaussian
-
+The posterior predicitve distribution can be calculated without evaluating any integral by noting that
+$$
+\begin{align}
+\mathbf{x}_* &= \boldsymbol{\mu} + \boldsymbol{\varepsilon}, \quad
+\boldsymbol{\varepsilon} \sim \mathcal N(\mathbf 0, \boldsymbol{\Sigma}), \quad
+\boldsymbol{\varepsilon} \perp \boldsymbol{\mu}
+\end{align}
+$$
+Recall that sum of independent Gaussian is again Guassian. Hence, we obtain the posterior predictive distribution
 $$
 \begin{align}
 \mathbf x_* \mid D \sim
@@ -410,7 +406,6 @@ $$
 $$
 
 *Proof*: Recall that $\boldsymbol\Sigma_n^{-1} \triangleq \left( n\boldsymbol\Sigma^{-1} + \boldsymbol\Sigma^{-1}_0 \right)$. Multiplying both sides with $\boldsymbol\Sigma_n$, we get
-
 $$
 \mathbf I
 =\boldsymbol\Sigma_n \left( n\boldsymbol\Sigma^{-1} + \boldsymbol\Sigma^{-1}_0 \right)
@@ -441,20 +436,16 @@ where
 $$
 \begin{align*}
 \frac{1}{\sigma_n^2}
-&= \left( \frac{n}{\sigma^{2}} + \frac{1}{\sigma^{2}_0} \right)
-\\
-\mu_n
-&= \sigma_n^2 \left( \frac{n}{\sigma^{2}}\bar{x} + \frac{1}{\sigma^{2}_0}\mu_0 \right)
-\end{align*}
-%%%%%%%%%
-\implies
-%%%%%%%%%
-\begin{align*}
+= \left( \frac{n}{\sigma^{2}} + \frac{1}{\sigma^{2}_0} \right)
+&\iff
 \sigma_n^2
-&= \frac{\sigma^{2} \sigma^{2}_0}{n\sigma^{2}_0 + \sigma^{2}}
+= \frac{\sigma^{2} \sigma^{2}_0}{n\sigma^{2}_0 + \sigma^{2}}
 \\
 \mu_n
-&= \mu_0 + \frac{n\sigma^{2}_0}{n\sigma^{2}_0 + \sigma^{2}} \left( \bar{x} - \mu_0 \right)
+= \sigma_n^2 \left( \frac{n}{\sigma^{2}}\bar{x} + \frac{1}{\sigma^{2}_0}\mu_0 \right)
+&\iff
+\mu_n
+= \mu_0 + \frac{n\sigma^{2}_0}{n\sigma^{2}_0 + \sigma^{2}} \left( \bar{x} - \mu_0 \right)
 \end{align*}
 $$
 
@@ -464,6 +455,17 @@ $$
 \begin{align}
 x_* \mid D \sim \mathcal N(\mu_n, \sigma^2 + \sigma_n^2)
 \end{align}
+$$
+
+If, in addition, the data set happens to be $D=\{x_1\}$ (i.e. $n=1$), then the posterior can be simplified further to
+$$
+\begin{align*}
+\sigma_1^2
+&= \frac{1}{\sigma^{-2}_0 + \sigma^{-2}}
+\\
+\mu_1
+&= \mu_0 + \frac{\sigma^{2}_0}{\sigma^{2}_0 + \sigma^{2}} \left( x_1 - \mu_0 \right)
+\end{align*}
 $$
 
 ## Recurisve Bayesian Inference
@@ -554,7 +556,7 @@ At time $t$, the **update** step computes (or updates) the **posterior** using  
 >     }{
 >       \underbrace{p(\mathbf x_t \mid \mathbf x_{1:t-1})}_\text{normalization const}
 >     }
-> \\[24pt]
+> \\[6pt]
 > &\propto p(\mathbf x_t \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid  \mathbf x_{1:t-1})
 > \end{align}
 > $$
@@ -565,28 +567,41 @@ Remarks:
 * Again, $p(\boldsymbol{\theta} \mid \mathbf x_{1:t})$ can be interpreted both as the posterior at time $t$ and as the "prior" at time $t+1$.
 * Intuitively, recursive Bayesian inference allows us to carry forward our belief about the parameters, refining them as we observe new data, rather than starting from scratch.
 
-*Proof*: By definition of $\mathbf x_{1:t}$, we reformulate the posterior into
-
-$$
-p(\boldsymbol{\theta} \mid \mathbf x_{1:t}) = p(\boldsymbol{\theta} \mid \mathbf x_{1:t-1}, \mathbf x_t)
-$$
-
-By assumption $\mathbf x_1,\dots,\mathbf x_t \stackrel{\text{iid}}{\sim} p(\mathbf x \mid \boldsymbol{\theta})$, we have the conditional independence
-
-$$
-\mathbf x_{1:t-1} \perp \mathbf x_t \mid \boldsymbol{\theta}
-$$
-
-Therefore, the conclusion follows from the property of conditional indepdence:
-
+*Proof*: The key is to use the conditional independence $\mathbf x_{1:t-1} \perp \mathbf x_t \mid \boldsymbol{\theta}$.
 $$
 \begin{align*}
-X \perp Y \mid Z \implies
-p(z \mid x,y) = \frac{p(z \mid x) \cdot p(y \mid z)}{p(y \mid x)}
+p(\boldsymbol{\theta} \mid \mathbf x_{1:t})
+&= \frac{p(\mathbf x_{1:t} \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta})}{p(\mathbf x_{1:t})}
+&& \text{Bayes rule for } p(\boldsymbol{\theta} \mid \mathbf x_{1:t})
+\\[6pt]
+&= \frac{p(\mathbf x_{t} \mid \boldsymbol{\theta}) \cdot p(\mathbf x_{1:t-1} \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta})}{p(\mathbf x_{1:t})}
+&& \mathbf x_{1:t-1} \perp \mathbf x_t \mid \boldsymbol{\theta}
+\\[6pt]
+&= \frac{p(\mathbf x_{t} \mid \boldsymbol{\theta}) \cdot p(\mathbf x_{1:t-1} \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta})}{p(\mathbf x_t \mid \mathbf x_{1:t-1}) \cdot p(\mathbf x_{1:t-1})}
+&& \text{Chain rule on denominator}
+\\[6pt]
+&= \frac{p(\mathbf x_{t} \mid \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid \mathbf x_{1:t-1})}{p(\mathbf x_t \mid \mathbf x_{1:t-1})}
+&& \text{Bayes rule for } p(\boldsymbol{\theta} \mid \mathbf x_{1:t-1})
 \tag*{$\blacksquare$}
 \end{align*}
 $$
+*Proof (alt.)*: The conclusion follows from the property of conditional indepdence:
+$$
+\begin{align*}
+X \perp Y \mid Z \implies
+p(z \mid x,y) = \frac{p(y \mid z) \cdot p(z \mid x)}{p(y \mid x)}
+\end{align*}
+$$
 
+by letting
+$$
+\begin{align*}
+X = \mathbf x_{1:t-1}, \quad
+Y = \mathbf x_t, \quad
+Z = \boldsymbol{\theta}
+\tag*{$\blacksquare$}
+\end{align*}
+$$
 In general, the integrals involved in the prediction and update steps are intractable. However, when both the prior and likelihood are Gaussian, the posterior remains Gaussian, leading to closed-form solutions. e.g. in the Kalman filter.
 
 ### Connection to Filtering
@@ -605,6 +620,74 @@ Kalman filter is a special case of Bayesian filter where
 
 * Both the state evolution and observation model are described by stochastic linear dynamics.
 * All random variables (state, observation and noise) are Gaussian.
+
+### Recursive Inference for Multivariate Gaussian
+
+Recall the example of Multivariate Guassian with unknown mean $\mathcal N(\boldsymbol\mu, \boldsymbol\Sigma)$. Previously, we derived the Bayesian inference based on the data set $D=\{\mathbf x_1, \dots, \mathbf x_n\}$. Now, suppose we collected the data sequentially instead of all at once. Appying recursive Bayesian inference results in closed-from solution due to Gaussian-ness.
+
+Assume we have a Gaussian prior on $\boldsymbol\mu$ before seeing any data.
+
+$$
+\begin{align}
+\boldsymbol\mu \sim \mathcal N(\boldsymbol\mu_0, \boldsymbol\Sigma_0)
+\end{align}
+$$
+
+At any $t\ge 1$, we use the posterior from $t-1$ as current prior.
+$$
+\begin{align}
+\boldsymbol\mu \mid \mathbf{x}_{1:t-1} \sim \mathcal N(\boldsymbol\mu_{t-1}, \boldsymbol\Sigma_{t-1})
+\end{align}
+$$
+After observing $\mathbf{x}_t$, we update the posterior to
+$$
+\begin{align}
+\boldsymbol\Sigma_t^{-1}
+&= \boldsymbol\Sigma^{-1}_{t-1} + \boldsymbol\Sigma^{-1}
+\\
+\boldsymbol\mu_t
+&= \boldsymbol\Sigma_t \left(\boldsymbol\Sigma^{-1}_{t-1} \boldsymbol\mu_{t-1} + \boldsymbol\Sigma^{-1} \mathbf x_t \right)
+\\
+&= \boldsymbol\mu_{t-1} +
+   \boldsymbol\Sigma_t \boldsymbol\Sigma^{-1} \left(\mathbf x_t - \boldsymbol\mu_{t-1} \right)
+\end{align}
+$$
+*Proof*: This is just a special case of the offline Bayesian inference
+$$
+\begin{align*}
+\boldsymbol\Sigma_n^{-1}
+&= n\boldsymbol\Sigma^{-1} + \boldsymbol\Sigma^{-1}_0
+\\
+\boldsymbol\mu_n
+&= \boldsymbol\Sigma_n  \left(n\boldsymbol\Sigma^{-1}\bar{\mathbf x} + \boldsymbol\Sigma^{-1}_0 \boldsymbol\mu_0 \right)
+\end{align*}
+$$
+by assuming
+$$
+\begin{align*}
+&\text{prior: }
+\cancel{\boldsymbol\mu_0} \to \boldsymbol\mu_{t-1}, \quad
+\cancel{\boldsymbol\Sigma_0} \to \boldsymbol\Sigma_{t-1}
+\\
+&\text{data: }
+D=\{\mathbf x_t\} \implies n=1, \quad \bar{\mathbf x} = \mathbf x_t
+\\
+&\text{posterior: }
+\cancel{\boldsymbol\mu_n} \to \boldsymbol\mu_t, \quad
+\cancel{\boldsymbol\Sigma_n} \to \boldsymbol\Sigma_t
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+1D special case:
+$$
+\begin{align}
+\sigma_t^{-2}
+&= \sigma^{-2}_{t-1} + \sigma^{-2}
+\\
+\mu_t
+&= \mu_{t-1} + \frac{\sigma^{2}_{t-1}}{\sigma^{2}_{t-1} + \sigma^{2}} \left( x_t - \mu_{t-1} \right)
+\end{align}
+$$
 
 ## Appendix
 

@@ -7,6 +7,13 @@ fontsize: 12pt
 
 # Bayesian Linear Regression
 
+[toc]
+
+$$
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+$$
+
 **Preliminary**: linear regression, Bayesian inference.
 
 ## Problem Formulation

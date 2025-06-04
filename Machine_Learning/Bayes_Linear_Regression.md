@@ -19,7 +19,7 @@ $$
 ## Problem Formulation
 
 * Given: training dataset $D=\{(\mathbf{x}_i, y_i)\}_{i=1}^n \stackrel{\text{iid}}{\sim} p(\mathbf x, y)$ where $(\mathbf{x}_i, y_i) \in \mathbb R^d \times \mathbb R$.
-* Statistical model: $y_i = \mathbf{w}^\top \mathbf{x}_i + \varepsilon_i, \quad \varepsilon_i \stackrel{\text{iid}}{\sim} \mathcal{N}(0, \sigma^2_\text{n})$
+* Statistical model: $y_i = \mathbf{w}^\top \mathbf{x}_i + \varepsilon_i, \quad \varepsilon_i \stackrel{\text{iid}}{\sim} \mathcal{N}(0, \sigma^2)$
 * Additional assumption: $\varepsilon_i$ and $\mathbf{x}_i$ are statistically independent
 * Goal: Predict the label for a new data point $\mathbf{x}_*$ using the **full** posterior distribution $p(\mathbf w \mid D)$
 
@@ -30,8 +30,8 @@ $$
 $$
 \begin{align}
 p(y_i \mid \mathbf{x}_i, \mathbf{w})
-&= \mathcal{N}(y_i \mid \mathbf{w}^\top \mathbf{x}_i, \sigma^2_\text{n}) \\
-&= \frac{1}{\sqrt{2\pi \sigma^2_\text{n}}} \exp\left(-\frac{(y_i - \mathbf{w}^\top \mathbf{x}_i)^2}{2\sigma^2_\text{n}}\right) \nonumber \\
+&= \mathcal{N}(y_i \mid \mathbf{w}^\top \mathbf{x}_i, \sigma^2) \\
+&= \frac{1}{\sqrt{2\pi \sigma^2}} \exp\left(-\frac{(y_i - \mathbf{w}^\top \mathbf{x}_i)^2}{2\sigma^2}\right) \nonumber \\
 \end{align}
 $$
 
@@ -41,7 +41,7 @@ $$
 \begin{align}
 \ln p(D \mid \mathbf w)
 &= \ln \prod_{i=1}^n p(\mathbf{x}_i, y_i \mid\mathbf{w}) + \text{const} \\
-&= -\frac{1}{2\sigma^2_\text{n}} (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 + \text{const} 
+&= -\frac{1}{2\sigma^2} (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 + \text{const} 
 \end{align}
 $$
 
@@ -54,13 +54,13 @@ $$
 \end{align}
 $$
 
-* Log posterior with Gaussian prior
+* Log posterior with Gaussian prior $\mathbf{w} \sim \mathcal N(\mathbf{0}, \sigma^2_\text{p}\mathbf{I})$
 
 $$
 \begin{align}
 \ln p(\mathbf w \mid D)
 &= \ln \prod_{i=1}^n p(\mathbf{x}_i, y_i \mid\mathbf{w}) + \ln p(\mathbf{w}) + \text{const} \\
-&= -\frac{1}{2\sigma^2_\text{n}} (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 -
+&= -\frac{1}{2\sigma^2} (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 -
     \frac{1}{2\sigma^2_\text{p}} \Vert\boldsymbol{\theta}\Vert^2 +
     \text{const} 
 \end{align}
@@ -72,7 +72,7 @@ $$
 \begin{align}
 \hat{\mathbf w}_\text{MAP}
 &= \argmin_{\mathbf w} \sum_{i=1}^n (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 +
-   \frac{\sigma^2_\text{n}}{\sigma^2_\text{p}} \Vert\boldsymbol{\theta}\Vert^2
+   \frac{\sigma^2}{\sigma^2_\text{p}} \Vert\boldsymbol{\theta}\Vert^2
 \end{align}
 $$
 
@@ -101,80 +101,59 @@ Remarks:
     \end{align}
     $$
 
-In the following, we assume a spherical Gaussian prior on $\mathbf{w}$, i.e.
+In the following, we assume a Gaussian prior on $\mathbf{w}$, i.e.
 
 $$
 \begin{align}
-\mathbf{w} \sim \mathcal N(\mathbf{0}, \sigma^2_\text{p}\mathbf{I})
+p(\mathbf{w}) = \mathcal N(\mathbf{w} \mid \mathbf{w}_0, \mathbf{P}_0)
 \end{align}
 $$
+
+Remarks:
+
+* $\mathbf{w}_0$ represents our initial estimate of weight vector $\mathbf{w}$.
+* $\mathbf{P}_0$ quantifies the uncertainty about $\mathbf{w}$ before we observe any data.
+* In standard MAP estimation, the prior is chosen s.t. $\mathbf{w}_0 = \mathbf{0}$ and $\mathbf{P}_0 = \sigma^2_\text{p}\mathbf{I}$. Here, we use a slightly more general Gaussian prior.
 
 We will show later that the posterior is Gaussian
 
 $$
 \begin{align}
-\mathbf{w} \mid D \sim \mathcal N(\boldsymbol{\mu}, \boldsymbol{\Sigma})
+p(\mathbf{w} \mid D) = \mathcal N(\mathbf{w} \mid \mathbf{w}_n, \mathbf{P}_n)
 \end{align}
 $$
 
-where the posterior mean $\boldsymbol{\mu} \triangleq \mathbb E[\mathbf{w} \mid D]$ and posterior covariance matrix $\boldsymbol{\Sigma} \triangleq \mathbb V[\mathbf{w} \mid D]$ will be calculated later. The key idea is the sufficiency of computing the mean and variance rather than evaluating any integral if everything is Gaussian.
+Remarks:
 
-### The Full Posterior
+* We use the subscript $n$ to hightlight the size of our data set $D$.
+* $\mathbf{w}_n$ is the MAP estimate of weight vector $\mathbf{w}$ after we observe $D$.
+* $\mathbf{P}_n$ quantifies the uncertainty about $\mathbf{w}$ after we observe $D$.
 
-By Bayesian rule,
+Recall the Bayesian rule
 
 $$
 \begin{align}
 p(\mathbf{w} \mid D)
-&= \frac{p(D \mid \mathbf{w}) \cdot p(\mathbf{w})}{p(D)} \\
-&\propto p(D \mid \mathbf{w}) \cdot p(\mathbf{w}) \\
-&= \left( \prod_{i=1}^n p(\mathbf{x}_i, y_i \mid \mathbf{w}) \right) \cdot p(\mathbf{w}) \\
-&= \left( \prod_{i=1}^n p(y_i \mid \mathbf{x}_i, \mathbf{w}) \, p(\mathbf{x}_i) \right) \cdot p(\mathbf{w}) \\
-&\propto \left( \prod_{i=1}^n p(y_i \mid \mathbf{x}_i, \mathbf{w}) \right) \cdot p(\mathbf{w})
+&= \frac{p(D \mid \mathbf{w}) \cdot p(\mathbf{w})}{p(D)}
+= \frac{p(D \mid \mathbf{w}) \cdot p(\mathbf{w})}{\int p(D \mid \mathbf{w}) \cdot p(\mathbf{w}) \:\mathrm d \mathbf{w}}
 \end{align}
 $$
 
-For the sake of derivation, we will show that the log posterior is quadratic form of $\mathbf{w}$, which proves that the posterior is Gaussian. Recall that
+Due to Gaussian-ness, we only need to compute $\mathbf{w}_n$ and $\mathbf{P}_n$ to obtain the full posterior rather than evaluating the high-dimensional integral in the denominator.
 
-$$
-\begin{align*}
-y_i \mid \mathbf{x}_i, \mathbf{w} \sim \mathcal N(\mathbf{w}^\top \mathbf{x}_i, \sigma^2_\text{n})
-&\implies
-\ln p(y_i \mid \mathbf{x}_i, \mathbf{w}) = -\frac{1}{2\sigma^2_\text{n}} (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 + \text{const.}
-\\
-\mathbf{w} \sim \mathcal N(\mathbf{0}, \sigma^2_\text{p}\mathbf{I})
-&\implies
-\ln p(\mathbf{w}) = -\frac{1}{2\sigma^2_\text{p}} \Vert\mathbf{w}\Vert^2 + \text{const.}
-\end{align*}
-$$
+### The Full Posterior
 
-Hence, the log posterior is
+We now show that the posterior is Guassian by showing that the log posterior is a quadratic function of $\mathbf{w}$.
+
+Recall the statistical model
 
 $$
 \begin{align}
-\ln p(\mathbf{w} \mid D)
-&= \sum_{i=1}^n \ln p(y_i \mid \mathbf{x}_i, \mathbf{w}) + \ln p(\mathbf{w}) + \text{const.}
+y_i &= \mathbf{w}^\top \mathbf{x}_i + \varepsilon_i, \quad
+\varepsilon_i \sim \mathcal N(0, \sigma^2)
 \\
-&= -\frac{1}{2\sigma^2_\text{n}} \sum_{i=1}^n (y_i - \mathbf{w}^\top \mathbf{x}_i)^2
-   -\frac{1}{2\sigma^2_\text{p}} \Vert\mathbf{w}\Vert^2 + \text{const.}
-\\
-&= -\frac{1}{2\sigma^2_\text{n}} \Vert\mathbf{y} - \mathbf{X}\mathbf{w}\Vert^2
-   -\frac{1}{2\sigma^2_\text{p}} \Vert\mathbf{w}\Vert^2 + \text{const.}
-\\
-&= -\frac{1}{2} \left[
-      \sigma^{-2}_\text{n}(\mathbf{y} - \mathbf{X}\mathbf{w})^\top (\mathbf{y} - \mathbf{X}\mathbf{w})
-      +\sigma^{-2}_\text{p} \mathbf{w}^\top \mathbf{w}
-    \right] + \text{const.}
-\\
-&= -\frac{1}{2} \left[
-      \sigma^{-2}_\text{n} \left( \mathbf{w}^\top \mathbf{X}^\top \mathbf{X} \mathbf{w} - 2 \mathbf{y}^\top \mathbf{X} \mathbf{w} \right)
-      +\sigma^{-2}_\text{p} \mathbf{w}^\top \mathbf{w}
-    \right] + \text{const.}
-\\
-&= -\frac{1}{2} \left[
-       \mathbf{w}^\top \left( \sigma^{-2}_\text{n} \mathbf{X}^\top \mathbf{X} + \sigma^{-2}_\text{p}\mathbf{I} \right) \mathbf{w} - 2 \sigma^{-2}_\text{n} \mathbf{y}^\top \mathbf{X} \mathbf{w}
-    \right] + \text{const.}
-\\
+\mathbf{y} &= \mathbf{X}^\top \mathbf{w} + \boldsymbol{\varepsilon}, \quad
+\boldsymbol{\varepsilon} \sim \mathcal N(\mathbf{0}, \sigma^2\mathbf{I})
 \end{align}
 $$
 
@@ -182,47 +161,160 @@ where
 
 $$
 \begin{align}
-\mathbf{X} =
-\begin{bmatrix}
-\mathbf{x}_1^\top \\ \vdots \\ \mathbf{x}_n^\top
-\end{bmatrix}
-\in\mathbb R^{n \times d}
-\quad
 \mathbf{y} =
 \begin{bmatrix}
-y_1 \\ \vdots \\ y_n
+  y_1 \\ \vdots \\ y_n
+\end{bmatrix}
+\in\mathbb R^{n},
+%%%%%%%%%%%%
+\quad
+%%%%%%%%%%%%
+\mathbf{X} =
+\begin{bmatrix}
+  \mathbf{x}_1^\top \\ \vdots \\ \mathbf{x}_n^\top
+\end{bmatrix}
+\in\mathbb R^{n \times d},
+%%%%%%%%%%%%
+\quad
+%%%%%%%%%%%%
+\boldsymbol{\varepsilon} =
+\begin{bmatrix}
+  \varepsilon_1 \\ \vdots \\ \varepsilon_n
 \end{bmatrix}
 \in\mathbb R^{n}
 \end{align}
 $$
 
-By the property of multivariate Gaussian, the posterior is also Gaussian:
+The likelihood is thus
 
 $$
 \begin{align}
-\mathbf{w} \mid D \sim \mathcal N(\boldsymbol{\mu}, \boldsymbol{\Sigma})
+p(D \mid \mathbf{w}) 
+&= p(\mathbf{x}_{1:n}, y_{1:n} \mid \mathbf{w}) \\
+&= p(y_{1:n} \mid \mathbf{x}_{1:n}, \mathbf{w}) \cdot p(\mathbf{x}_{1:n}) \\
+&\propto p(y_{1:n} \mid \mathbf{x}_{1:n}, \mathbf{w}) \\
+&= \mathcal N(\mathbf{y} \mid \mathbf{X}^\top \mathbf{w}, \sigma^2\mathbf{I})
 \end{align}
 $$
 
-with posterior mean and posterior variance
+The posterior is
 
 $$
 \begin{align}
-\boldsymbol{\Sigma}
-&= \left( \sigma^{-2}_\text{n} \mathbf{X}^\top \mathbf{X} + \sigma^{-2}_\text{p} \mathbf{I} \right)^{-1} \\[6pt]
-\boldsymbol{\mu}
-&= \sigma^{-2}_\text{n} \boldsymbol{\Sigma} \mathbf{X}^\top \mathbf{y} \\
+p(\mathbf{w} \mid D)
+&\propto p(D \mid \mathbf{w}) \cdot p(\mathbf{w}) \\
+&\propto \mathcal N(\mathbf{y} \mid \mathbf{X}^\top \mathbf{w}, \sigma^2\mathbf{I}) \cdot \mathcal N(\mathbf{w} \mid \mathbf{w}_0, \mathbf{P}_0) \\
+\end{align}
+$$
+
+Taking the log, we obtain a quadratic log posterior
+
+$$
+\begin{align}
+\ln p(\mathbf{w} \mid D)
+&= -\frac{1}{2\sigma^2} \big\Vert\mathbf{y} - \mathbf{X}\mathbf{w} \big\Vert^2
+   -\frac{1}{2} (\mathbf{w} - \mathbf{w}_0)^\top \mathbf{P}_0^{-1} (\mathbf{w} - \mathbf{w}_0) + \text{const.}
+\\
+&= -\frac{1}{2} \left[
+      \sigma^{-2}(\mathbf{y} - \mathbf{X}\mathbf{w})^\top (\mathbf{y} - \mathbf{X}\mathbf{w})
+      +(\mathbf{w} - \mathbf{w}_0)^\top \mathbf{P}_0^{-1} (\mathbf{w} - \mathbf{w}_0)
+    \right] + \text{const.}
+\\
+&= -\frac{1}{2} \left[
+      \sigma^{-2} \left( \mathbf{w}^\top \mathbf{X}^\top \mathbf{X} \mathbf{w} - 2 \mathbf{y}^\top \mathbf{X} \mathbf{w} \right)
+      + \mathbf{w}^\top \mathbf{P}_0^{-1} \mathbf{w} - 2 \mathbf{w}_0^\top \mathbf{P}_0^{-1} \mathbf{w}
+    \right] + \text{const.}
+\\
+&= -\frac{1}{2} \left[
+       \mathbf{w}^\top \left( \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \mathbf{P}_0^{-1} \right) \mathbf{w} -
+       2 \left( \sigma^{-2} \mathbf{y}^\top \mathbf{X} + \mathbf{w}_0^\top \mathbf{P}_0^{-1} \right) \mathbf{w}
+    \right] + \text{const.}
+\\
+\end{align}
+$$
+
+Hence, the posterior is also Gaussian (by normalization property of multivariate Gaussian )
+
+> $$
+> \begin{align}
+> p(\mathbf{w} \mid D) = \mathcal N(\mathbf{w} \mid \mathbf{w}_n, \mathbf{P}_n)
+> \end{align}
+> $$
+
+The posterior mean and posterior variance can be read-off in the log posterior:
+
+> $$
+> \begin{align}
+> \mathbf{P}_n^{-1}
+> &= \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \mathbf{P}_0^{-1}
+> \\[6pt]
+> \mathbf{w}_n
+> &= \mathbf{P}_n \left( \sigma^{-2} \mathbf{X}^\top \mathbf{y} + \mathbf{P}_0^{-1} \mathbf{w}_0 \right)
+> \end{align}
+> $$
+
+The posterior mean $\mathbf{w}_n$ can be refumulated as a sum of the prior mean $\mathbf{w}_0$ and a correction term.
+
+> $$
+> \begin{align}
+> \mathbf{w}_n
+> &= \mathbf{w}_0 + \sigma^{-2} \mathbf{P}_n \mathbf{X}^\top \left( \mathbf{y} - \mathbf{X} \mathbf{w}_0 \right)
+> \end{align}
+> $$
+
+Remarks:
+
+* $\mathbf{y} - \mathbf{X} \mathbf{w}_0$ is called ***residual***. It reflects the difference between the observed labels and predicted labels based on prior mean. It is similar to the ***innovation*** in Kalman filter.
+* $\sigma^{-2} \mathbf{P}_n \mathbf{X}^\top$ is called ***gain***. It reflects how strong we respond to the residual, similar to ***Kalman gain***.
+
+Let $\mathbf{K}_n \triangleq \sigma^{-2} \mathbf{P}_n \mathbf{X}^\top$, we can express $\mathbf{w}_n$ as a weighted average of $\mathbf{w}_0$ and $\mathbf{y}$.
+
+> $$
+> \begin{align}
+> \mathbf{w}_n
+> &= \left( \mathbf{I} - \mathbf{K}_n\mathbf{X} \right) \mathbf{w}_0 + \mathbf{K}_n \mathbf{y}
+> \end{align}
+> $$
+
+If the data set contains only one sample $D = \{ \mathbf x_1, y_1 \}$ (i.e. $n=1$), then $\mathbf{w}_n$ and $\mathbf{P}_n$ simplify to
+
+$$
+\begin{align}
+\mathbf{P}_1^{-1}
+&= \sigma^{-2} \mathbf{x}_1 \mathbf{x}_1^\top + \mathbf{P}_0^{-1}
+\\[6pt]
+\mathbf{w}_1
+&= \mathbf{P}_1 \left( \sigma^{-2} \mathbf{x}_1 y_1 + \mathbf{P}_0^{-1} \mathbf{w}_0 \right)
+\\
+&= \mathbf{w}_0 + \sigma^{-2} \mathbf{P}_1 \mathbf{x}_1 \left( y_1 - \mathbf{w}_0^\top \mathbf{x}_1 \right)
+\end{align}
+$$
+
+In standard MAP estimation, we assume $\mathbf{w}_0 = \mathbf{0}$ and $\mathbf{P}_0 = \sigma^2_\text{p}\mathbf{I}$, i.e.
+
+$$
+\begin{align}
+p(\mathbf{w}) = \mathcal N(\mathbf{w} \mid \mathbf{0}, \sigma_{0}^{2}\mathbf{I})
+\end{align}
+$$
+
+The posterior mean and posterior variance simplify to
+
+$$
+\begin{align}
+\mathbf{P}_n^{-1}
+&= \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \sigma_{0}^{-2} \mathbf{I}
+\\[6pt]
+\mathbf{w}_n
 &= \left( \mathbf{X}^\top \mathbf{X} + \lambda\mathbf{I} \right)^{-1} \mathbf{X}^\top \mathbf{y},
-\qquad \lambda \triangleq \sigma^{2}_\text{n} / \sigma^{2}_\text{p}
+\qquad \lambda \triangleq \sigma^{2} / \sigma_{0}^{2}
 \end{align}
 $$
 
 Remarks:
 
-* For cleaner notation, we avoid using $\boldsymbol{\mu}_{\mathbf{w} \mid D}, \boldsymbol{\Sigma}_{\mathbf{w} \mid D}$ for the posterior mean and covariance matrix.
-* Given the training data, the Bayesian inference says that the weights $\mathbf{w}$ are roughly around $\boldsymbol{\mu}$ with variance $\boldsymbol{\Sigma}$. In contrast, MAP estimation only computes the mode of the posterior, which coincides with the mean $\boldsymbol{\mu}$ due to Gaussian-ness.
-* If we have a strong prior (small $\sigma_\text{p}$), then $\boldsymbol{\Sigma}\approx\sigma^{2}_\text{p} \mathbf{I}$ and $\boldsymbol{\mu}\approx\mathbf{0}$, which pushes the weights $\mathbf{w}$ close to zero.
-* If the label noise is low (small $\sigma_\text{n}$), then $\boldsymbol{\Sigma}\approx\sigma^{2}_\text{n} \left( \mathbf{X}^\top \mathbf{X} \right)^{-1}$ and $\boldsymbol{\mu}\approx\left( \mathbf{X}^\top \mathbf{X} \right)^{-1} \mathbf{X}^\top \mathbf{y}$ which pushes the weights $\mathbf{w}$ close to the least square estimate.
+* $\mathbf{w}_n$ is exactly the MAP estimate aka solution of Ridge regression.
+* In Bayesian inference, we also compute $\mathbf{P}_n$, which quantifies the uncertainty of $\mathbf{w}_n$.
 
 ### The Posterior Predictive
 
@@ -231,7 +323,7 @@ Having derived the posterior $p(\mathbf{w} \mid D)$, we are ready to derive the 
 $$
 \begin{align}
 y_* = \mathbf{w}^\top \mathbf{x}_* + \varepsilon, \quad
-\varepsilon \sim \mathcal N(\mathrm{0}, \sigma^2_\text{n})
+\varepsilon \sim \mathcal N(\mathrm{0}, \sigma^2)
 \end{align}
 $$
 
@@ -243,7 +335,7 @@ $$
 &= \mathbb E[\mathbf{w}^\top \mathbf{x}_* + \varepsilon \mid \mathbf{x}_*, D] \\
 &= \mathbb E[\mathbf{w}^\top \mathbf{x}_* \mid \mathbf{x}_*, D] + \mathbb E[\varepsilon \mid \mathbf{x}_*, D] \\
 &= \mathbb E[\mathbf{w} \mid D]^\top \mathbf{x}_* + \mathbb E[\varepsilon] \\
-&= \boldsymbol{\mu}^\top \mathbf{x}_*
+&= \mathbf{w}_n^\top \mathbf{x}_*
 \end{align*}
 $$
 
@@ -253,40 +345,29 @@ $$
 &= \mathbb V[\mathbf{w}^\top \mathbf{x}_* + \varepsilon \mid \mathbf{x}_*, D] \\
 &= \mathbb V[\mathbf{w}^\top \mathbf{x}_* \mid \mathbf{x}_*, D] + \mathbb V[\varepsilon \mid \mathbf{x}_*, D] \\
 &= \mathbf{x}_*^\top \mathbb V[\mathbf{w} \mid D] \mathbf{x}_* + \mathbb V[\varepsilon] \\
-&= \mathbf{x}_*^\top \boldsymbol{\Sigma} \mathbf{x}_* + \sigma^2_\text{n}
+&= \mathbf{x}_*^\top \mathbf{P}_n \mathbf{x}_* + \sigma^2
 \end{align*}
 $$
+
+Therefore, the posterior predictive is
+
+> $$
+> \begin{align}
+> y_* \mid \mathbf{x}_*, D \sim \mathcal N(
+>     \mathbf{w}_n^\top \mathbf{x}_*, \:
+>     \mathbf{x}_*^\top \mathbf{P}_n \mathbf{x}_* + \sigma^2
+> )
+> \end{align}
+> $$
 
 Remarks:
 
 * The uncertainty in $y_*$ consists of two parts.
-  * ***Predictive variance*** $\mathbf{x}_*^\top \boldsymbol{\Sigma} \mathbf{x}_*$, which arises due to lack of data.
-  * ***Irreducible noise*** $\sigma^2_\text{n}$.
-* The predictive variance $\mathbf{x}_*^\top \boldsymbol{\Sigma} \mathbf{x}_*$ tends to be (proof omitted)
+  * ***Predictive variance*** $\mathbf{x}_*^\top \mathbf{P}_n \mathbf{x}_*$, which arises due to lack of data.
+  * ***Irreducible noise*** $\sigma^2$.
+* The predictive variance $\mathbf{x}_*^\top \mathbf{P}_n \mathbf{x}_*$ tends to be (proof omitted)
   * low when $\mathbf{x}_*$ lies near the subspace spanned by the training data.
   * large when $\mathbf{x}_*$ is far from or orthogonal to the training data.
-
-Therefore, the posterior predictive is
-
-$$
-\begin{align}
-y_* \mid \mathbf{x}_*, D \sim \mathcal N(
-    \boldsymbol{\mu}^\top \mathbf{x}_*, \:
-    \mathbf{x}_*^\top \boldsymbol{\Sigma} \mathbf{x}_* + \sigma^2_\text{n}
-)
-\end{align}
-$$
-
-with
-
-$$
-\begin{align}
-\boldsymbol{\Sigma}
-&= \left( \sigma^{-2}_\text{n} \mathbf{X}^\top \mathbf{X} + \sigma^{-2}_\text{p} \mathbf{I} \right)^{-1} \\
-\boldsymbol{\mu}
-&= \sigma^{-2}_\text{n} \boldsymbol{\Sigma} \mathbf{X}^\top \mathbf{y}
-\end{align}
-$$
 
 ## Recursive Least Square
 
@@ -324,7 +405,7 @@ $$
 \begin{align}
 y_* \mid \mathbf{x}_*, D \sim \mathcal N(
     \boldsymbol{\mu}^\top \mathbf{x}_*, \:
-    \mathbf{x}_*^\top \boldsymbol{\Sigma} \mathbf{x}_* + \sigma^2_\text{n}
+    \mathbf{x}_*^\top \boldsymbol{\Sigma} \mathbf{x}_* + \sigma^2
 )
 \end{align}
 $$
@@ -336,7 +417,7 @@ $$
 \mathbb E\big[y_t \mid \mathbf x_t, D_{1:t-1}\big]
 &= \mathbf x_t^\top \boldsymbol{\mu}_{t-1} \\
 \mathbb V\big[y_t \mid \mathbf x_t, D_{1:t-1}\big]
-&= \mathbf x_t^\top \boldsymbol{\Sigma}_{t-1} \mathbf x_t + \sigma^2_\text{n} \\
+&= \mathbf x_t^\top \boldsymbol{\Sigma}_{t-1} \mathbf x_t + \sigma^2 \\
 \end{align}
 $$
 

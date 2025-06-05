@@ -76,7 +76,7 @@ $$
 \end{align}
 $$
 
-## Bayesian Inference for Model Parameters
+## Offline Bayesian Linear Regression
 
 Both MLE and MAP use training dataset $D$ to compute a point estimate $\hat{\mathbf{w}}$, leading to plug-in predictive $p(y_* \mid \mathbf{x}_*, \hat{\mathbf{w}})$.
 
@@ -264,6 +264,7 @@ The posterior mean $\mathbf{w}_n$ can be refumulated as a sum of the prior mean 
 
 Remarks:
 
+* $\mathbf{X} \mathbf{w}_0$ contains label predictions using the prior mean $\mathbf{w}_0$ on $\mathbf{x}_{1:n}$ before we observe $y_{1:n}$.
 * $\mathbf{y} - \mathbf{X} \mathbf{w}_0$ is called ***residual***. It reflects the difference between the observed labels and predicted labels based on prior mean. It is similar to the ***innovation*** in Kalman filter.
 * $\sigma^{-2} \mathbf{P}_n \mathbf{X}^\top$ is called ***gain***. It reflects how strong we respond to the residual, similar to ***Kalman gain***.
 
@@ -279,7 +280,7 @@ Let $\mathbf{K}_n \triangleq \sigma^{-2} \mathbf{P}_n \mathbf{X}^\top$, we can e
 If the data set contains only one sample $D = \{ \mathbf x_1, y_1 \}$ (i.e. $n=1$), then $\mathbf{w}_n$ and $\mathbf{P}_n$ simplify to
 
 $$
-\begin{align}
+\begin{align*}
 \mathbf{P}_1^{-1}
 &= \sigma^{-2} \mathbf{x}_1 \mathbf{x}_1^\top + \mathbf{P}_0^{-1}
 \\[6pt]
@@ -287,7 +288,7 @@ $$
 &= \mathbf{P}_1 \left( \sigma^{-2} \mathbf{x}_1 y_1 + \mathbf{P}_0^{-1} \mathbf{w}_0 \right)
 \\
 &= \mathbf{w}_0 + \sigma^{-2} \mathbf{P}_1 \mathbf{x}_1 \left( y_1 - \mathbf{w}_0^\top \mathbf{x}_1 \right)
-\end{align}
+\end{align*}
 $$
 
 In standard MAP estimation, we assume $\mathbf{w}_0 = \mathbf{0}$ and $\mathbf{P}_0 = \sigma^2_\text{p}\mathbf{I}$, i.e.
@@ -369,57 +370,92 @@ Remarks:
   * low when $\mathbf{x}_*$ lies near the subspace spanned by the training data.
   * large when $\mathbf{x}_*$ is far from or orthogonal to the training data.
 
-## Recursive Least Square
+## Online Bayesian Linear Regression
 
-What if the data is collected sequentially instead of all at once? We can apply ***recursive Bayesian inference*** for model parameters in our linear model. This procedure is called ***recurisve least square***.
+What if the data is collected sequentially instead of all at once? We can apply ***recursive Bayesian inference*** for $\mathbf{w}$ in our linear model. This procedure is called ***online Bayesian linear regression***.
 
-Let $p(y\mid \mathbf{x})$ be parameterized by $\boldsymbol{\theta}$. The general framework of recurive Bayesian inference is
-
-> **RECURSIVE BAYESIAN INFERENCE**  
-> init $p(\boldsymbol{\theta})$ before observing any data  
-> For $t=1, \dots, n$, do:  
-> $\quad$ assume we have $p(\boldsymbol{\theta} \mid D_{1:t-1})$ where $D_{1:t-1} = \{\mathbf x_{1:t-1}, y_{1:t-1}\}$  
-> $\quad$ **predict**: compute $p(y_t \mid \mathbf x_t, D_{1:t-1})$ before observing $(\mathbf x_t, y_t)$:  
-> $$
->   p(y_t \mid \mathbf x_t, D_{1:t-1}) = \int p(y_t \mid \mathbf{x}_t, \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid D_{1:t-1}) \:\mathrm d\boldsymbol{\theta}
-> $$
-> $\quad$ **update**: compute $p(\boldsymbol{\theta} \mid D_{1:t})$ after observing $(\mathbf x_t, y_t)$:
-> $$
->   p(\boldsymbol{\theta} \mid D_{1:t}) \propto p(y_t \mid \mathbf{x}_t, \boldsymbol{\theta}) \cdot p(\boldsymbol{\theta} \mid D_{1:t-1})
-> $$
-
-Here, the parameters $\boldsymbol{\theta}$ are just the weights $\mathbf{w}$ and every distribution involved is Gaussian. Therefore, it sufficies to compute the mean and variance for each distribution.
-
-> **RECURSIVE LEAST SQUARE**  
-> init $p(\mathbf{w})$ before observing any data  
-> For $t=1, \dots, n$, do:  
-> $\quad$ assume we have $\mathbb E\big[\mathbf{w} \mid D_{1:t-1}\big]$ and $\mathbb V\big[\mathbf{w} \mid D_{1:t-1}\big]$ where $D_{1:t-1} = \{\mathbf x_{1:t-1}, y_{1:t-1}\}$  
-> $\quad$ **predict**: compute $\mathbb E\big[y_t \mid \mathbf x_t, D_{1:t-1}\big]$ and $\mathbb V\big[y_t \mid \mathbf x_t, D_{1:t-1}\big]$ before observing $(\mathbf x_t, y_t)$  
-> $\quad$ **update**: compute $\mathbb E\big[\mathbf{w} \mid D_{1:t}\big]$ and $\mathbb V\big[\mathbf{w} \mid D_{1:t}\big]$ after observing $(\mathbf x_t, y_t)$
-
-### Prediction Step
-
-We already showed the posterior preditve in offline Bayesian inferece.
+Before we see any data, we put a prior on $\mathbf{w}$ like before:
 
 $$
 \begin{align}
-y_* \mid \mathbf{x}_*, D \sim \mathcal N(
-    \boldsymbol{\mu}^\top \mathbf{x}_*, \:
-    \mathbf{x}_*^\top \boldsymbol{\Sigma} \mathbf{x}_* + \sigma^2
-)
+p(\mathbf{w}) = \mathcal N(\mathbf{w} \mid \mathbf{w}_0, \mathbf{P}_0)
 \end{align}
 $$
 
-Here, just let $D = D_{1:t-1}$, $\mathbf{x}_* = \mathbf x_t$ and $y_* = y_t$
+For each $t=1,2,\dots$, we use $\mathcal N(\mathbf{w} \mid \mathbf{w}_{t-1}, \mathbf{P}_{t-1})$ as the prior. After observing $(\mathbf{x}_t, y_t)$, we update this prior to the posterior. Because all distributions involved are Gaussian, it suffices to update only the posterior mean and covariance:
 
 $$
 \begin{align}
-\mathbb E\big[y_t \mid \mathbf x_t, D_{1:t-1}\big]
-&= \mathbf x_t^\top \boldsymbol{\mu}_{t-1} \\
-\mathbb V\big[y_t \mid \mathbf x_t, D_{1:t-1}\big]
-&= \mathbf x_t^\top \boldsymbol{\Sigma}_{t-1} \mathbf x_t + \sigma^2 \\
+\mathbf{P}_{t}
+&= \left( \mathbf{P}_{t-1}^{-1} + \sigma^{-2} \mathbf{x}_{t} \mathbf{x}_{t}^\top \right)^{-1}
+\\[6pt]
+\mathbf{w}_{t}
+&= \mathbf{P}_{t} \left(  \mathbf{P}_{t-1}^{-1} \mathbf{w}_{t-1} + \sigma^{-2} \mathbf{x}_{t} y_{t} \right)
+\\
+&= \mathbf{w}_{t-1} + \sigma^{-2} \mathbf{P}_{t} \mathbf{x}_{t} \left( y_{t} - \mathbf{w}_{t-1}^\top \mathbf{x}_{t} \right)
 \end{align}
 $$
+
+Remarks:
+
+* Updating $\mathbf{P}_t \in\mathbb R^{d\times d}$ requires matrix inversion at each step, which costs $O(d^3)$. We will address this issue in the next section.
+* $y_{t} - \mathbf{w}_{t-1}^\top \mathbf{x}_{t} \in\mathbb R$ is the residual. It is the difference between observed label $y_{t}$ and the prediction $\mathbf{w}_{t-1}^\top \mathbf{x}_{t}$ based on the prior mean.
+* The update to $\mathbf{w}_t$ corrects $\mathbf{w}_{t-1}$ in the direction of $\mathbf{P}_{t}\mathbf{x}_{t}$. A larger residual or lower observation noise (i.e. smaller $\sigma$) results in a larger correction.
+
+*Proof*: The update rule follows directly from the offline Bayesian linear regression
+
+$$
+\begin{align*}
+\mathbf{P}_n
+&= \left( \mathbf{P}_0^{-1} + \sigma^{-2} \mathbf{X}^\top \mathbf{X} \right)^{-1}
+\\[6pt]
+\mathbf{w}_n
+&= \mathbf{P}_n \left( \mathbf{P}_0^{-1} \mathbf{w}_0 + \sigma^{-2} \mathbf{X}^\top \mathbf{y} \right)
+\\
+&= \mathbf{w}_0 + \sigma^{-2} \mathbf{P}_n \mathbf{X}^\top \left( \mathbf{y} - \mathbf{X} \mathbf{w}_0 \right)
+\end{align*}
+$$
+
+by assuming
+
+$$
+\begin{align*}
+&\text{prior: }
+\cancel{\mathbf{w}_0} \to \mathbf{w}_{t-1}, \quad
+\cancel{\mathbf{P}_0} \to \mathbf{P}_{t-1}
+\\
+&\text{data: }
+D=\{\mathbf x_t, y_t\} \implies n=1, \: \mathbf X = \mathbf x_t^\top, \: \mathbf{y} = y_t
+\\
+&\text{posterior: }
+\cancel{\mathbf{w}_n} \to \mathbf{w}_t, \quad
+\cancel{\mathbf{P}_n} \to \mathbf{P}_t
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+### Avoiding Matrix Inversion
+
+Can we compute $\mathbf{P}_t \in\mathbb R^{d\times d}$ without matrix inversion which requires $O(d^3)$ at every time step?
+
+Applying the **matrix inversion lemma** (see Appendix) to
+
+$$
+\mathbf{P}_{t} = \left( \mathbf{P}_{t-1}^{-1} + \sigma^{-2} \mathbf{x}_{t} \mathbf{x}_{t}^\top \right)^{-1},
+$$
+
+we obtain
+
+$$
+\begin{align}
+\mathbf{P}_{t}
+&= \mathbf{P}_{t-1} - \frac{\mathbf{P}_{t-1} \mathbf{x}_{t} \mathbf{x}_{t}^\top \mathbf{P}_{t-1}}{\sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}}
+\\
+&= \mathbf{P}_{t-1} - \frac{(\mathbf{P}_{t-1} \mathbf{x}_{t}) (\mathbf{P}_{t-1} \mathbf{x}_{t})^\top}{\sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}}
+\end{align}
+$$
+
+which only requires computing matrix-vector multiplication, vector outerproduct, and scalar division. Hence, the computational complexity is reduced to $O(d^2)$.
 
 ## Appendix
 
@@ -457,99 +493,42 @@ p(z \mid x,y) = \frac{p(z \mid x) \cdot p(y \mid z)}{p(y)}
 \end{align}
 $$
 
-### Multivariant Gaussian
+### Matrix Inversion Lemma
 
-Let $X: \Omega \to \mathbb R^{n+m}$ be a Gaussian random vector.
-
-$$
-X \sim \mathcal{N}\left( \boldsymbol\mu, \boldsymbol\Sigma \right)
-$$
-
-where
-
-$$
-\boldsymbol\mu\in\mathbb{R}^{n+m}, \quad \boldsymbol\Sigma\in\mathbb{R}^{(n+m)\times(n+m)}
-$$
-
-We partition $X$ into two subvectors $X_A$ and $X_B$
-
-* $X_A = [X_1, \dots, X_n]^\top$
-* $X_B = [X_{n+1}, \dots, X_{n+m}]^\top$
-
-The overall mean and covariance can be partitioned into
-
-$$
-\begin{bmatrix}  X_A \\  X_B \end{bmatrix}
-\sim\mathcal{N}
-\left(
-  \begin{bmatrix} \boldsymbol\mu_A \\ \boldsymbol\mu_B \end{bmatrix},
-  \begin{bmatrix}
-    \boldsymbol\Sigma_{AA} & \boldsymbol\Sigma_{AB} \\
-    \boldsymbol\Sigma_{BA} & \boldsymbol\Sigma_{BB}
-  \end{bmatrix}
-\right)
-$$
-
-where
-
-$$
-\begin{matrix}
-  \boldsymbol\mu_A\in\mathbb{R}^n \\  \boldsymbol\mu_B\in\mathbb{R}^m
-\end{matrix}
-\quad\text{ and }\quad
-\begin{matrix}
-  \boldsymbol\Sigma_{AA}\in\mathbb{R}^{n \times n} & \boldsymbol\Sigma_{AB}\in\mathbb{R}^{n \times m} \\
-  \boldsymbol\Sigma_{BA}\in\mathbb{R}^{m \times n} & \boldsymbol\Sigma_{BB}\in\mathbb{R}^{m \times m}
-\end{matrix}
-$$
-
-#### Marginalized Gaussian
-
-One can show that the marginal distributions
+Let $\mathbf{A}\in\mathbb R^{n \times n}$ and $\mathbf{C}\in\mathbb R^{m \times m}$ be invertible. Let $\mathbf{U}\in\mathbb R^{n \times m}$ and $\mathbf{V}\in\mathbb R^{m \times n}$.
 
 $$
 \begin{align}
-p(\mathbf x_A) = \int p(\mathbf x_A, \mathbf x_B ; \boldsymbol\mu, \boldsymbol\Sigma) \:\mathrm{d}\mathbf x_B \\
-p(\mathbf x_B) = \int p(\mathbf x_A, \mathbf x_B ; \boldsymbol\mu, \boldsymbol\Sigma) \:\mathrm{d}\mathbf x_A \\
+\left( \mathbf{A} + \mathbf{U} \mathbf{C} \mathbf{V} \right)^{-1}
+= \mathbf{A}^{-1} - \mathbf{A}^{-1} \mathbf{U} \left( \mathbf{C}^{-1} + \mathbf{V} \mathbf{A}^{-1} \mathbf{U} \right)^{-1} \mathbf{V} \mathbf{A}^{-1}
 \end{align}
 $$
 
-are also Gaussian
+Special cases:
 
-$$
-\begin{align}
-X_A &\sim \mathcal{N}\left( \boldsymbol\mu_A, \boldsymbol\Sigma_{AA}\right) \\
-X_B &\sim \mathcal{N}\left( \boldsymbol\mu_B, \boldsymbol\Sigma_{BB}\right)
-\end{align}
-$$
+* Let $m=1$, $\mathbf{C} = 1$, $\mathbf{U} = \mathbf{u} \in\mathbb R^{n \times 1}$ and $\mathbf{V} = \mathbf{v}^\top \in\mathbb R^{1 \times n}$. Then,
 
-#### Gaussian Conditioning
+  $$
+  \begin{align}
+  \left( \mathbf{A} + \mathbf{u} \mathbf{v}^\top \right)^{-1}
+  = \mathbf{A}^{-1} - \frac{\mathbf{A}^{-1} \mathbf{u} \mathbf{v}^\top \mathbf{A}^{-1}}{1 + \mathbf{v}^\top \mathbf{A}^{-1} \mathbf{u}}
+  \end{align}
+  $$
 
-Conditioned on $X_B = \mathbf x_B$, the distribution of $X_A$
-$$
-\begin{align}
-p(\mathbf x_A \mid \mathbf x_B) 
-&= \frac{p(\mathbf x_A, \mathbf x_B ; \boldsymbol\mu, \boldsymbol\Sigma)}{p(\mathbf x_B ; \boldsymbol\mu, \boldsymbol\Sigma)}  \\
-&= \frac{p(\mathbf x_A, \mathbf x_B ; \boldsymbol\mu, \boldsymbol\Sigma)}{\int p(\mathbf x_A, \mathbf x_B ; \boldsymbol\mu, \boldsymbol\Sigma) \:\mathrm{d}\mathbf x_A}
-\end{align}
-$$
+  If $\mathbf{A}$ is symmetric in addition, then,
 
-is also Gaussian
-$$
-\begin{align}
-X_A \,\mid\, \mathbf x_B &\sim \mathcal{N}(\boldsymbol\mu_{A \mid B}, \boldsymbol\Sigma_{A \mid B}) \\
-\boldsymbol\mu_{A \mid B} &= \boldsymbol\mu_{A} + \boldsymbol\Sigma_{AB} \boldsymbol\Sigma_{BB}^{-1} (\mathbf x_B - \boldsymbol\mu_B)\\
-\boldsymbol\Sigma_{A \mid B} &= \boldsymbol\Sigma_{AA} - \boldsymbol\Sigma_{AB}\boldsymbol\Sigma_{BB}^{-1} \boldsymbol\Sigma_{BA}
-\end{align}
-$$
+  $$
+  \begin{align}
+  \left( \mathbf{A} + \mathbf{u} \mathbf{v}^\top \right)^{-1}
+  = \mathbf{A}^{-1} - \frac{(\mathbf{A}^{-1} \mathbf{u}) (\mathbf{A}^{-1} \mathbf{u})^\top}{1 + \mathbf{v}^\top \mathbf{A}^{-1} \mathbf{u}}
+  \end{align}
+  $$
 
-#### Convolution Rule
+* Let $m=n$, $\mathbf{C} = \mathbf{B}$, $\mathbf{U} = \mathbf{I}$ and $\mathbf{V} = \mathbf{I}$. Then,
 
-$$
-\begin{align*}
-\int \mathcal N(\mathbf x_* ; \boldsymbol\mu, \boldsymbol\Sigma) \cdot
-     \mathcal N(\boldsymbol\mu ; \boldsymbol\mu_n, \boldsymbol\Sigma_n) \:\mathrm{d}\boldsymbol\mu
-=
-\mathcal N(\mathbf x_* ; \boldsymbol\mu_n, \boldsymbol\Sigma + \boldsymbol\Sigma_n)
-\end{align*}
-$$
+  $$
+  \begin{align}
+  \left( \mathbf{A} + \mathbf{B} \right)^{-1}
+  = \mathbf{A}^{-1} - \mathbf{A}^{-1} \left( \mathbf{C}^{-1} + \mathbf{A}^{-1} \right)^{-1} \mathbf{A}^{-1}
+  \end{align}
+  $$

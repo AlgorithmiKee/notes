@@ -652,7 +652,9 @@ $$
    \boldsymbol\Sigma_t \boldsymbol\Sigma^{-1} \left(\mathbf x_t - \boldsymbol\mu_{t-1} \right)
 \end{align}
 $$
+
 *Proof*: This is just a special case of the offline Bayesian inference
+
 $$
 \begin{align*}
 \boldsymbol\Sigma_n^{-1}
@@ -662,7 +664,9 @@ $$
 &= \boldsymbol\Sigma_n  \left(n\boldsymbol\Sigma^{-1}\bar{\mathbf x} + \boldsymbol\Sigma^{-1}_0 \boldsymbol\mu_0 \right)
 \end{align*}
 $$
+
 by assuming
+
 $$
 \begin{align*}
 &\text{prior: }
@@ -678,7 +682,9 @@ D=\{\mathbf x_t\} \implies n=1, \quad \bar{\mathbf x} = \mathbf x_t
 \tag*{$\blacksquare$}
 \end{align*}
 $$
+
 1D special case:
+
 $$
 \begin{align}
 \sigma_t^{-2}

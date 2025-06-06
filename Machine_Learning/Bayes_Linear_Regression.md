@@ -101,7 +101,7 @@ Remarks:
     \end{align}
     $$
 
-In the following, we assume a Gaussian prior on $\mathbf{w}$, i.e.
+In the following, we assume a Gaussian prior on $\mathbf{w} \in\mathbb R^d$, i.e.
 
 $$
 \begin{align}
@@ -207,7 +207,7 @@ p(\mathbf{w} \mid D)
 \end{align}
 $$
 
-Taking the log, we obtain a quadratic log posterior
+Taking the log, we see that the log posterior is a quadratic function of $\mathbf{w}$:
 
 $$
 \begin{align}
@@ -268,7 +268,7 @@ Remarks:
 * $\mathbf{y} - \mathbf{X} \mathbf{w}_0$ is called ***residual***. It reflects the difference between the observed labels and predicted labels based on prior mean. It is similar to the ***innovation*** in Kalman filter.
 * $\sigma^{-2} \mathbf{P}_n \mathbf{X}^\top$ is called ***gain***. It reflects how strong we respond to the residual, similar to ***Kalman gain***.
 
-Let $\mathbf{K}_n \triangleq \sigma^{-2} \mathbf{P}_n \mathbf{X}^\top$, we can express $\mathbf{w}_n$ as a weighted average of $\mathbf{w}_0$ and $\mathbf{y}$.
+Let $\mathbf{K}_n \triangleq \sigma^{-2} \mathbf{P}_n \mathbf{X}^\top \in\mathbb R^{d \times n}$, we can express $\mathbf{w}_n$ as a weighted average of $\mathbf{w}_0$ and $\mathbf{y}$.
 
 > $$
 > \begin{align}
@@ -363,16 +363,25 @@ Therefore, the posterior predictive is
 
 Remarks:
 
-* The uncertainty in $y_*$ consists of two parts.
+* The mean $\mathbf{w}_n^\top \mathbf{x}_*$ coincides with the label prediction by plugging the MAP estimate $\hat{\mathbf{w}}_\text{MAP} = \mathbf{w}_n$ into $\mathbf{w}^\top \mathbf{x}_*$.
+* The variance $\mathbf{x}_*^\top \mathbf{P}_n \mathbf{x}_* + \sigma^2$ quantifies the uncertainty about $y_*$, which consists of two parts:
   * ***Predictive variance*** $\mathbf{x}_*^\top \mathbf{P}_n \mathbf{x}_*$, which arises due to lack of data.
   * ***Irreducible noise*** $\sigma^2$.
-* The predictive variance $\mathbf{x}_*^\top \mathbf{P}_n \mathbf{x}_*$ tends to be (proof omitted)
-  * low when $\mathbf{x}_*$ lies near the subspace spanned by the training data.
-  * large when $\mathbf{x}_*$ is far from or orthogonal to the training data.
 
 ## Online Bayesian Linear Regression
 
-What if the data is collected sequentially instead of all at once? We can apply ***recursive Bayesian inference*** for $\mathbf{w}$ in our linear model. This procedure is called ***online Bayesian linear regression***.
+What if the data is collected sequentially instead of all at once? We can apply ***recursive Bayesian inference*** for $\mathbf{w}$ in our linear model. This procedure is called ***online Bayesian linear regression***. For cleaner notation, we define
+
+$$
+\begin{align}
+D_{1:t} &\triangleq
+\begin{cases}
+  \{ \mathbf{x}_1, y_1, \dots, \mathbf{x}_t, y_t \}, & t\ge 1
+  \\
+  \varnothing, & t= 0
+\end{cases}
+\end{align}
+$$
 
 Before we see any data, we put a prior on $\mathbf{w}$ like before:
 
@@ -382,7 +391,39 @@ p(\mathbf{w}) = \mathcal N(\mathbf{w} \mid \mathbf{w}_0, \mathbf{P}_0)
 \end{align}
 $$
 
-For each $t=1,2,\dots$, we use $\mathcal N(\mathbf{w} \mid \mathbf{w}_{t-1}, \mathbf{P}_{t-1})$ as the prior. After observing $(\mathbf{x}_t, y_t)$, we update this prior to the posterior. Because all distributions involved are Gaussian, it suffices to update only the posterior mean and covariance:
+Remarks:
+
+* Here, we simplyt write $p(\mathbf{w})$ instead of $p(\mathbf{w} \mid D_{1:0})$ or $p(\mathbf{w} \mid \varnothing)$ to denote the prior before we see any data.
+* In practice, we typically choose $\mathbf{w}_0 = \mathbf{0}$ and $\mathbf{P}_0 = \sigma_0^2 \mathbf{I}$ as in standard MAP estimation.
+
+For each $t=1,2,\dots$, we use the old posterior as the current prior:
+
+$$
+\begin{align}
+p(\mathbf{w} \mid D_{t-1})  = \mathcal N(\mathbf{w} \mid \mathbf{w}_{t-1}, \mathbf{P}_{t-1})
+\end{align}
+$$
+
+Remarks:
+
+* By $y_t = \mathbf{w}^\top \mathbf{x}_t + \varepsilon_t$, the prior predictive distribution is
+  $$
+  \begin{align}
+  p(y_t \mid \mathbf{x}_t, D_{t-1}) = \mathcal N(y_t \mid \mathbf{w}_{t-1}^\top \mathbf{x}_{t},\: \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t} + \sigma^2)
+  \end{align}
+  $$
+* Namely, we can predict $y_t$ by multiplying the prior mean $\mathbf{w}_{t-1}$ (i.e. old MAP estimate of $\mathbf{w}$) with current input $\mathbf{x}_t$.
+* The uncertainty in $y_t$ comes from the uncertainty in $\mathbf{w}$ and the observation noise $\varepsilon_t$.
+
+After observing $y_t$, we update this prior to the posterior:
+
+$$
+\begin{align}
+p(\mathbf{w} \mid D_{t})  = \mathcal N(\mathbf{w} \mid \mathbf{w}_{t}, \mathbf{P}_{t})
+\end{align}
+$$
+
+where the posterior mean and covariance are updated as
 
 $$
 \begin{align}
@@ -400,7 +441,7 @@ Remarks:
 
 * Updating $\mathbf{P}_t \in\mathbb R^{d\times d}$ requires matrix inversion at each step, which costs $O(d^3)$. We will address this issue in the next section.
 * $y_{t} - \mathbf{w}_{t-1}^\top \mathbf{x}_{t} \in\mathbb R$ is the residual. It is the difference between observed label $y_{t}$ and the prediction $\mathbf{w}_{t-1}^\top \mathbf{x}_{t}$ based on the prior mean.
-* The update to $\mathbf{w}_t$ corrects $\mathbf{w}_{t-1}$ in the direction of $\mathbf{P}_{t}\mathbf{x}_{t}$. A larger residual or lower observation noise (i.e. smaller $\sigma$) results in a larger correction.
+* The update to $\mathbf{w}_t$ corrects $\mathbf{w}_{t-1}$ in the direction of the gain $\mathbf{k}_t = \sigma^{-2} \mathbf{P}_{t} \mathbf{x}_{t} \in\mathbb R^{d}$. A larger residual or lower observation noise (i.e. smaller $\sigma$) results in a larger correction.
 
 *Proof*: The update rule follows directly from the offline Bayesian linear regression
 
@@ -455,7 +496,96 @@ $$
 \end{align}
 $$
 
-which only requires computing matrix-vector multiplication, vector outerproduct, and scalar division. Hence, the computational complexity is reduced to $O(d^2)$.
+Remarks:
+
+* The 2nd equality follows from the symmetry of the covariance matrix $\mathbf{P}_{t-1}$.
+* This update rule only requires computing matrix-vector multiplication, outer product, and scalar division. Hence, the computational complexity is reduced to $O(d^2)$.
+
+### Gain Vector
+
+Recall the gain vector is defined as
+
+$$
+\begin{align}
+\mathbf{k}_t = \sigma^{-2} \mathbf{P}_{t} \mathbf{x}_{t} \in\mathbb R^{d}
+\end{align}
+$$
+
+Using the inversion-free update rule for $\mathbf{P}_t$, we can express the gain as
+
+$$
+\begin{align}
+\mathbf{k}_t = \frac{\mathbf{P}_{t-1} \mathbf{x}_{t}}{\sigma^{2} + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}}
+\end{align}
+$$
+
+Remarks:
+
+* The denominator $\sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}$ is the variance of the predictive distribution $p(y_t \mid \mathbf{x}_t, D_{t-1})$ before we observe $y_t$.
+* Comparing both expressions of $\mathbf{k}_t$, we see that the correction direction $\mathbf{P}_{t} \mathbf{x}_{t}$ is the same as $\mathbf{P}_{t-1} \mathbf{x}_{t}$.
+
+*Proof*: The 2nd expression follows from some simple algebra:
+
+$$
+\begin{align*}
+\mathbf{k}_t
+&= \sigma^{-2} \left( \mathbf{P}_{t-1} - \frac{\mathbf{P}_{t-1} \mathbf{x}_{t} \, \mathbf{x}_{t}^\top \mathbf{P}_{t-1}}{\sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}} \right) \mathbf{x}_{t}
+\\
+&= \sigma^{-2} \left( \mathbf{P}_{t-1} \mathbf{x}_{t} - \frac{\mathbf{P}_{t-1} \mathbf{x}_{t} \cdot \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}}{\sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}} \right)
+\\
+&= \sigma^{-2} \left( 1 - \frac{\mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}}{\sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}} \right) \mathbf{P}_{t-1} \mathbf{x}_{t}
+\\
+&= \frac{1}{\sigma^{2} + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}} \mathbf{P}_{t-1} \mathbf{x}_{t}
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+Note that the update to $\mathbf{P}_{t}$ requires computing the outer product of $\mathbf{P}_{t-1} \mathbf{x}_{t}$, which is just a scalar mulitple of the gain $\mathbf{k}_t$. Hence, we can express $\mathbf{P}_{t}$ explicitly in terms of $\mathbf{k}_t$.
+
+$$
+\begin{align}
+\mathbf{P}_{t}
+&= \mathbf{P}_{t-1} - \left( \sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t} \right) \mathbf{k}_t \mathbf{k}_t^\top
+\end{align}
+$$
+
+### The Complete Algorithm
+
+Init: $\mathbf{w}_0 \in\mathbb R^{d}, \mathbf{P}_0 \in\mathbb R^{d \times d}$  
+For $t=1,2,\dots$, do:  
+$\qquad$ compute the prior prediction and variance for $y_t$:  
+$$
+\begin{align}
+\hat{y}_t &=  \mathbf{w}_{t-1}^\top \mathbf{x}_{t} \\
+s^2_{t} &= \sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}
+\end{align}
+$$
+
+$\qquad$ compute the gain vector $\mathbf{k}_t$:  
+
+$$
+\begin{align}
+\mathbf{k}_t = \frac{\mathbf{P}_{t-1} \mathbf{x}_{t}}{s^2_{t}}
+\end{align}
+$$
+
+$\qquad$ compute the posterior mean of $\mathbf{w}$:  
+
+$$
+\begin{align}
+\mathbf{w}_{t}
+&= \mathbf{w}_{t-1} + \mathbf{k}_{t} \left( y_{t} - \hat{y}_t \right)
+\end{align}
+$$
+
+$\qquad$ compute the posterior variance of $\mathbf{w}$:  
+
+$$
+\begin{align}
+\mathbf{P}_{t}
+&= \mathbf{P}_{t-1} - s^2_{t} \, \mathbf{k}_t \mathbf{k}_t^\top
+\end{align}
+$$
 
 ## Appendix
 

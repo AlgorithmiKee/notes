@@ -1,2 +1,6 @@
 .DS_Store
 *.pdf
+
+# unignoare PDFs as figures
+!**/figs/**/*.pdf
+!**/figs/*.pdf

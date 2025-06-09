@@ -3,6 +3,7 @@ title: "Probabilistic Modeling for ML"
 author: "Ke Zhang"
 date: "2025"
 fontsize: 12pt
+
 ---
 
 # Probabilistic Modeling for ML
@@ -23,7 +24,7 @@ Notations:
 
 Both supervised learning and unsupervised learning can be summarized in the figure below.
 
-TODO: create figure: pipeline of statistical learning
+<img src="./figs/overview_stat_learning.pdf" alt="overview_stat_learning" style="zoom:67%;" />
 
 Remarks:
 
@@ -55,7 +56,7 @@ Problem formulation:
 * Optional: prior distribution $p(\boldsymbol{\theta})$
 * Goal: estimate $\boldsymbol{\theta}$
 
-We assume that the data is fully observable, i.e. there is no latent variables. Unsupervised learning with latent variables (e.g. GMM) requires more complex algorithms (e.g. EM algorithm). Not detailed here.
+We assume that the data is fully observable, i.e. there is no latent variables. Unsupervised learning with latent variables (e.g. GMM) requires more complex algorithms (e.g. EM algorithm) which are not detailed here.
 
 ### Maximum Likelihood Estimation (MLE)
 
@@ -299,7 +300,7 @@ Remarks:
 1. predicting which number given a hand-written digit $\to$ generative model.
 1. predicting which species given the weight and size of an animal $\to$ generative model.
 
-### Overview of Discriminative Model
+### Learning a Discriminative Model
 
 By iid assumption and that $p(\mathbf x, y \mid \boldsymbol{\theta}) = p(\mathbf x \mid \boldsymbol{\pi}) \, p(y \mid \mathbf x,\mathbf{w})$, the likelihood is
 
@@ -309,7 +310,7 @@ p(D\mid\boldsymbol{\theta})
 &= p(\mathbf x_1, y_1, \cdots, \mathbf x_n, y_n \mid \boldsymbol{\theta}) \\
 &= \prod_{i=1}^n p(\mathbf x_i,y_i \mid \boldsymbol{\theta}) \\
 &= \prod_{i=1}^n p(\mathbf x_i \mid \boldsymbol{\pi}) \cdot p(y_i \mid \mathbf x_i,\mathbf{w}) \\
-&= \left(\prod_{i=1}^n p(\mathbf x_i \mid \boldsymbol{\pi})\right) \cdot \left(\prod_{i=1}^n p(y_i \mid \mathbf x_i,\mathbf{w})\right)
+&= \left( \prod_{i=1}^n p(\mathbf x_i \mid \boldsymbol{\pi})\right) \cdot \left(\prod_{i=1}^n p(y_i \mid \mathbf x_i,\mathbf{w})\right)
 \end{align}
 $$
 
@@ -354,8 +355,6 @@ Hence, $\boldsymbol{\pi}$ and $\mathbf{w}$ can be estimated separately
 > \end{align}
 > $$
 
-**Example** (predicting house price): see Appendix.
-
 If we have priors on $\boldsymbol{\theta}$ s.t. $p(\boldsymbol{\theta}) = p(\boldsymbol{\pi})\,p(\mathbf{w})$, the posterior distribution of $\boldsymbol{\theta}$ is then
 
 $$
@@ -394,10 +393,42 @@ Remarks:
 
 * For label prediction, we do not really need to know $p(\mathbf x \mid \boldsymbol{\pi})$. Hence, it is sufficient to estimate $\mathbf{w}$ (either by MLE or MAP) and thus $p(y \mid \mathbf x,\mathbf{w})$.
 * In some applications (like signal reconstruction), $\mathbf x$ is deterministic or has no inherent distribution. In such cases, we omit modeling $p(\mathbf x)$ as it is irrelevant for label prediction anyway.
-* In general, the optimization problem on the RHS is solved numerically (e.g. stochastic gradient descent/ascent). In special cases (e.g. linear model), it has closed-form solutions.
 
-By plugging the point estimate $\hat{\mathbf{w}}$ into the model likelihood $p(y \mid \mathbf{x}, \mathbf{w})$, we obtain  the ***(plug-in) predictive distribution***:
+Again, $\hat{\mathbf{w}}_\text{MLE}$ and $\hat{\mathbf{w}}_\text{MAP}$ are computed by gradient-based optimization (For MLE, the prior is simply dropped):
 
+* Gradient ascent:
+  $$
+  \begin{align*}
+  \mathbf{w}^{(t+1)}
+  &= \mathbf{w}^{(t)} + \eta^{(t)} \left(\sum_{i=1}^n \frac{\partial}{\partial\mathbf{w}} \ln p(y_i \mid \mathbf x_i, \mathbf{w}^{(t)}) + \frac{\partial}{\partial\mathbf{w}}\ln p(\mathbf{w}^{(t)}) \right)\\
+  \end{align*}
+  $$
+
+* Mini-bath gradient ascent:
+  $$
+  \begin{align*}
+  & \text{randomly draw } B^{(t)} \subset D \text{ with } \vert B \vert = m
+  \\
+  & \mathbf{w}^{(t+1)}
+  = \mathbf{w}^{(t)} + \eta^{(t)} \left(\sum_{(\mathbf x, y)\in B^{(t)}} \frac{\partial}{\partial\mathbf{w}} \ln p(y \mid \mathbf x, \mathbf{w}^{(t)}) + \frac{\partial}{\partial\mathbf{w}}\ln p(\mathbf{w}^{(t)}) \right)
+  \end{align*}
+  $$
+
+* Stochastic gradient ascent:
+  $$
+  \begin{align*}
+  & \text{randomly draw } (\mathbf x^{(t)}, y^{(t)}) \in D
+  \\
+  & \mathbf{w}^{(t+1)}
+  = \mathbf{w}^{(t)} + \eta^{(t)} \left(\frac{\partial}{\partial\mathbf{w}} \ln p(y^{(t)} \mid \mathbf x^{(t)}, \mathbf{w}^{(t)}) + \frac{\partial}{\partial\mathbf{w}}\ln p(\mathbf{w}^{(t)}) \right)
+  \end{align*}
+  $$
+
+
+
+### Using a Discriminative Model
+
+By plugging the point estimate $\hat{\mathbf{w}}$ (either MLE or MAP) into the model likelihood $p(y \mid \mathbf{x}, \mathbf{w})$, we obtain  the ***(plug-in) predictive distribution***:
 $$
 p(y\mid\mathbf x, \hat{\mathbf{w}})
 $$
@@ -408,6 +439,7 @@ $$
 \begin{align}
 \hat y
 &= \argmin_{a \in \mathcal Y} \mathbb E_y[\ell(y, a) \mid \mathbf x_*, \hat{\mathbf{w}}] \\
+&= \argmin_{a \in \mathcal Y} \int \ell(y, a) \cdot p(y \mid \mathbf x_*, \hat{\mathbf{w}}) \:\mathrm dy \\
 \end{align}
 $$
 
@@ -429,9 +461,106 @@ Main results:
     \end{align}
     $$
 
-### Regression as Discriminative Model
+### Learning a Generative Model
 
-TODO: move this section as H2 out of supervised learning. add H3 MLE, MAP, and potentially inference.
+By generative modeling $p(\mathbf x, y \mid \boldsymbol{\theta}) = p(y \mid \boldsymbol{\pi}) \cdot p(\mathbf x\mid y,\mathbf{w})$, the likelihood can be factorized as
+
+$$
+\begin{align}
+p(D\mid\boldsymbol{\theta})
+&= \prod_{i=1}^n p(\mathbf x_i,y_i \mid \boldsymbol{\theta}) \\
+&= \left( \prod_{i=1}^n p(y_i \mid \boldsymbol{\pi}) \right) \cdot \left(\prod_{i=1}^n p(\mathbf x_i \mid y_i,\mathbf{w}) \right)
+\end{align}
+$$
+
+Taking the log, we get the log likelihood
+
+> $$
+> \begin{align}
+> \ln p(D\mid\boldsymbol{\theta})
+> &= \underbrace{\sum_{i=1}^n \ln p(y_i \mid \boldsymbol{\pi})}_{J_1(\boldsymbol{\pi})} + \underbrace{\sum_{i=1}^n \ln p(\mathbf x_i \mid y_i,\mathbf{w})}_{J_2(\mathbf{w})}
+> \end{align}
+> $$
+
+Again, $\boldsymbol{\pi}$ and $\mathbf{w}$ can be estimated separately
+
+> $$
+> \begin{align}
+> \hat{\boldsymbol{\pi}}_\text{MLE} &= \argmax_{\boldsymbol{\pi}} \sum_{i=1}^n \ln p(y_i \mid \boldsymbol{\pi})
+> \\
+> \hat{\mathbf{w}}_\text{MLE} &= \argmax_{\mathbf{w}} \sum_{i=1}^n \ln p(\mathbf x_i \mid y_i,\mathbf{w})
+> \end{align}
+> $$
+
+Using the prior $p(\boldsymbol{\theta}) = p(\boldsymbol{\pi})\,p(\mathbf{w})$, the posterior of $\boldsymbol{\theta}$ is then
+
+$$
+\begin{align}
+p(\boldsymbol{\theta} \mid D)
+&\propto p(D\mid\boldsymbol{\theta}) \cdot p(\boldsymbol{\theta}) \\
+&= p(D\mid\boldsymbol{\theta}) \cdot p(\boldsymbol{\pi}) \, p(\mathbf{w}) \\
+&= \left(p(\boldsymbol{\pi}) \, \prod_{i=1}^n p(y_i \mid \boldsymbol{\pi})\right) \cdot \left(p(\mathbf{w}) \, \prod_{i=1}^n p(\mathbf x_i \mid y_i,\mathbf{w})\right)
+\end{align}
+$$
+
+Taking the log, we get the log posterior
+
+> $$
+> \begin{align}
+> \ln p(\boldsymbol{\theta} \mid D)
+> &= \underbrace{\ln p(\boldsymbol{\pi}) + \sum_{i=1}^n \ln p(y_i \mid \boldsymbol{\pi})}_{J_1(\boldsymbol{\pi})} +
+> \underbrace{\ln p(\mathbf{w}) + \sum_{i=1}^n \ln p(\mathbf x_i \mid y_i,\mathbf{w})}_{J_2(\mathbf{w})} +
+> \text{const}
+> \end{align}
+> $$
+
+from which we can compute the MAP estimates
+
+> $$
+> \begin{align}
+> \hat{\boldsymbol{\pi}}_\text{MAP} &= \argmax_{\boldsymbol{\pi}} \sum_{i=1}^n \ln p(y_i \mid \boldsymbol{\pi}) + \ln p(\boldsymbol{\pi})
+> \\
+> \hat{\mathbf{w}}_\text{MAP} &= \argmax_{\mathbf{w}} \sum_{i=1}^n \ln p(\mathbf x_i \mid y_i,\mathbf{w}) + \ln p(\mathbf{w})
+> \end{align}
+> $$
+
+Again, the optimization is often carried out by gradient based methods. Formulas are omitted here as they are similar to those in previous section.
+
+### Using a Generative Model
+
+Suppose we learned a generative model $p(\mathbf x, y, \hat{\boldsymbol{\theta}})$ where $\hat{\boldsymbol{\theta}} = (\hat{\boldsymbol{\pi}}, \hat{\mathbf{w}})$. We can compute the predictive distribution $p(y \mid \mathbf x, \hat{\boldsymbol{\theta}})$ from it.
+
+$$
+\begin{align}
+p(y \mid \mathbf x, \hat{\boldsymbol{\theta}})
+&= \frac{p(\mathbf x,y \mid \hat{\boldsymbol{\theta}})}{p(\mathbf x \mid \hat{\boldsymbol{\theta}})} \nonumber
+\\[8pt]
+&= \frac{p(y \mid \hat{\boldsymbol{\pi}}) \cdot p(\mathbf x \mid y, \hat{\mathbf{w}})}{p(\mathbf x \mid \hat{\boldsymbol{\theta}})} \nonumber
+\end{align}
+$$
+
+where the denominator is computed by
+
+$$
+\begin{align}
+p(\mathbf x \mid \hat{\boldsymbol{\theta}})
+&= \int p(y \mid \hat{\boldsymbol{\pi}}) \cdot p(\mathbf x \mid y, \hat{\mathbf{w}}) \:\mathrm dy
+&& \text{for regression}
+\\
+p(\mathbf x \mid \hat{\boldsymbol{\theta}})
+&= \sum_y p(y \mid \hat{\boldsymbol{\pi}}) \cdot p(\mathbf x \mid y, \hat{\mathbf{w}})
+&& \text{for classification}
+\\
+\end{align}
+$$
+
+The predictive distribution $p(y \mid \mathbf x, \hat{\boldsymbol{\theta}})$ can be used for label prediction, just like using a discriminative model.
+
+However, generative models (aka the joint distribution) offer more flexibility than discriminative models (aka the conditional distribution). Specifically, generative models provide more statistical information and allow data generation via $p(\mathbf x \mid y, \hat{\mathbf{w}})$.
+
+Think of $y\in\{0,\dots,9\}$ and $\mathbf x$ as a 128x128 image of a hand-written digit. We can generate a hand-written digit of "7" by sampling $\mathbf x$ from $p(\mathbf x \mid y=7, \hat{\mathbf{w}})$.
+
+## Regression as Discriminative Model
 
 Problem formulation:
 
@@ -456,9 +585,9 @@ Examples of paramterized function $f_{\boldsymbol{\theta}}: \mathbb R^d \to \mat
 * neural net with one hidden layer and activation function $\sigma(\cdot)$.
     $$
     \begin{align*}
-    \boldsymbol{\theta} &= \{\mathbf{W}_1\in\mathbb R^{h\times d}, \mathbf{b}_1\in\mathbb R^{h}, \mathbf{W}_2\in\mathbb R^{1\times h}, b_2\in\mathbb R\}
+    \boldsymbol{\theta} &= \{\mathbf{W}_1\in\mathbb R^{h\times d}, \mathbf{b}_1\in\mathbb R^{h}, \mathbf{w}_2\in\mathbb R^{1\times h}, b_2\in\mathbb R\}
     \\
-    y &= \underbrace{\mathbf{W}_2 \,\sigma(\mathbf{W}_1 \mathbf x + \mathbf{b}_1) + b_2}_{f_{\boldsymbol{\theta}}(\mathbf x)} + \epsilon
+    y &= \underbrace{\mathbf{w}_2 \,\sigma(\mathbf{W}_1 \mathbf x + \mathbf{b}_1) + b_2}_{f_{\boldsymbol{\theta}}(\mathbf x)} + \epsilon
     \end{align*}
     $$
 
@@ -485,7 +614,6 @@ Remarks:
 * Scenarios requiring knowledge about $\sigma^2_\text{n}$: uncertainty quantification for label prediction, Bayesian inference (model averaging).
 
 The log likelihood
-
 $$
 \begin{align}
 p(D \mid\boldsymbol{\theta})
@@ -605,7 +733,7 @@ $$
 |  Algorithmic Perspective | Statistical Perspective |
 | ----------- | -------------- |
 | $\boldsymbol{\theta}$ parameterizes $f(\mathbf x)$ | $\boldsymbol{\theta}$ parameterizes $p(y \mid \mathbf x)$ |
-| choose square loss | assume label noise is iid Gaussian |
+| choose square loss | label noise is iid Gaussian |
 | sum of square loss | negative log likelihood |
 | minimize sum of square loss $\to\hat{\boldsymbol{\theta}}$ | MLE $\to\hat{\boldsymbol{\theta}}$ |
 | minimize sum of square loss + regularizer $\to\hat{\boldsymbol{\theta}}$ | MAP $\to\hat{\boldsymbol{\theta}}$ |
@@ -614,10 +742,6 @@ $$
 | predict: $f_{\hat{\boldsymbol{\theta}}}(\mathbf x_*)$ | predict: $\mathbb E_y[y\mid\mathbf x_*, \hat{\boldsymbol{\theta}}]$ |
 | $-$ | uncertainty quantification |
 | $-$ | model averaging instead of point estimate |
-
-### Parameter Estimation in Generative Setting
-
-TODO
 
 ## Appendix
 

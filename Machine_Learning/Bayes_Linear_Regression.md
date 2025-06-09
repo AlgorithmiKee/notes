@@ -23,7 +23,7 @@ $$
 * Additional assumption: $\varepsilon_i$ and $\mathbf{x}_i$ are statistically independent
 * Goal: Predict the label for a new data point $\mathbf{x}_*$ using the **full** posterior distribution $p(\mathbf w \mid D)$
 
-## Recap: Point Estimates for Model Parameters
+### Recap: Point Estimates
 
 * Discriminative model parameterized by $\mathbf{w}$:
 
@@ -78,9 +78,9 @@ $$
 
 ## Offline Bayesian Linear Regression
 
-Both MLE and MAP use training dataset $D$ to compute a point estimate $\hat{\mathbf{w}}$, leading to plug-in predictive $p(y_* \mid \mathbf{x}_*, \hat{\mathbf{w}})$.
+Both MLE and MAP use training dataset $D$ to compute a point estimate $\hat{\mathbf{w}}$, leading to plug-in predictive distribution $p(y_* \mid \mathbf{x}_*, \hat{\mathbf{w}})$.
 
-Bayesian inference uses the full posterior $p(\mathbf w \mid D)$ to account for the contribution of every  $\mathbf w\in\mathbb R^d$, leading to posterior predictive $p(y_* \mid \mathbf x_*, D)$.
+Bayesian inference uses the full posterior $p(\mathbf w \mid D)$ to account for the contribution of every  $\mathbf w\in\mathbb R^d$, leading to posterior predictive distribution $p(y_* \mid \mathbf x_*, D)$.
 
 $$
 \begin{align}
@@ -125,7 +125,7 @@ $$
 
 Remarks:
 
-* We use the subscript $n$ to hightlight the size of our data set $D$.
+* We use the subscript $n$ to highlight the size of our data set $D$.
 * $\mathbf{w}_n$ is the MAP estimate of weight vector $\mathbf{w}$ after we observe $D$.
 * $\mathbf{P}_n$ quantifies the uncertainty about $\mathbf{w}$ after we observe $D$.
 
@@ -143,17 +143,24 @@ Due to Gaussian-ness, we only need to compute $\mathbf{w}_n$ and $\mathbf{P}_n$ 
 
 ### The Full Posterior
 
-We now show that the posterior is Guassian by showing that the log posterior is a quadratic function of $\mathbf{w}$.
+We now show that the posterior is Gaussian by showing that the log posterior is a quadratic function of $\mathbf{w}$.
 
 Recall the statistical model
 
 $$
 \begin{align}
 y_i &= \mathbf{w}^\top \mathbf{x}_i + \varepsilon_i, \quad
-\varepsilon_i \sim \mathcal N(0, \sigma^2)
-\\
-\mathbf{y} &= \mathbf{X}^\top \mathbf{w} + \boldsymbol{\varepsilon}, \quad
-\boldsymbol{\varepsilon} \sim \mathcal N(\mathbf{0}, \sigma^2\mathbf{I})
+\varepsilon_i \sim \mathcal N(0, \sigma^2), \quad
+i=1,\dots,n
+\end{align}
+$$
+
+In vector form, it becomes
+
+$$
+\begin{align}
+\mathbf{y} &= \mathbf{X} \mathbf{w} + \boldsymbol{\varepsilon}, \quad
+&\boldsymbol{\varepsilon} \sim \mathcal N(\mathbf{0}, \sigma^2\mathbf{I})
 \end{align}
 $$
 
@@ -193,7 +200,7 @@ p(D \mid \mathbf{w})
 &= p(\mathbf{x}_{1:n}, y_{1:n} \mid \mathbf{w}) \\
 &= p(y_{1:n} \mid \mathbf{x}_{1:n}, \mathbf{w}) \cdot p(\mathbf{x}_{1:n}) \\
 &\propto p(y_{1:n} \mid \mathbf{x}_{1:n}, \mathbf{w}) \\
-&= \mathcal N(\mathbf{y} \mid \mathbf{X}^\top \mathbf{w}, \sigma^2\mathbf{I})
+&= \mathcal N(\mathbf{y} \mid \mathbf{X} \mathbf{w}, \sigma^2\mathbf{I})
 \end{align}
 $$
 
@@ -203,7 +210,7 @@ $$
 \begin{align}
 p(\mathbf{w} \mid D)
 &\propto p(D \mid \mathbf{w}) \cdot p(\mathbf{w}) \\
-&\propto \mathcal N(\mathbf{y} \mid \mathbf{X}^\top \mathbf{w}, \sigma^2\mathbf{I}) \cdot \mathcal N(\mathbf{w} \mid \mathbf{w}_0, \mathbf{P}_0) \\
+&\propto \mathcal N(\mathbf{y} \mid \mathbf{X} \mathbf{w}, \sigma^2\mathbf{I}) \cdot \mathcal N(\mathbf{w} \mid \mathbf{w}_0, \mathbf{P}_0) \\
 \end{align}
 $$
 
@@ -221,13 +228,13 @@ $$
     \right] + \text{const.}
 \\
 &= -\frac{1}{2} \left[
-      \sigma^{-2} \left( \mathbf{w}^\top \mathbf{X}^\top \mathbf{X} \mathbf{w} - 2 \mathbf{y}^\top \mathbf{X} \mathbf{w} \right)
-      + \mathbf{w}^\top \mathbf{P}_0^{-1} \mathbf{w} - 2 \mathbf{w}_0^\top \mathbf{P}_0^{-1} \mathbf{w}
+      \sigma^{-2} \left( \mathbf{w}^\top \mathbf{X}^\top \mathbf{X} \mathbf{w} - 2 \mathbf{w}^\top \mathbf{X}^\top \mathbf{y} \right)
+      + \mathbf{w}^\top \mathbf{P}_0^{-1} \mathbf{w} - 2 \mathbf{w}^\top \mathbf{P}_0^{-1} \mathbf{w}_0
     \right] + \text{const.}
 \\
 &= -\frac{1}{2} \left[
        \mathbf{w}^\top \left( \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \mathbf{P}_0^{-1} \right) \mathbf{w} -
-       2 \left( \sigma^{-2} \mathbf{y}^\top \mathbf{X} + \mathbf{w}_0^\top \mathbf{P}_0^{-1} \right) \mathbf{w}
+       2 \mathbf{w} \left( \sigma^{-2}\mathbf{X}^\top \mathbf{y} + \mathbf{P}_0^{-1} \mathbf{w}_0 \right)
     \right] + \text{const.}
 \\
 \end{align}
@@ -245,15 +252,15 @@ The posterior mean and posterior variance can be read-off in the log posterior:
 
 > $$
 > \begin{align}
-> \mathbf{P}_n^{-1}
-> &= \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \mathbf{P}_0^{-1}
+> \mathbf{P}_n
+> &= \left( \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \mathbf{P}_0^{-1} \right)^{-1}
 > \\[6pt]
 > \mathbf{w}_n
 > &= \mathbf{P}_n \left( \sigma^{-2} \mathbf{X}^\top \mathbf{y} + \mathbf{P}_0^{-1} \mathbf{w}_0 \right)
 > \end{align}
 > $$
 
-The posterior mean $\mathbf{w}_n$ can be refumulated as a sum of the prior mean $\mathbf{w}_0$ and a correction term.
+The posterior mean $\mathbf{w}_n$ can be reformulated as a sum of the prior mean $\mathbf{w}_0$ and a correction term.
 
 > $$
 > \begin{align}
@@ -267,6 +274,7 @@ Remarks:
 * $\mathbf{X} \mathbf{w}_0$ contains label predictions using the prior mean $\mathbf{w}_0$ on $\mathbf{x}_{1:n}$ before we observe $y_{1:n}$.
 * $\mathbf{y} - \mathbf{X} \mathbf{w}_0$ is called ***residual***. It reflects the difference between the observed labels and predicted labels based on prior mean. It is similar to the ***innovation*** in Kalman filter.
 * $\sigma^{-2} \mathbf{P}_n \mathbf{X}^\top$ is called ***gain***. It reflects how strong we respond to the residual, similar to ***Kalman gain***.
+* Computing $\mathbf{X}^\top \mathbf{X}$ requires $O(nd^2)$. Computing $\mathbf{P}_n$ requires inverting a $d\times d$ matrix and thus $O(d^3)$. Hence, the overall complexity is $O(nd^2 + d^3)$.
 
 Let $\mathbf{K}_n \triangleq \sigma^{-2} \mathbf{P}_n \mathbf{X}^\top \in\mathbb R^{d \times n}$, we can express $\mathbf{w}_n$ as a weighted average of $\mathbf{w}_0$ and $\mathbf{y}$.
 
@@ -281,8 +289,8 @@ If the data set contains only one sample $D = \{ \mathbf x_1, y_1 \}$ (i.e. $n=1
 
 $$
 \begin{align*}
-\mathbf{P}_1^{-1}
-&= \sigma^{-2} \mathbf{x}_1 \mathbf{x}_1^\top + \mathbf{P}_0^{-1}
+\mathbf{P}_1
+&= \left( \sigma^{-2} \mathbf{x}_1 \mathbf{x}_1^\top + \mathbf{P}_0^{-1} \right)^{-1}
 \\[6pt]
 \mathbf{w}_1
 &= \mathbf{P}_1 \left( \sigma^{-2} \mathbf{x}_1 y_1 + \mathbf{P}_0^{-1} \mathbf{w}_0 \right)
@@ -303,8 +311,8 @@ The posterior mean and posterior variance simplify to
 
 $$
 \begin{align}
-\mathbf{P}_n^{-1}
-&= \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \sigma_{0}^{-2} \mathbf{I}
+\mathbf{P}_n
+&= \left( \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \sigma_{0}^{-2} \mathbf{I} \right)^{-1}
 \\[6pt]
 \mathbf{w}_n
 &= \left( \mathbf{X}^\top \mathbf{X} + \lambda\mathbf{I} \right)^{-1} \mathbf{X}^\top \mathbf{y},
@@ -317,15 +325,15 @@ Remarks:
 * $\mathbf{w}_n$ is exactly the MAP estimate aka solution of Ridge regression.
 * In Bayesian inference, we also compute $\mathbf{P}_n$, which quantifies the uncertainty of $\mathbf{w}_n$.
 
-### The Posterior Predictive
+### The Posterior Predictive Distribution
 
 Having derived the posterior $p(\mathbf{w} \mid D)$, we are ready to derive the posterior predictive $p(y_* \mid \mathbf{x}_*, D)$. Recall the probabilistic model
 
 $$
-\begin{align}
+\begin{align*}
 y_* = \mathbf{w}^\top \mathbf{x}_* + \varepsilon, \quad
 \varepsilon \sim \mathcal N(\mathrm{0}, \sigma^2)
-\end{align}
+\end{align*}
 $$
 
 Given training data $D$ and new input $\mathbf{x}_*$, the label $y_*$ is Gaussian because it is a sum of two independent Gaussian random variables $\mathbf{w}^\top \mathbf{x}_*$ and $\varepsilon$. Hence, it is sufficient to compute the mean and variance of $y_*$ (given $\mathbf{x}_*$ and $D$) in order to obtain the posterior predictive.
@@ -393,7 +401,7 @@ $$
 
 Remarks:
 
-* Here, we simplyt write $p(\mathbf{w})$ instead of $p(\mathbf{w} \mid D_{1:0})$ or $p(\mathbf{w} \mid \varnothing)$ to denote the prior before we see any data.
+* Here, we simply write $p(\mathbf{w})$ instead of $p(\mathbf{w} \mid D_{1:0})$ or $p(\mathbf{w} \mid \varnothing)$ to denote the prior before we see any data.
 * In practice, we typically choose $\mathbf{w}_0 = \mathbf{0}$ and $\mathbf{P}_0 = \sigma_0^2 \mathbf{I}$ as in standard MAP estimation.
 
 For each $t=1,2,\dots$, we use the old posterior as the current prior:
@@ -407,11 +415,11 @@ $$
 Remarks:
 
 * By $y_t = \mathbf{w}^\top \mathbf{x}_t + \varepsilon_t$, the prior predictive distribution is
-  $$
-  \begin{align}
-  p(y_t \mid \mathbf{x}_t, D_{t-1}) = \mathcal N(y_t \mid \mathbf{w}_{t-1}^\top \mathbf{x}_{t},\: \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t} + \sigma^2)
-  \end{align}
-  $$
+  > $$
+  > \begin{align}
+  > p(y_t \mid \mathbf{x}_t, D_{t-1}) = \mathcal N(y_t \mid \mathbf{w}_{t-1}^\top \mathbf{x}_{t},\: \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t} + \sigma^2)
+  > \end{align}
+  > $$
 * Namely, we can predict $y_t$ by multiplying the prior mean $\mathbf{w}_{t-1}$ (i.e. old MAP estimate of $\mathbf{w}$) with current input $\mathbf{x}_t$.
 * The uncertainty in $y_t$ comes from the uncertainty in $\mathbf{w}$ and the observation noise $\varepsilon_t$.
 
@@ -425,17 +433,17 @@ $$
 
 where the posterior mean and covariance are updated as
 
-$$
-\begin{align}
-\mathbf{P}_{t}
-&= \left( \mathbf{P}_{t-1}^{-1} + \sigma^{-2} \mathbf{x}_{t} \mathbf{x}_{t}^\top \right)^{-1}
-\\[6pt]
-\mathbf{w}_{t}
-&= \mathbf{P}_{t} \left(  \mathbf{P}_{t-1}^{-1} \mathbf{w}_{t-1} + \sigma^{-2} \mathbf{x}_{t} y_{t} \right)
-\\
-&= \mathbf{w}_{t-1} + \sigma^{-2} \mathbf{P}_{t} \mathbf{x}_{t} \left( y_{t} - \mathbf{w}_{t-1}^\top \mathbf{x}_{t} \right)
-\end{align}
-$$
+> $$
+> \begin{align}
+> \mathbf{P}_{t}
+> &= \left( \mathbf{P}_{t-1}^{-1} + \sigma^{-2} \mathbf{x}_{t} \mathbf{x}_{t}^\top \right)^{-1}
+> \\[6pt]
+> \mathbf{w}_{t}
+> &= \mathbf{P}_{t} \left(  \mathbf{P}_{t-1}^{-1} \mathbf{w}_{t-1} + \sigma^{-2} \mathbf{x}_{t} y_{t} \right)
+> \\
+> &= \mathbf{w}_{t-1} + \sigma^{-2} \mathbf{P}_{t} \mathbf{x}_{t} \left( y_{t} - \mathbf{w}_{t-1}^\top \mathbf{x}_{t} \right)
+> \end{align}
+> $$
 
 Remarks:
 
@@ -513,11 +521,11 @@ $$
 
 Using the inversion-free update rule for $\mathbf{P}_t$, we can express the gain as
 
-$$
-\begin{align}
-\mathbf{k}_t = \frac{\mathbf{P}_{t-1} \mathbf{x}_{t}}{\sigma^{2} + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}}
-\end{align}
-$$
+> $$
+> \begin{align}
+> \mathbf{k}_t = \frac{\mathbf{P}_{t-1} \mathbf{x}_{t}}{\sigma^{2} + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}}
+> \end{align}
+> $$
 
 Remarks:
 
@@ -525,7 +533,6 @@ Remarks:
 * Comparing both expressions of $\mathbf{k}_t$, we see that the correction direction $\mathbf{P}_{t} \mathbf{x}_{t}$ is the same as $\mathbf{P}_{t-1} \mathbf{x}_{t}$.
 
 *Proof*: The 2nd expression follows from some simple algebra:
-
 $$
 \begin{align*}
 \mathbf{k}_t
@@ -542,50 +549,71 @@ $$
 
 Note that the update to $\mathbf{P}_{t}$ requires computing the outer product of $\mathbf{P}_{t-1} \mathbf{x}_{t}$, which is just a scalar mulitple of the gain $\mathbf{k}_t$. Hence, we can express $\mathbf{P}_{t}$ explicitly in terms of $\mathbf{k}_t$.
 
-$$
-\begin{align}
-\mathbf{P}_{t}
-&= \mathbf{P}_{t-1} - \left( \sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t} \right) \mathbf{k}_t \mathbf{k}_t^\top
-\end{align}
-$$
+> $$
+> \begin{align}
+> \mathbf{P}_{t}
+> &= \mathbf{P}_{t-1} - \left( \sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t} \right) \mathbf{k}_t \mathbf{k}_t^\top
+> \end{align}
+> $$
+
+* The correction term is positive semidefinite becuase it is the outer product $ \mathbf{k}_t \mathbf{k}_t^\top$ scaled by the prior predictive variance $\sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}$ (a non negative number). See Appendix for the semi positive definitenss of outer product.
+* Thus, $\mathbf{P}_{t}$ is computed by substracting a positive semidefinite matrix from $\mathbf{P}_{t-1}$. Intuitively, this means the uncertainty in $\mathbf{w}$ shrinks over time as more data is assimilated.
 
 ### The Complete Algorithm
 
-Init: $\mathbf{w}_0 \in\mathbb R^{d}, \mathbf{P}_0 \in\mathbb R^{d \times d}$  
-For $t=1,2,\dots$, do:  
-$\qquad$ compute the prior prediction and variance for $y_t$:  
+> Init: $\mathbf{w}_0 \in\mathbb R^{d}, \mathbf{P}_0 \in\mathbb R^{d \times d}$  
+> For $t=1,2,\dots$, do:  
+> $\qquad$ Prior prediction (mean and variance) of $y_t$:
+> $$
+> \begin{align}
+> \hat{y}_t &=  \mathbf{w}_{t-1}^\top \mathbf{x}_{t} \\
+> s^2_{t} &= \sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}
+> \end{align}
+> $$
+>
+> $\qquad$ Compute the gain vector $\mathbf{k}_t$:  
+>
+> $$
+> \begin{align}
+> \mathbf{k}_t = \frac{\mathbf{P}_{t-1} \mathbf{x}_{t}}{s^2_{t}}
+> \end{align}
+> $$
+>
+> $\qquad$ Update the posterior mean of $\mathbf{w}$:  
+>
+> $$
+> \begin{align}
+> \mathbf{w}_{t}
+> &= \mathbf{w}_{t-1} + \mathbf{k}_{t} \left( y_{t} - \hat{y}_t \right)
+> \end{align}
+> $$
+>
+> $\qquad$ Update the posterior variance of $\mathbf{w}$:  
+>
+> $$
+> \begin{align}
+> \mathbf{P}_{t}
+> &= \mathbf{P}_{t-1} - s^2_{t} \, \mathbf{k}_t \mathbf{k}_t^\top
+> \end{align}
+> $$
+
+Remarks:
+
+* Online Bayesian linear regression requires $O(d^2)$ computation per time step. Over $n$ time steps, the total computational cost is $O(nd^2)$.
+* The algorithm strongly parallels the Kalman filter. In fact, online Bayesian linear regression is a special case of Kalman filter, as we detail below.
+
+From Kalman filter pespective, the Bayesian linear regression model can be reformulated into
 $$
 \begin{align}
-\hat{y}_t &=  \mathbf{w}_{t-1}^\top \mathbf{x}_{t} \\
-s^2_{t} &= \sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}
+\mathbf{w}_t &= \mathbf{w}_{t-1} \\
+y_t &= \mathbf{x}_t^\top \mathbf{w}_t + \varepsilon_t, \quad
+\varepsilon_t \sim \mathcal N(0, \sigma^2)
 \end{align}
 $$
+Remarks:
 
-$\qquad$ compute the gain vector $\mathbf{k}_t$:  
-
-$$
-\begin{align}
-\mathbf{k}_t = \frac{\mathbf{P}_{t-1} \mathbf{x}_{t}}{s^2_{t}}
-\end{align}
-$$
-
-$\qquad$ compute the posterior mean of $\mathbf{w}$:  
-
-$$
-\begin{align}
-\mathbf{w}_{t}
-&= \mathbf{w}_{t-1} + \mathbf{k}_{t} \left( y_{t} - \hat{y}_t \right)
-\end{align}
-$$
-
-$\qquad$ compute the posterior variance of $\mathbf{w}$:  
-
-$$
-\begin{align}
-\mathbf{P}_{t}
-&= \mathbf{P}_{t-1} - s^2_{t} \, \mathbf{k}_t \mathbf{k}_t^\top
-\end{align}
-$$
+* $\mathbf{w}_t$ is treated as the latent state vector, evolving deterministically (identity mapping without process noise).
+* $y_t$ is the scalar observation, and $\mathbf{x}_t^\top$ serves as the observation matrix.. The observation noise is modeled by $\varepsilon_t$.
 
 ## Appendix
 
@@ -659,6 +687,21 @@ Special cases:
   $$
   \begin{align}
   \left( \mathbf{A} + \mathbf{B} \right)^{-1}
-  = \mathbf{A}^{-1} - \mathbf{A}^{-1} \left( \mathbf{C}^{-1} + \mathbf{A}^{-1} \right)^{-1} \mathbf{A}^{-1}
+  = \mathbf{A}^{-1} - \mathbf{A}^{-1} \left( \mathbf{A}^{-1} + \mathbf{B}^{-1} \right)^{-1} \mathbf{A}^{-1}
   \end{align}
   $$
+
+### Outer Products
+
+The outer product of two vectors $\mathbf u \in\mathbb R^m, \mathbf v \in\mathbb R^n$ is a matrix, defined by $\mathbf u \mathbf v^\top \in\mathbb R^{m \times n}$.
+
+**Fact**: For $\mathbf u = \mathbf v$, the outerproduct $\mathbf u \mathbf u^\top$ is always postive semi definite.
+
+*Proof*: For any $\mathbf x \ne \mathbf 0$, we see that the quadratic form is non negative as
+$$
+\mathbf x^\top (\mathbf u \mathbf u^\top)\mathbf x
+= (\mathbf x^\top \mathbf u) (\mathbf u^\top\mathbf x)
+= (\mathbf x^\top \mathbf u)^2
+\ge 0
+\tag*{$\blacksquare$}
+$$

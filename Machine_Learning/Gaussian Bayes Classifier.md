@@ -628,9 +628,25 @@ The symmetry of $R$ is obvious. $\quad\quad\quad\square$
 
 ## Mahalanobis Distance
 
-TBA: definition.
+Let $\Sigma\in\mathbb R^{d \times d}$ be a covariance matrix. The Mahalanobis distance between two points $u,v \in\mathbb R^d$ is defined as
 
-$\Sigma^{-1} = S^2 \implies d(x,\mu) = \Vert \tilde{x}-\tilde{\mu} \Vert$ where $\tilde{v} = Sv$.
+$$
+\begin{align}
+d(u,v) = \sqrt{(u-v)^\top \Sigma^{-1} (u-v)}
+\end{align}
+$$
+
+$\Sigma^{-1}$ has a p.s.d. matrix square root $S$ (see *Precision Matrix Decomposition*). Under the linear transformation defined by $S$, the Mahalanobis distance becomes the standard Euclidean distance between the transformed points.
+
+$$
+\begin{align}
+d(u,v)
+&= \sqrt{(u-v)^\top S^2 (u-v)} && \Sigma^{-1} = S^2 \\
+&= \sqrt{(u-v)^\top S^\top \cdot S (u-v)} && S^\top = S \\
+&= \Vert S (u-v) \Vert_2 && \text{def. of 2 norm} \\
+&= \Vert \tilde u -\tilde v \Vert_2  && \text{where } \tilde u = Su, \tilde v = Sv\\
+\end{align}
+$$
 
 ## Indicator Function
 
@@ -652,7 +668,3 @@ Examples:
 > $$
 > f(y) = \sum_{k=1}^K \mathbb{I}[y=k] \cdot f(k)
 > $$
-
-## KL Divergence
-
-TBA

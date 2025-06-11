@@ -68,9 +68,39 @@ X &\sim \mathcal N(\mu, \Sigma) \\
 \end{align*}
 $$
 
+### Level Sets
+
+The level sets of a multivariate Gaussian $\mathcal{N}(\mu, \Sigma)$ are ellipsoids centered at $\mu$.
+
+Let $\lambda_i$ be eigenvalues of $\Sigma$, and $v_i$ the corresonding eigenvectors ($i=1,\dots,d$). Then:
+
+* The ellipsoids are aligned along the directions of $v_i$.
+* The semi-axis lengths of ellipsoids are proprotional to $\sqrt{\lambda_i}$.
+
+### Moment Generating Function
+
+The moment generating function (MGF) of a multivariate Gaussian $\mathcal{N}(\mu, \Sigma)$ is
+
+$$
+\begin{align*}
+M_X(t)
+&= \exp\left( t^\top \mu + \frac{1}{2} t^\top \Sigma t \right)
+&& \text{for } t\in\mathbb R^d
+\end{align*}
+$$
+
+Calculating moments of $X$ $\iff$ calculating derivatives of $M_X$.
+
+$$
+\begin{align*}
+\mathbb E[X_i X_j]
+&= \left. \frac{\partial^2 M_X(t)}{\partial t_i \partial t_j} \right|_{t=0}
+\end{align*}
+$$
+
 ## Invariance
 
-The Gaussian distribution is invariant under affine transformation, summation, marginallisation, and conditioning. i.e. "Once Gaussian, always Gaussian".
+The Gaussian distribution is invariant under affine transformation, summation, marginallisation, and conditioning. i.e. "Once Gaussian, (almost) always Gaussian".
 
 * **Affine transformation**: Affine tranformation of a Gaussian is again Gaussian.
     > $$
@@ -85,6 +115,8 @@ The Gaussian distribution is invariant under affine transformation, summation, m
     > \end{rcases}
     > \implies X + Y \sim \mathcal{N}(\mu_X + \mu_Y, \Sigma_X + \Sigma_Y)
     > $$
+
+* Even if $X$ and $Y$ are correlated, the sum $X+Y$ is still Gaussian. However, the variance of $X+Y$ is no longer the sum of $\Sigma_X$ and $\Sigma_Y$!
 * Product of two Gaussians is **not** always Gaussian!
 
 Let a Gaussian random vector $X$ be partitioned into two sub random vectors $X_A$ and $X_B$.
@@ -118,6 +150,23 @@ Then,
     > \Sigma_{A\vert B} &= \Sigma_{AA} - \Sigma_{AB} \Sigma_{BB}^{-1} \Sigma_{BA}
     > \end{align*}
     > $$
+
+## Central Limit Theorem (CLT)
+
+**Lindeberg–Lévy CLT**  
+Let $X_1, X_2, \dots$ be a sequence of iid random variables with $\mathbb E[X_i] = \mu$ and $\mathbb V[X_i] = \sigma^2$. Then, the normalized sample mean $\sqrt{n} (\bar X_n - \mu)$ converges in distribution to $\mathcal N(0, \sigma^2)$.
+
+$$
+\sqrt{n} (\bar X_n - \mu) \xrightarrow{d} \mathcal N(0, \sigma^2)
+$$
+
+Remarks:
+
+* The unnormalized sample mean $\bar X_n$ is defined as
+  $$
+  \bar X_n \triangleq \frac{X_1 + \dots + X_n}{n}
+  $$
+* The distribution of $X_i$ can be **any** distribution.
 
 ## Derivatives
 
@@ -254,9 +303,3 @@ Letting the derivatives be zero, we get
     > $$
     > \hat\sigma^2 = \frac{1}{Nd} \sum_{n=1}^N \left\Vert x^{(n)} - \mu \right\Vert^2
     > $$
-
-## TBA
-
-* Eigenvalue and eigenvector of covariance matrice --> standalone section after *Basics*
-* Moment generating function (MGF) --> standalone section after *Invariance*
-* Central limit theorem --> standalone section after *MGF*

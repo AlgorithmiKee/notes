@@ -560,22 +560,24 @@ Some important results from linear algebra, which is important for decomposing t
     > where $R$ is called the matrix root of $A$.
 1. The precision matrix $\Sigma^{-1}$ is s.p.d. and thus has matrix decompositions in 3.
 
-*Proof 1*: First, we show the eigenvalues of a symmetric matrix is real by
+*Proof 1*: We show this claim step by step as follows:
+
+**Step 1**: The eigenvalues of a symmetric matrix $A$ is real since  
+Let $Av=\lambda v$, then
 $$
 \begin{align*}
-\text{Let } Av=\lambda v
-&\implies
-  \langle Av, Av \rangle
-  = \langle \lambda v, \lambda v \rangle
-  =  \lambda^2 \langle v, v \rangle \\
-&\implies
-  \lambda^2 = \frac{ \langle Av, Av \rangle}{\langle v, v \rangle} > 0 \\
-&\implies
-  \lambda \in\mathbb{R}
+\boxed{\lambda \langle v, v \rangle}
+= \langle \lambda v, v \rangle
+= \langle Av, v \rangle
+&= \langle v, Av \rangle
+= \langle v, \lambda v \rangle
+= \boxed{\bar{\lambda} \langle v, v \rangle}
+\\
+\langle v, v \rangle > 0 \implies \lambda &= \bar{\lambda} \implies \lambda \in\mathbb R
 \end{align*}
 $$
 
-Second, we show eigenspaces corresponding to distinct eigenvalues are mutually orthogonal.  
+**Step 2**: The eigenspaces corresponding to distinct eigenvalues are mutually orthogonal since  
 Suppose $Av=\lambda v,\: Aw=\eta w$ and $\lambda\ne\eta$. Then,
 $$
 \begin{align*}
@@ -595,7 +597,9 @@ $$
 \end{align*}
 $$
 
-In each eigenspace, we choose an orthogonal basis. Basis vectors from different eigenspaces are again orthogonal to each other. We conclude. $\quad\square$
+**Step 3**: The geometric multiplicity of each eigenvalue equals its algebraic multiplicity. This fact can be proved inductively but the procedure is quite tedious. Omitted here.
+
+Finally, we choose an orthogonal basis in each eigenspace. Basis vectors from different eigenspaces are orthogonal to each other and thus linearly independent. By fundamental theorem of algebra, the sum of algebraic multiplicity is $n$ for $A \in\mathbb R^{n \times n}$. By step 3, we know that the sum of geometric multiplicity is also $n$. i.e. There are $n$ linearly independent eigenvectors. We conclude. $\quad\square$
 
 *Proof 2*: Let $A$ be positive definite. Let $Ax=\lambda x$, then
 $$

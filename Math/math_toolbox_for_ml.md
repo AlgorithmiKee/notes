@@ -17,6 +17,13 @@ $$
 
 ## Probabilities and Statistics
 
+TODO:
+
+* conditional expectation
+* conditional variance
+* total variance
+* conditional independence
+
 ### Important inequalities
 
 #### Markov inequality
@@ -64,6 +71,8 @@ $$
 > \end{align}
 > $$
 
+**Core Inituition**: Consider $\vert X - \mathbb E[X] \vert$ as the deviation of $X$ from the mean. The inequality tells: If $\mathbb V[X]$ is small, then $X$ is unlikely to deviate far from its mean.
+
 *Proof*: Let $Y = (X - \mathbb E[X])^2$. Then, applying Markov inequality on $Y$ yields Chebyshev inequality:
 
 $$
@@ -74,6 +83,16 @@ P(\vert X - \mathbb E[X] \vert \ge \epsilon) &\le \frac{\mathbb V[X]}{\epsilon^2
 \tag*{$\blacksquare$}
 \end{align*}
 $$
+
+#### Jensen Inequality
+
+Let $X\in\mathbb R^d$ be a random vector and $g: \mathbb R^d \to \mathbb R$ be a convex function. Then,
+
+> $$
+> \begin{align}
+> \mathbb E[g(X)] \ge g(\mathbb E[X])
+> \end{align}
+> $$
 
 ### Law of total probability
 
@@ -230,20 +249,84 @@ $$
 
 #### Joint expectation and conditional expectation
 
-$$
-\mathbb{E}_{(x,y)\sim p(x,y)}[g(x,y)] =
-\mathbb{E}_{x \sim p(x)} \big[ \mathbb{E}_{y \sim p(y \mid x)}[g(x,y)] \big]
-$$
+> $$
+> \begin{align}
+> \mathbb{E}_{(x,y)\sim p(x,y)}[g(x,y)] =
+> \mathbb{E}_{x \sim p(x)} \big[ \mathbb{E}_{y \sim p(y \mid x)}[g(x,y)] \big]
+> \end{align}
+> $$
 
 or in alternative notation:
 
 $$
+\begin{align}
 \mathbb{E}_{XY}[g(X,Y)] =
 \mathbb{E}_{X} \big[ \mathbb{E}_{Y}[g(X,Y) \mid X] \big]
+\end{align}
 $$
 
-TODO: proof
+*Proof*: Let $U=(X,Y)$ and $V=X$. Applying the law of total probability yields
 
-### Law of total variance
+$$
+\begin{align*}
+\mathbb E_U[g(U)] &= \mathbb E_{V} \Big[ \mathbb E_U[g(U) \mid V] \Big] \\
+\mathbb E_{X,Y}[g(X,Y)] &= \mathbb E_{X} \Big[ \mathbb E_{X,Y}[g(X,Y) \mid X] \Big] \\
+\mathbb E_{X,Y}[g(X,Y)] &= \mathbb E_{X} \Big[ \mathbb E_{Y}[g(X,Y) \mid X] \Big]
+\tag*{$\blacksquare$}
+\end{align*}
+$$
 
-TODO
+*Proof (alt.)*: The claim can also be directly proved:
+
+$$
+\begin{align*}
+\mathbb{E}_{(x,y)\sim p(x,y)}[g(x,y)]
+&= \int\int g(x,y) \cdot p(x,y) \:\mathrm{d}x \mathrm{d}y \\
+&= \int\int g(x,y) \cdot p(x) p(y \mid x) \:\mathrm{d}x \mathrm{d}y \\
+&= \int p(x)
+     \underbrace{\int g(x,y) \cdot p(y \mid x) \:\mathrm{d}y}_{\mathbb{E}_{y \sim p(y \mid x)}[g(x,y)]}
+   \mathrm{d}x
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+## Information Theory
+
+### KL Divergence
+
+Let $p,q$ be two probability distributions. The KL Divergence (or relative entropy) of $q$ w.r.t $p$ is defined as
+
+$$
+\begin{align}
+D_\text{KL}(p \parallel q)
+&= \mathbb E_{x \sim p(\cdot)} \left[
+    \log \frac{p(x)}{q(x)}
+\right]
+\end{align}
+$$
+
+For discrete distributions, the KL divergence becomes
+
+$$
+\begin{align}
+D_\text{KL}(p \parallel q)
+&= \sum_{x \in \mathcal X} p(x) \log \frac{p(x)}{q(x)}
+\end{align}
+$$
+
+For continuous distributions, the KL divergence becomes
+
+$$
+\begin{align}
+D_\text{KL}(p \parallel q)
+&= \int_{-\infty}^{\infty} p(x) \log \frac{p(x)}{q(x)} \:\mathrm dx
+\end{align}
+$$
+
+**Core Inituition**: KL divergence quantifies the surprise when we assume $x$ is sampled from $q$ while the true distribution is $p$. It can also be viewed as a asymmetric distance between $p$ and $q$.
+
+Key properties of KL divergence:
+
+1. Asymmetry: $D_\text{KL}(p \parallel q) \ne D_\text{KL}(q \parallel p)$ in general
+1. Non-negativity: $D_\text{KL}(p \parallel q) \ge 0, \: \forall p,q$.
+1. $D_\text{KL}(p \parallel q) = 0 \iff p=q$ almost surely

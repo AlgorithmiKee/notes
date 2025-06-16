@@ -197,11 +197,18 @@ $$
 \end{align*}
 $$
 
-## Parameterization
-
-TODO
-
 ## ELBO for a Dataset
+
+Consider the unspervised learning with latent variables:
+
+* Model: $p(x,z)$
+* Given: training data $D = \{ x_1, \cdots,  x_n\}$.
+
+Can we derive the ELBO for the dataset?
+
+depends on the form of $q(z_{1:n})$
+
+### Parameterization
 
 TODO
 

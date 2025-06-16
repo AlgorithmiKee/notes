@@ -50,13 +50,14 @@ Our focus: parametric methods. In particular, parameter estimation.
 
 ## Unsuperivsed Learning
 
-Problem formulation:
+Unspervised learning with fully observable data:
 
-* Given: training data $D = \{\mathbf x_1, \cdots, \mathbf x_n\}$ iid from $p(\mathbf x \mid \boldsymbol{\theta})$ with unknown $\boldsymbol{\theta}$
+* Model: $p(\mathbf x \mid \boldsymbol{\theta})$ with unknown $\boldsymbol{\theta}$.
+* Given: training data $D = \{\mathbf x_1, \cdots, \mathbf x_n\} \stackrel{\text{iid}}{\sim} p(\mathbf x \mid \boldsymbol{\theta})$
 * Optional: prior distribution $p(\boldsymbol{\theta})$
 * Goal: estimate $\boldsymbol{\theta}$
 
-We assume that the data is fully observable, i.e. there is no latent variables. Unsupervised learning with latent variables (e.g. GMM) requires more complex algorithms (e.g. EM algorithm) which are not detailed here.
+For now, we assume that the data is fully observable, i.e. there is no latent variables. Unsupervised learning with latent variables will be briefly discussed later.
 
 ### Maximum Likelihood Estimation (MLE)
 
@@ -108,8 +109,8 @@ If the log likelihood is convex, then $\hat{\boldsymbol{\theta}}_\text{MLE}$ can
 
 $$
 \begin{align}
-\frac{\partial}{\partial\boldsymbol{\theta}} \ln p(D\mid\boldsymbol{\theta}) &= 0 \\
-\sum_{i=1}^n \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x_i \mid \boldsymbol{\theta}) &= 0 \\
+\nabla_{\boldsymbol{\theta}} \ln p(D\mid\boldsymbol{\theta}) &= 0 \\
+\sum_{i=1}^n \nabla_{\boldsymbol{\theta}} \ln p(\mathbf x_i \mid \boldsymbol{\theta}) &= 0 \\
 \end{align}
 $$
 
@@ -118,8 +119,8 @@ If the log likelihood is non-convex,  $\hat{\boldsymbol{\theta}}_\text{MLE}$ can
 $$
 \begin{align}
 \boldsymbol{\theta}^{(t+1)}
-&= \boldsymbol{\theta}^{(t)} + \eta^{(t)} \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(D\mid\boldsymbol{\theta}^{(t)}) \\
-&= \boldsymbol{\theta}^{(t)} + \eta^{(t)} \sum_{i=1}^n \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x_i \mid \boldsymbol{\theta}^{(t)}) \\
+&= \boldsymbol{\theta}^{(t)} + \eta^{(t)} \nabla_{\boldsymbol{\theta}} \ln p(D\mid\boldsymbol{\theta}^{(t)}) \\
+&= \boldsymbol{\theta}^{(t)} + \eta^{(t)} \sum_{i=1}^n \nabla_{\boldsymbol{\theta}} \ln p(\mathbf x_i \mid \boldsymbol{\theta}^{(t)}) \\
 \end{align}
 $$
 
@@ -133,7 +134,7 @@ If the data set $D$ is large, one can use
     & \text{randomly draw } B^{(t)} \subset D \text{ with } \vert B \vert = m \nonumber
     \\
     & \boldsymbol{\theta}^{(t+1)}
-    = \boldsymbol{\theta}^{(t)} + \eta^{(t)} \sum_{\mathbf x\in B^{(t)}} \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x \mid \boldsymbol{\theta}^{(t)})
+    = \boldsymbol{\theta}^{(t)} + \eta^{(t)} \sum_{\mathbf x\in B^{(t)}} \nabla_{\boldsymbol{\theta}} \ln p(\mathbf x \mid \boldsymbol{\theta}^{(t)})
     \end{align}
     $$
 
@@ -143,7 +144,7 @@ If the data set $D$ is large, one can use
     & \text{randomly draw } \mathbf x^{(t)} \in D \nonumber
     \\
     & \boldsymbol{\theta}^{(t+1)}
-    = \boldsymbol{\theta}^{(t)} + \eta^{(t)} \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x^{(t)} \mid \boldsymbol{\theta}^{(t)})
+    = \boldsymbol{\theta}^{(t)} + \eta^{(t)} \nabla_{\boldsymbol{\theta}} \ln p(\mathbf x^{(t)} \mid \boldsymbol{\theta}^{(t)})
     \end{align}
     $$
 
@@ -189,8 +190,8 @@ If the objective on the RHS is convex, we can compute $\hat{\boldsymbol{\theta}}
 
 $$
 \begin{align}
-\frac{\partial}{\partial\boldsymbol{\theta}}\ln p(D\mid\boldsymbol{\theta}) + \frac{\partial}{\partial\boldsymbol{\theta}}\ln p(\boldsymbol{\theta}) &= 0 \\
-\sum_{i=1}^n \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x_i \mid \boldsymbol{\theta}) + \frac{\partial}{\partial\boldsymbol{\theta}}\ln p(\boldsymbol{\theta}) &= 0 \\
+\nabla_{\boldsymbol{\theta}}\ln p(D\mid\boldsymbol{\theta}) + \nabla_{\boldsymbol{\theta}}\ln p(\boldsymbol{\theta}) &= 0 \\
+\sum_{i=1}^n \nabla_{\boldsymbol{\theta}} \ln p(\mathbf x_i \mid \boldsymbol{\theta}) + \nabla_{\boldsymbol{\theta}}\ln p(\boldsymbol{\theta}) &= 0 \\
 \end{align}
 $$
 
@@ -200,7 +201,7 @@ Gradient-based optimization:
     $$
     \begin{align*}
     \boldsymbol{\theta}^{(t+1)}
-    &= \boldsymbol{\theta}^{(t)} + \eta^{(t)} \left(\sum_{i=1}^n \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x_i \mid \boldsymbol{\theta}^{(t)}) + \frac{\partial}{\partial\boldsymbol{\theta}}\ln p(\boldsymbol{\theta}^{(t)}) \right)\\
+    &= \boldsymbol{\theta}^{(t)} + \eta^{(t)} \left(\sum_{i=1}^n \nabla_{\boldsymbol{\theta}} \ln p(\mathbf x_i \mid \boldsymbol{\theta}^{(t)}) + \nabla_{\boldsymbol{\theta}}\ln p(\boldsymbol{\theta}^{(t)}) \right)\\
     \end{align*}
     $$
 
@@ -210,7 +211,7 @@ Gradient-based optimization:
     & \text{randomly draw } B^{(t)} \subset D \text{ with } \vert B \vert = m
     \\
     & \boldsymbol{\theta}^{(t+1)}
-    = \boldsymbol{\theta}^{(t)} + \eta^{(t)} \left(\sum_{\mathbf x\in B^{(t)}} \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x \mid \boldsymbol{\theta}^{(t)}) + \frac{\partial}{\partial\boldsymbol{\theta}}\ln p(\boldsymbol{\theta}^{(t)}) \right)
+    = \boldsymbol{\theta}^{(t)} + \eta^{(t)} \left(\sum_{\mathbf x\in B^{(t)}} \nabla_{\boldsymbol{\theta}} \ln p(\mathbf x \mid \boldsymbol{\theta}^{(t)}) + \nabla_{\boldsymbol{\theta}}\ln p(\boldsymbol{\theta}^{(t)}) \right)
     \end{align*}
     $$
 
@@ -220,7 +221,7 @@ Gradient-based optimization:
     & \text{randomly draw } \mathbf x^{(t)} \in D
     \\
     & \boldsymbol{\theta}^{(t+1)}
-    = \boldsymbol{\theta}^{(t)} + \eta^{(t)} \left(\frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x^{(t)} \mid \boldsymbol{\theta}^{(t)}) + \frac{\partial}{\partial\boldsymbol{\theta}}\ln p(\boldsymbol{\theta}^{(t)}) \right)
+    = \boldsymbol{\theta}^{(t)} + \eta^{(t)} \left(\nabla_{\boldsymbol{\theta}} \ln p(\mathbf x^{(t)} \mid \boldsymbol{\theta}^{(t)}) + \nabla_{\boldsymbol{\theta}}\ln p(\boldsymbol{\theta}^{(t)}) \right)
     \end{align*}
     $$
 
@@ -254,20 +255,73 @@ The Gaussian prior has regularization effect: It encourages smaller $\boldsymbol
 $$
 \begin{align}
 \boldsymbol{\theta}^{(t+1)}
-&= \boldsymbol{\theta}^{(t)} + \eta^{(t)} \left(\sum_{i=1}^n \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x_i \mid \boldsymbol{\theta}^{(t)}) -
-   \frac{\partial}{\partial\boldsymbol{\theta}}\frac{1}{2\sigma^2_\mathrm{p}} \Vert\boldsymbol{\theta}^{(t)}\Vert^2 \right) \nonumber \\
-&= \boldsymbol{\theta}^{(t)} + \eta^{(t)} \left(\sum_{i=1}^n \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x_i \mid \boldsymbol{\theta}^{(t)}) -
+&= \boldsymbol{\theta}^{(t)} + \eta^{(t)} \left(\sum_{i=1}^n \nabla_{\boldsymbol{\theta}} \ln p(\mathbf x_i \mid \boldsymbol{\theta}^{(t)}) -
+   \nabla_{\boldsymbol{\theta}}\frac{1}{2\sigma^2_\mathrm{p}} \Vert\boldsymbol{\theta}^{(t)}\Vert^2 \right) \nonumber \\
+&= \boldsymbol{\theta}^{(t)} + \eta^{(t)} \left(\sum_{i=1}^n \nabla_{\boldsymbol{\theta}} \ln p(\mathbf x_i \mid \boldsymbol{\theta}^{(t)}) -
    \frac{1}{\sigma^2_\mathrm{p}} \boldsymbol{\theta}^{(t)} \right) \nonumber \\
-&= \boldsymbol{\theta}^{(t)} \left(1 - \frac{\eta^{(t)}}{\sigma^2_\mathrm{p}}\right) + \eta^{(t)} \sum_{i=1}^n \frac{\partial}{\partial\boldsymbol{\theta}} \ln p(\mathbf x_i \mid \boldsymbol{\theta}^{(t)}) \\
+&= \boldsymbol{\theta}^{(t)} \left(1 - \frac{\eta^{(t)}}{\sigma^2_\mathrm{p}}\right) + \eta^{(t)} \sum_{i=1}^n \nabla_{\boldsymbol{\theta}} \ln p(\mathbf x_i \mid \boldsymbol{\theta}^{(t)}) \\
 \end{align}
 $$
+
+### Latent Variable Model
+
+Unspervised learning with latent variables:
+
+* Model: $p(\mathbf x, \mathbf z \mid \boldsymbol{\theta})$ with unknown $\boldsymbol{\theta}$
+* Given: training data $D = \{\mathbf x_1, \cdots, \mathbf x_n\} \stackrel{\text{iid}}{\sim} p(\mathbf x) = \displaystyle\int p(\mathbf x, \mathbf z \mid \boldsymbol{\theta}) \,\mathrm d\mathbf z$. The latent variables $\mathbf z_{1:n}$ are missing.
+* Optional: prior distribution $p(\boldsymbol{\theta})$
+
+Two predominant goals:
+
+1. For a fixed $\boldsymbol{\theta}$, compute $p(\mathbf z_{1:n} \mid \mathbf x_{1:n}, \boldsymbol{\theta})$. $\to$ variational inference
+1. Estimate the parameters $\boldsymbol{\theta}$. $\to$ expectation maximization (EM) algorithm
+
+Remarks:
+
+* Here, we focus on statistical modeling. Variational inference and EM algorithm are big topics and thus not detailed here.
+* The latent variables $\mathbf z$ represents some high level description of $\mathbf x$. e.g. In computer vision, $\mathbf z$ may encode the semantic meaning of a "shining doge", and $\mathbf x$ is a 256 by 256 image of dogecoin.
+* Learning a latent variable model can be seen as learning a supervised model with missing labels in training data.
+
+The (incomplete-data) likelihood is
+
+$$
+\begin{align}
+p(D \mid \boldsymbol{\theta})
+&= p(\mathbf x_{1:n} \mid \theta) \\
+&= \prod_{i=1}^n  p(\mathbf x_{i} \mid \theta) \\
+&= \prod_{i=1}^n  \int p(\mathbf x_{i}, \mathbf z_{i} \mid \theta) \,\mathrm d\mathbf z_{i} \\
+\end{align}
+$$
+
+Taking the log, we obtain the (incomplete-data) log likelihood
+
+$$
+\begin{align}
+\ln p(D \mid \boldsymbol{\theta})
+&= \sum_{i=1}^n  \ln \left( \int p(\mathbf x_{i}, \mathbf z_{i} \mid \theta) \,\mathrm d\mathbf z_{i} \right) \\
+\end{align}
+$$
+
+The gradient of $\ln p(D \mid \boldsymbol{\theta})$ has very complex form in general.
+
+$$
+\begin{align*}
+\nabla_{\boldsymbol{\theta}} \ln p(D \mid \boldsymbol{\theta})
+&= \sum_{i=1}^n  \nabla_{\boldsymbol{\theta}} \ln p(\mathbf x_{i} \mid \theta) \\
+&= \sum_{i=1}^n  \frac{1}{p(\mathbf x_{i} \mid \theta)} \nabla_{\boldsymbol{\theta}} \left( \int p(\mathbf x_{i}, \mathbf z_{i} \mid \theta) \,\mathrm d\mathbf z_{i} \right) \\
+&= \sum_{i=1}^n  \frac{1}{p(\mathbf x_{i} \mid \theta)} \int \nabla_{\boldsymbol{\theta}} p(\mathbf x_{i}, \mathbf z_{i} \mid \theta) \,\mathrm d\mathbf z_{i} \\
+\end{align*}
+$$
+
+In practice, parameters are estimated using EM algorithms instead of directly optimizing the incomplete-data log likelihood.
 
 ## Superivsed Learning
 
 Problem formulation:
 
-* Given: training data $D = \{\mathbf x_1, y_1, \cdots, \mathbf x_n, y_n\}$ iid from $p(\mathbf x, y \mid \boldsymbol{\theta})$ with unknown $\boldsymbol{\theta}$
-* Goal: estimate $\boldsymbol{\theta}$
+* Model: $p(\mathbf x, y \mid \boldsymbol{\theta})$ with unknown $\boldsymbol{\theta}$.
+* Given: training data $D = \{\mathbf x_1, y_1, \cdots, \mathbf x_n, y_n\} \stackrel{\text{iid}}{\sim} p(\mathbf x, y \mid \boldsymbol{\theta})$.
+* Goal: estimate $\boldsymbol{\theta}$.
 
 Additional assumption: The parameterized joint distribution can be factorized either as
 
@@ -300,7 +354,7 @@ Remarks:
 1. predicting which number given a hand-written digit $\to$ generative model.
 1. predicting which species given the weight and size of an animal $\to$ generative model.
 
-### Learning a Discriminative Model
+### Discriminative Modeling
 
 By iid assumption and that $p(\mathbf x, y \mid \boldsymbol{\theta}) = p(\mathbf x \mid \boldsymbol{\pi}) \, p(y \mid \mathbf x,\mathbf{w})$, the likelihood is
 
@@ -400,7 +454,7 @@ Again, $\hat{\mathbf{w}}_\text{MLE}$ and $\hat{\mathbf{w}}_\text{MAP}$ are compu
   $$
   \begin{align*}
   \mathbf{w}^{(t+1)}
-  &= \mathbf{w}^{(t)} + \eta^{(t)} \left(\sum_{i=1}^n \frac{\partial}{\partial\mathbf{w}} \ln p(y_i \mid \mathbf x_i, \mathbf{w}^{(t)}) + \frac{\partial}{\partial\mathbf{w}}\ln p(\mathbf{w}^{(t)}) \right)\\
+  &= \mathbf{w}^{(t)} + \eta^{(t)} \left(\sum_{i=1}^n \nabla_{\mathbf{w}} \ln p(y_i \mid \mathbf x_i, \mathbf{w}^{(t)}) + \nabla_{\mathbf{w}}\ln p(\mathbf{w}^{(t)}) \right)\\
   \end{align*}
   $$
 
@@ -410,7 +464,7 @@ Again, $\hat{\mathbf{w}}_\text{MLE}$ and $\hat{\mathbf{w}}_\text{MAP}$ are compu
   & \text{randomly draw } B^{(t)} \subset D \text{ with } \vert B \vert = m
   \\
   & \mathbf{w}^{(t+1)}
-  = \mathbf{w}^{(t)} + \eta^{(t)} \left(\sum_{(\mathbf x, y)\in B^{(t)}} \frac{\partial}{\partial\mathbf{w}} \ln p(y \mid \mathbf x, \mathbf{w}^{(t)}) + \frac{\partial}{\partial\mathbf{w}}\ln p(\mathbf{w}^{(t)}) \right)
+  = \mathbf{w}^{(t)} + \eta^{(t)} \left(\sum_{(\mathbf x, y)\in B^{(t)}} \nabla_{\mathbf{w}} \ln p(y \mid \mathbf x, \mathbf{w}^{(t)}) + \nabla_{\mathbf{w}}\ln p(\mathbf{w}^{(t)}) \right)
   \end{align*}
   $$
 
@@ -420,13 +474,11 @@ Again, $\hat{\mathbf{w}}_\text{MLE}$ and $\hat{\mathbf{w}}_\text{MAP}$ are compu
   & \text{randomly draw } (\mathbf x^{(t)}, y^{(t)}) \in D
   \\
   & \mathbf{w}^{(t+1)}
-  = \mathbf{w}^{(t)} + \eta^{(t)} \left(\frac{\partial}{\partial\mathbf{w}} \ln p(y^{(t)} \mid \mathbf x^{(t)}, \mathbf{w}^{(t)}) + \frac{\partial}{\partial\mathbf{w}}\ln p(\mathbf{w}^{(t)}) \right)
+  = \mathbf{w}^{(t)} + \eta^{(t)} \left(\nabla_{\mathbf{w}} \ln p(y^{(t)} \mid \mathbf x^{(t)}, \mathbf{w}^{(t)}) + \nabla_{\mathbf{w}}\ln p(\mathbf{w}^{(t)}) \right)
   \end{align*}
   $$
 
-
-
-### Using a Discriminative Model
+How to use a discriminative model for prediction?
 
 By plugging the point estimate $\hat{\mathbf{w}}$ (either MLE or MAP) into the model likelihood $p(y \mid \mathbf{x}, \mathbf{w})$, we obtain  the ***(plug-in) predictive distribution***:
 $$
@@ -461,7 +513,7 @@ Main results:
     \end{align}
     $$
 
-### Learning a Generative Model
+### Generative Modeling
 
 By generative modeling $p(\mathbf x, y \mid \boldsymbol{\theta}) = p(y \mid \boldsymbol{\pi}) \cdot p(\mathbf x\mid y,\mathbf{w})$, the likelihood can be factorized as
 
@@ -526,7 +578,7 @@ from which we can compute the MAP estimates
 
 Again, the optimization is often carried out by gradient based methods. Formulas are omitted here as they are similar to those in previous section.
 
-### Using a Generative Model
+How to use a learned generative model?
 
 Suppose we learned a generative model $p(\mathbf x, y, \hat{\boldsymbol{\theta}})$ where $\hat{\boldsymbol{\theta}} = (\hat{\boldsymbol{\pi}}, \hat{\mathbf{w}})$. We can compute the predictive distribution $p(y \mid \mathbf x, \hat{\boldsymbol{\theta}})$ from it.
 
@@ -560,7 +612,7 @@ However, generative models (aka the joint distribution) offer more flexibility t
 
 Think of $y\in\{0,\dots,9\}$ and $\mathbf x$ as a 128x128 image of a hand-written digit. We can generate a hand-written digit of "7" by sampling $\mathbf x$ from $p(\mathbf x \mid y=7, \hat{\mathbf{w}})$.
 
-## Regression as Discriminative Model
+## Discriminative Regression Model
 
 Problem formulation:
 
@@ -742,79 +794,3 @@ $$
 | predict: $f_{\hat{\boldsymbol{\theta}}}(\mathbf x_*)$ | predict: $\mathbb E_y[y\mid\mathbf x_*, \hat{\boldsymbol{\theta}}]$ |
 | $-$ | uncertainty quantification |
 | $-$ | model averaging instead of point estimate |
-
-## Appendix
-
-### Example: predicting house prices
-
-We model the area as a Gaussian $x\sim\mathcal N(\mu_x, \sigma_x^2)$ and the price $y$ as an affine function of $x$ with independent Gaussian noise.
-$$
-y = wx+b + \epsilon, \quad \epsilon\sim\mathcal N(0, \sigma^2)
-$$
-
-Here, the paramters are
-
-$$
-\boldsymbol{\pi} = (\mu_x, \sigma_x^2), \quad \mathbf{w} = (w, b)
-$$
-
-Given the training data $D= \{x_1, y_1, \cdots, x_n, y_n\}$ about the area and price of $n$ houses, how to estimate $\boldsymbol{\pi}$ and $\mathbf{w}$ with MLE?
-
-For $\boldsymbol{\pi}$: This is standard MLE in unspervised setting.
-
-$$
-\hat\mu_x = \frac{1}{n} \sum_{i=1}^n x_i ,
-\quad
-\hat\sigma_x^2 = \frac{1}{n} \sum_{i=1}^n ( x_i-\hat\mu_x )^2
-$$
-
-For $\mathbf{w}$: We need to compute $p(y_i \mid \mathbf x_i,\mathbf{w})$. By assumption,
-
-$$
-\begin{align*}
-p(y_i \mid \mathbf x_i,\mathbf{w})
-&= p_\epsilon(y_i - (wx_i+b)) \\
-&= \frac{1}{\sqrt{2\pi}\sigma} \exp\left( -\frac{(y_i - (wx_i+b))^2}{2\sigma^2} \right) \\
-\end{align*}
-$$
-
-Hence, the MLE for $\mathbf{w}$ becomes
-$$
-\begin{align*}
-\hat{\mathbf{w}}_\text{MLE}
-&= \argmax_{\mathbf{w}} \sum_{i=1}^n \ln p(y_i \mid \mathbf x_i,\mathbf{w}) \\
-&= \argmax_{\mathbf{w}} \sum_{i=1}^n \left[\ln\left(\frac{1}{\sqrt{2\pi}\sigma}\right) - \frac{(y_i - (wx_i+b))^2}{2\sigma^2}\right]\\
-&= \argmax_{\mathbf{w}} C - \frac{1}{2\sigma^2}\sum_{i=1}^n (y_i - (wx_i+b))^2 \\
-&= \argmin_{\mathbf{w}} \underbrace{\sum_{i=1}^n (y_i - (wx_i+b))^2}_\text{square loss} \\
-\end{align*}
-$$
-
-Letting the gradient equal to zero, we get
-
-$$
-\begin{align*}
-\frac{\partial}{\partial w} \sum_{i=1}^n (y_i - (wx_i+b))^2 &= 0
-\iff
-\sum_{i=1}^n (y_i - (wx_i+b))x_i = 0
-\\
-\frac{\partial}{\partial b} \sum_{i=1}^n (y_i - (wx_i+b))^2 &= 0
-\iff
-\sum_{i=1}^n (y_i - (wx_i+b)) = 0
-\end{align*}
-$$
-
-Solving the linear sytem of equations with unknowns $w$ and $b$, we get
-
-$$
-\begin{align*}
-\hat w &= \frac{\sum_i(x_i - \hat\mu_x)(y_i - \hat\mu_y)}{\sum_i(x_i - \hat\mu_x)^2} \\
-\hat b &= \hat\mu_y - \hat w \hat\mu_x
-\end{align*}
-$$
-
-where $\hat\mu_y = \frac{1}{n}\sum_i y_i$
-
-Remark:
-
-* $\hat{\boldsymbol{\pi}}_\text{MLE} = (\hat\mu_x, \hat\sigma_x^2)$ only estimates the distribution of house area. Suppose a new house is $120 \text{ m}^2$. Then, $\hat{\boldsymbol{\pi}}_\text{MLE}$ is useful to compare the size of this house to the market average, but not useful for predicting its price.
-* $\hat{\mathbf{w}}_\text{MLE} = (\hat w, \hat b)$ estimates the distribution of the price given the housing area. For a new $120 \text{ m}^2$ house, we can predict that its price is Gaussian with mean $120\hat w+\hat b$.

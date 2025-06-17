@@ -8,15 +8,15 @@ author: "Ke Zhang"
 
 ## Problem Formulation
 
-Let $X \in\mathbb R^d$ be a random vector with PDF $p_\theta(\cdot)$ where $\theta\in\mathbb R^k$ is the parameter vector. In many ML problems, we need to minimize or maximize
+Let $X \in\mathbb R^d$ be a random vector with PDF $p_\theta(\cdot)$ where $\theta\in\mathbb R^p$ is the parameter vector. In many ML problems, we need to minimize or maximize
 
 $$
 J(\theta) = \mathbb E_{x \sim p_\theta} [f(x)]
 $$
 
-where $f: \mathbb R^d \to \mathbb R$ is a deterministic function.
+where $f: \mathbb R^d \to \mathbb R$ is a deterministic function. In practice, $f$ often denotes some loss or reward function.
 
-To obtain the solution, we often need to compute the gradient
+To optimize $J(\theta) $, we often need to compute its gradient
 
 $$
 \nabla_{\theta} J(\theta) = \nabla_{\theta}\mathbb E_{x \sim p_\theta} [f(x)]
@@ -35,7 +35,7 @@ $$
 However, the above computation is often challenging due to
 
 * The integral is generally intractable due to high dimensionality of $x$.
-* We can neither directly use Monte Carlo (MC) sampling to approximate the gradient since the above expression is not in the form of $\mathbb E_{x \sim p_\theta} [\cdot]$.
+* Monte Carlo (MC) sampling can not be applied directly to approximate the gradient because the above expression is not in the form of $\mathbb E_{x \sim p_\theta} [\cdot]$.
 
 There are two main methods to address this problem:
 
@@ -55,8 +55,8 @@ $$
 
 Remarks:
 
-* It’s called the score function because $\nabla_{\theta} \big(\ln p_\theta(x) \big)$ is the ***score function*** in statistics (the gradient of the log-likelihood).
-* This method is also known as ***REINFORCE***.
+* It’s called the score function because $\nabla_{\theta} \big(\ln p_\theta(x) \big)$ is the ***score function*** in statistics (the gradient of the log-likelihood). This method is also known as ***REINFORCE***.
+* Score function method does not require differentiability of $f$ even if $X$ is a continuous random variable.
 * Now, we expressed $\nabla_{\theta} \mathbb E_{x \sim p_\theta} [f(x)]$ in the form of $\mathbb E_{x \sim p_\theta} [\cdot]$. The true gradient can thus be approximated by MC.
 
 *Proof*: We assume regularity conditions (convergence, differentiable, etc.)
@@ -87,22 +87,52 @@ where $x^{(1)}, \dots, x^{(N)} \stackrel{\text{iid}}{\sim} p_\theta$.
 Assuming we are minimizing $\mathbb E_{x \sim p_\theta} [f(x)]$ over $\theta$, the SGD becomes
 
 > **Algorithm (SGD with score function gradient)**  
-> Init $\theta^{(0)} \in\mathbb R^k$  
-> For $t=0,2,\dots$ until convergence, do  
+> Init $\theta^{(0)} \in\mathbb R^p$  
+> For $t=0,1,2,\dots$ until convergence, do  
 > $\qquad$ Draw a sample $x^{(1)}, \dots, x^{(N)} \stackrel{\text{iid}}{\sim} p_\theta$  
 > $\qquad$ Update parameters
 > $$
 > \theta^{(t+1)} = \theta^{(t)} - \eta^{(t)} \frac{1}{N}\sum_{i=1}^N f(x^{(i)}) \nabla_{\theta} \left.\big(\ln p_\theta(x^{(i)}) \big)\right|_{\theta = \theta^{(t)}}
 > $$
 
-TODO:
+### Example: Score Function for Gaussian
 
-* variance reduction technique (e.g. baselines)
-* example.
+Consider the multivariate Gaussian $p_\theta(x) = \mathcal N(x; \mu, \Sigma)$ with $\theta = (\mu, \Sigma)$. Then, the gradient
+
+$$
+\begin{align*}
+\nabla_{\mu, \Sigma} \, \mathbb E_{x \sim \mathcal N(\mu, \Sigma)} [f(x)]
+\end{align*}
+$$
+
+can be approximated by
+
+$$
+\begin{align}
+\nabla_{\mu, \Sigma} \, \mathbb E_{x \sim \mathcal N(\mu, \Sigma)} [f(x)]
+&= \mathbb E_{x \sim \mathcal N(\mu, \Sigma)} \left[ f(x) \nabla_{\mu, \Sigma}(\ln \mathcal N(x; \mu, \Sigma)) \right]
+\\
+&\approx \frac{1}{N} \sum_{i=1}^N \left[ f(x^{(i)}) \nabla_{\mu, \Sigma}(\ln \mathcal N(x^{(i)}; \mu, \Sigma)) \right]
+\end{align}
+$$
+
+where (see *everthing about Gaussian*) $\forall i=1,\dots,n$:
+
+$$
+\begin{align}
+x^{(i)} &\stackrel{\text{iid}}{\sim} \mathcal N(\mu, \Sigma)
+\\
+\nabla_{\mu}(\ln \mathcal N(x^{(i)}; \mu, \Sigma))
+&= \Sigma^{-1}(x^{(i)}-\mu)
+\\
+\nabla_{\Sigma}(\ln \mathcal N(x^{(i)}; \mu, \Sigma))
+&= \frac{1}{2} \left[ \Sigma^{-1}(x^{(i)}-\mu)(x^{(i)}-\mu)^\top \Sigma^{-1} - \Sigma^{-1} \right]
+\end{align}
+$$
 
 ## Reparameterization Trick
 
-We call $x\sim p_\theta$ ***reparameterizable*** if there exists a random vector $\epsilon\in\mathbb R^d$ and a bijective function $g_{\theta}: \mathbb R^d \to \mathbb R^d$, s.t.
+We say the distribution $x\sim p_\theta$ ***reparameterizable*** if there exists a random vector $\epsilon\in\mathbb R^d$ and a bijective function $g_{\theta}: \mathbb R^d \to \mathbb R^d$, s.t.
 
 $$
 \begin{align}
@@ -114,7 +144,7 @@ $$
 
 Remarks:
 
-* The PDF of $\epsilon$ is called reference density and it must not depend on the optimization variable $\theta$.
+* The PDF of $\epsilon$ is called ***reference density*** and it must **not** depend on the optimization variable $\theta$.
 * Instead of sampling $x$ directly from $p_\theta$, we obtain $x$ by first sampling $\epsilon$ from $p$ and then applying $g_{\theta}$.
 * The function $g_\theta$ defines a differentiable (w.r.t $\theta$) transformation of random vectors.
 
@@ -129,6 +159,11 @@ $$
 &= \mathbb E_{\epsilon \sim p} \left[ \nabla_{\theta} f(g_{\theta}(\epsilon)) \right]
 \end{align}
 $$
+
+Remarks:
+
+* The 2nd equation suggests that differentiability of $f$ is required to apply reparameterization trick.
+* It is essential that the reference density does not depend on $\theta$. Otherwise, we can not move the gradient operator into expectation.
 
 *Proof*: The 1st equality follows from the [law of the unconscious statistian (LOTUS)](https://en.wikipedia.org/wiki/Law_of_the_unconscious_statistician). The 2nd equality follows from the linearity of expectation and the fact that the reference density does not depend on $\theta$. $\quad\blacksquare$
 
@@ -146,15 +181,69 @@ where $\epsilon^{(1)}, \dots, \epsilon^{(N)} \stackrel{\text{iid}}{\sim} p$.
 Assuming we are minimizing $\mathbb E_{x \sim p_\theta} [f(x)]$ over $\theta$, the SGD becomes
 
 > **Algorithm (SGD with reparameterization trick)**  
-> Init $\theta^{(0)} \in\mathbb R^k$  
-> For $t=0,2,\dots$ until convergence, do  
+> Init $\theta^{(0)} \in\mathbb R^p$  
+> For $t=0,1,2,\dots$ until convergence, do  
 > $\qquad$ Draw a sample $\epsilon^{(1)}, \dots, \epsilon^{(N)} \stackrel{\text{iid}}{\sim} p$  
 > $\qquad$ Update parameters
 > $$
 > \theta^{(t+1)} = \theta^{(t)} - \eta^{(t)} \frac{1}{N}\sum_{i=1}^N \left. \nabla_{\theta} f(g_{\theta}(\epsilon^{(i)})) \right|_{\theta = \theta^{(t)}}
 > $$
 
-TODO:
+### Example: Reparamterization for Gaussian
 
-* variance reduction technique (e.g. baselines)
-* example.
+Consider the multivariate Gaussian $p_\theta(x) = \mathcal N(x; \mu, \Sigma)$ with $\theta = (\mu, \Sigma^{1/2})$. In the following, we let $C \triangleq \Sigma^{1/2}$.
+
+We would like to approximate
+
+$$
+\begin{align}
+\nabla_{\mu, C} \, \mathbb E_{x \sim \mathcal N(\mu, \Sigma)} [f(x)]
+\end{align}
+$$
+
+Remarks:
+
+* We consider $\Sigma^{1/2}$ instead of $\Sigma$ as part of $\theta$ because the reparameterization function directly depends on $\Sigma^{1/2}$. Otherwise, we would have to compute $\nabla_{\mu, \Sigma} \Sigma^{1/2}$, which is very hard in practice.
+* In the following, we perform SGD for parameters $\theta = (\mu, C)$. After SGD converges, we can simply recover the covariance matrix by computing $\Sigma = CC^\top$
+
+One reparameterization is
+
+$$
+\begin{align}
+\epsilon &\sim p(\epsilon) = \mathcal N(\epsilon; 0, I),
+\\
+x &= g_{\mu,C}(\epsilon) = C \epsilon + \mu
+\end{align}
+$$
+
+Hence, the gradient $\nabla_{\mu, C} \, \mathbb E_{x \sim \mathcal N(\mu, \Sigma)} [f(x)]$ can be approximated by
+
+$$
+\begin{align}
+\nabla_{\mu, C} \, \mathbb E_{x \sim \mathcal N(\mu, \Sigma)} [f(x)]
+&= \nabla_{\mu, C} \, \mathbb E_{\epsilon \sim \mathcal N(0, I)} [f(C \epsilon + \mu)]
+&& \text{reparam. trick}
+\\
+&= \mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[ \nabla_{\mu, C} f(C \epsilon + \mu) \right]
+&& \text{move $\nabla$ inside}
+\\
+&\approx \frac{1}{N} \sum_{i=1}^N \nabla_{\mu, C} f(C \epsilon^{(i)} + \mu)
+&& \epsilon^{(i)} \stackrel{\text{iid}}{\sim} \mathcal N(0, I)
+\end{align}
+$$
+
+Modern ML frameworks (e.g. `torch.autograd`) automatically compute $\nabla_{\mu, C} f(C \epsilon^{(i)} + \mu)$ using chain rule. In practice, we do not need to manually code the detailed computations like
+
+$$
+\begin{align*}
+\nabla_{\mu} f(C \epsilon^{(i)} + \mu)
+&= \frac{\partial f}{\partial x} \cdot \frac{\partial x}{\partial \mu}
+= \frac{\partial f}{\partial x} \cdot I \\
+&= \left. \nabla_x f(x) \right|_{x = C \epsilon^{(i)} + \mu}
+\\
+\nabla_{C} f(C \epsilon^{(i)} + \mu)
+&= \frac{\partial f}{\partial x} \cdot \frac{\partial x}{\partial C}
+= \frac{\partial f}{\partial x} \cdot (\epsilon^{(i)})^\top \\
+&= \left. \nabla_x f(x) \right|_{x = C \epsilon^{(i)} + \mu} \otimes \epsilon^{(i)}
+\end{align*}
+$$

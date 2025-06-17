@@ -11,7 +11,7 @@ author: "Ke Zhang"
 1. **PDF**: $X\sim\mathcal{N}(\mu, \Sigma)$. #param: $\mathcal{O}(d^2)$.
 
     > $$
-    > p_X(x \vert \mu, \Sigma) =
+    > p_X(x \mid \mu, \Sigma) =
     > \frac{1}{\sqrt{(2\pi)^d \vert\Sigma\vert}}
     > \exp\left[
     >   -\frac{1}{2}(x-\mu)^\top \Sigma^{-1} (x-\mu)
@@ -23,24 +23,24 @@ author: "Ke Zhang"
 
 Special cases:
 
-1. Diagonal Gaussian: $X\sim\mathcal{N}(\mu, \operatorname{diag}(\sigma_1^2, \dots, \sigma_d^2))$. #param: $\mathcal{O}(d)$.
+* Diagonal Gaussian: $X\sim\mathcal{N}(\mu, \operatorname{diag}(\sigma_1^2, \dots, \sigma_d^2))$. #param: $\mathcal{O}(d)$.
     $$
-    p_X(x \vert \mu, \sigma_{1:d}) =
+    p_X(x \mid \mu, \sigma_{1:d}) =
     \frac{1}{\sqrt{(2\pi)^d} \sigma_1 \cdots \sigma_d}
     \exp\left(
       -\sum_{i=1}^d \frac{(x_i - \mu_i)^2}{2\sigma_i^2}
     \right)
     $$
 
-1. Spherical Gaussian: $X\sim\mathcal{N}(\mu, \sigma^2 I_d)$. #param: $\mathcal{O}(d)$. ($\mathcal{O}(1)$ if $\mu$ is known)
+* Spherical Gaussian: $X\sim\mathcal{N}(\mu, \sigma^2 I_d)$. #param: $\mathcal{O}(d)$. ($\mathcal{O}(1)$ if $\mu$ is known)
     $$
-    p_X(x \vert \mu, \sigma) =
+    p_X(x \mid \mu, \sigma) =
     \frac{1}{\sqrt{(2\pi)^d} \sigma^d}
     \exp\left(
       -\frac{\Vert x - \mu \Vert ^2}{2\sigma^2}
     \right)
     $$
-1. Standard Gaussian: $X\sim\mathcal{N}(0, I_d)$. No param.
+* Standard Gaussian: $X\sim\mathcal{N}(0, I_d)$. No param.
     $$
     p_X(x) =
     \frac{1}{\sqrt{(2\pi)^d}}
@@ -170,21 +170,23 @@ Remarks:
 
 ## Derivatives
 
+The derivative of the log PDF is also called **score function** in statistics.
+
 ### Derivatives for General Gaussian
 
 **Log of PDF**:
 
 > $$
-> \ln p_X(x \vert \mu, \Sigma) = -\frac{d}{2}\ln(2\pi) - \frac{1}{2}\ln\vert\Sigma\vert -  \frac{1}{2}(x-\mu)^\top \Sigma^{-1} (x-\mu)
+> \ln p_X(x \mid \mu, \Sigma) = -\frac{d}{2}\ln(2\pi) - \frac{1}{2}\ln\vert\Sigma\vert -  \frac{1}{2}(x-\mu)^\top \Sigma^{-1} (x-\mu)
 > $$
 
 * Derivative w.r.t. $\mu$
     > $$
-    > \frac{\partial \ln p_X(x \vert \mu, \Sigma)}{\partial\mu} = \Sigma^{-1}(x-\mu)
+    > \frac{\partial \ln p_X(x \mid \mu, \Sigma)}{\partial\mu} = \Sigma^{-1}(x-\mu)
     > $$
 * Derivative w.r.t. $\Sigma$
     > $$
-    > \frac{\partial \ln p_X(x \vert \mu, \Sigma)}{\partial\Sigma} =
+    > \frac{\partial \ln p_X(x \mid \mu, \Sigma)}{\partial\Sigma} =
     > \frac{1}{2} \left[
     >   \Sigma^{-1}(x-\mu)(x-\mu)^\top \Sigma^{-1} - \Sigma^{-1}
     > \right]
@@ -194,18 +196,18 @@ Remarks:
 
 **Log of PDF**:
 $$
-\ln p_X(x \vert \mu, \sigma_{1:d}) = -\frac{d}{2}\ln(2\pi) - \frac{1}{2}\sum_{i=1}^d \ln\sigma_i^2 - \frac{1}{2}\sum_{i=1}^d \frac{(x_i - \mu_i)^2}{\sigma_i^2}
+\ln p_X(x \mid \mu, \sigma_{1:d}) = -\frac{d}{2}\ln(2\pi) - \frac{1}{2}\sum_{i=1}^d \ln\sigma_i^2 - \frac{1}{2}\sum_{i=1}^d \frac{(x_i - \mu_i)^2}{\sigma_i^2}
 $$
 
 * Derivative w.r.t. $\mu$
     $$
-    \frac{\partial \ln p_X(x \vert \mu, \sigma_{1:d})}{\partial\mu} =
+    \frac{\partial \ln p_X(x \mid \mu, \sigma_{1:d})}{\partial\mu} =
     \operatorname{diag}(\sigma_1^{-2}, \dots, \sigma_d^{-2}) \cdot
     (x-\mu)
     $$
 * Derivative w.r.t. $\sigma_i^2$
     $$
-    \frac{\partial \ln p_X(x \vert \mu, \sigma_{1:d})}{\partial\sigma_i^2} =
+    \frac{\partial \ln p_X(x \mid \mu, \sigma_{1:d})}{\partial\sigma_i^2} =
     -\frac{1}{2 \sigma_i^2} + \frac{(x_i - \mu_i)^2}{2 \sigma_i^4}
     $$
 
@@ -213,18 +215,18 @@ $$
 
 **Log of PDF**:
 $$
-\ln p_X(x \vert \mu, \sigma) =
+\ln p_X(x \mid \mu, \sigma) =
   -\frac{d}{2}\ln(2\pi) - \frac{d}{2} \ln\sigma^2 - \frac{\Vert x - \mu\Vert^2}{2\sigma^2}
 $$
 
 * Derivative w.r.t. $\mu$
     $$
-    \frac{\partial \ln p_X(x \vert \mu, \sigma)}{\partial\mu} = \sigma^{-2} \cdot
+    \frac{\partial \ln p_X(x \mid \mu, \sigma)}{\partial\mu} = \sigma^{-2} \cdot
     (x-\mu)
     $$
 * Derivative w.r.t. $\sigma^2$
     $$
-    \frac{\partial \ln p_X(x \vert \mu, \sigma)}{\partial\sigma^2} =
+    \frac{\partial \ln p_X(x \mid \mu, \sigma)}{\partial\sigma^2} =
     -\frac{d}{2 \sigma^2} + \frac{\Vert x - \mu \Vert^2}{2 \sigma^4}
     $$
 
@@ -267,8 +269,11 @@ Letting the derivatives be zero, we get
     > \hat\Sigma = \frac{1}{N} \sum_{n=1}^N \left( x^{(n)}-\hat\mu \right) \left( x^{(n)}-\hat\mu \right)^\top
     > $$
 
-Note: The MLE of the covariance matrix $\Sigma$ is **biased**.  
-The unbiased estimate is $\frac{1}{N-1} \sum_{n=1}^N \left( x^{(n)}-\hat\mu \right) \left( x^{(n)}-\hat\mu \right)^\top$.
+Note: The MLE of the covariance matrix $\Sigma$ is **biased**. The unbiased estimate is
+
+$$
+\hat\Sigma = \frac{1}{N-1} \sum_{n=1}^N \left( x^{(n)}-\hat\mu \right) \left( x^{(n)}-\hat\mu \right)^\top
+$$
 
 ### MLE for Diagonal Gaussian
 

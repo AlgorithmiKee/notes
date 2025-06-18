@@ -6,41 +6,82 @@ author: "Ke Zhang"
 
 # Gradient Approximation
 
+## Motivation
+
+Many ML problems involve optimizing an objective of the form
+
+$$
+J(\theta) = \mathbb E_{x \sim p^*} [f_\theta(x)]
+$$
+
+where $p^*$ is the unknown ground truth distribution of $X$, which does **not** depend on $\theta$.
+
+To optimize $J(\theta) $, we often need to compute its gradient. Under standard regularity conditions, we can move the gradient into the expectation because $p^*$ does not depend on $\theta$.
+
+$$
+\begin{align*}
+\nabla_{\theta} J(\theta) = \mathbb E_{x \sim p^*} [\nabla_{\theta} f_\theta(x)]
+\end{align*}
+$$
+
+In practice, both the objective function and its gradient are approximated by Monte Carlo (MC) sampling due to the unknown nature of $p^*$.
+
+$$
+\begin{align*}
+x^{(i)} &\stackrel{\text{iid}}{\sim} p^*, \quad i=1, \dots, N \\
+J(\theta) &\approx \frac{1}{N} \sum_{i=1}^N f_\theta(x^{(i)}) \\
+\nabla_{\theta} J(\theta) &\approx \frac{1}{N} \sum_{i=1}^N \nabla_{\theta} f_\theta(x^{(i)})
+\end{align*}
+$$
+
+e.g. In standard MLE, we use the model distribution $p(\cdot \mid \theta)$ to approximate $p^*(\cdot)$. For this purpose, we need to maximize the expected log-likelihood by setting $f_\theta(x) = \ln p(x \mid \theta)$. The objective thus becomes
+
+$$
+J(\theta) = \mathbb E_{x \sim p^*} [\ln p(x \mid \theta)]
+$$
+
+The corresponding MC approximation is
+
+$$
+\begin{align*}
+x^{(i)} &\stackrel{\text{iid}}{\sim} p^*, \quad i=1, \dots, N \\
+J(\theta) &\approx \frac{1}{N} \sum_{i=1}^N \ln p(x^{(i)}  \mid \theta) \\
+\nabla_{\theta} J(\theta) &\approx \frac{1}{N} \sum_{i=1}^N \nabla_{\theta} \ln p(x^{(i)}  \mid \theta)
+\end{align*}
+$$
+
+The key assumption of the framework so far is that $x$ is sampled from a distribution that does not depend on the optimization variable $\theta$. But what if the distribution of $x$ does depend on $\theta$? How can we approximate the gradient under this new setting?
+
 ## Problem Formulation
 
-Let $X \in\mathbb R^d$ be a random vector with PDF $p_\theta(\cdot)$ where $\theta\in\mathbb R^p$ is the parameter vector. In many ML problems, we need to minimize or maximize
+Let $X \in\mathbb R^d$ be a random vector with PDF $p_\theta(\cdot)$ where $\theta\in\mathbb R^p$ is the parameter vector. We aim to optimize
 
 $$
 J(\theta) = \mathbb E_{x \sim p_\theta} [f(x)]
 $$
 
-where $f: \mathbb R^d \to \mathbb R$ is a deterministic function. In practice, $f$ often denotes some loss or reward function.
+where $f: \mathbb R^d \to \mathbb R$ is a deterministic function -- typically a loss or reward function.
 
-To optimize $J(\theta) $, we often need to compute its gradient
-
-$$
-\nabla_{\theta} J(\theta) = \nabla_{\theta}\mathbb E_{x \sim p_\theta} [f(x)]
-$$
-
-A direct computation of the gradient would be
+Unlike the previous setting, the PDF of $X$ now dependens on optimization variable $\theta$. We can no longer move the gradient inside the expectation (without modification). Starting from first principles:
 
 $$
 \begin{align*}
-\nabla_{\theta} \mathbb E_{x \sim p_\theta} [f(x)]
+\nabla_{\theta} J(\theta)
+&= \nabla_{\theta}\mathbb E_{x \sim p_\theta} [f(x)] \\
 &= \nabla_{\theta} \int_x f(x) p_\theta(x) \,\mathrm dx \\
-&= \int_x f(x) \nabla_{\theta} p_\theta(x) \,\mathrm dx
+&= \int_x f(x) \nabla_{\theta} p_\theta(x) \,\mathrm dx \\
 \end{align*}
 $$
 
-However, the above computation is often challenging due to
+We see two main challenges here:
 
-* The integral is generally intractable due to high dimensionality of $x$.
-* Monte Carlo (MC) sampling can not be applied directly to approximate the gradient because the above expression is not in the form of $\mathbb E_{x \sim p_\theta} [\cdot]$.
+* The integral is generally intractable, especially when the dimensionality of $x$ is high.
+* The expression is not in the form $\mathbb E_{x \sim p_\theta} [\cdot]$. Hence, we cannot directly apply MC sampling to approximate the gradient $\nabla_{\theta} J(\theta)$.
 
-There are two main methods to address this problem:
+Two major techniques are used to approximate the gradient:
 
-1. Score function method: Express the gradient into the form of $\mathbb E_{x \sim p_\theta} [\cdot]$ so that we can apply MC. Often used in reinforcement learning.
-1. Reparameterization trick: Use transform of random variables so that $\theta$ only appears inside the expectation. Often used in variational inference.
+1. Score function method: Express the gradient into the form of $\mathbb E_{x \sim p_\theta} [\cdot]$ so that we can apply MC approximation. Widely used in reinforcement learning.
+1. Reparameterization trick: Express $X$ as the transformation of another base random variable whose density does not depend on $\theta$. Commonly used in variational inference.
 
 ## Score Function Method
 
@@ -189,9 +230,9 @@ Assuming we are minimizing $\mathbb E_{x \sim p_\theta} [f(x)]$ over $\theta$, t
 > \theta^{(t+1)} = \theta^{(t)} - \eta^{(t)} \frac{1}{N}\sum_{i=1}^N \left. \nabla_{\theta} f(g_{\theta}(\epsilon^{(i)})) \right|_{\theta = \theta^{(t)}}
 > $$
 
-### Example: Reparamterization for Gaussian
+### Example: Reparameterization for Gaussian
 
-Consider the multivariate Gaussian $p_\theta(x) = \mathcal N(x; \mu, \Sigma)$ with $\theta = (\mu, \Sigma^{1/2})$. In the following, we let $C \triangleq \Sigma^{1/2}$.
+Consider the multivariate Gaussian $p_\theta(x) = \mathcal N(x; \mu, \Sigma)$ with $\theta = (\mu, C)$ where $C \triangleq \Sigma^{1/2}$ is the Cholesky factor of $\Sigma$.
 
 We would like to approximate
 

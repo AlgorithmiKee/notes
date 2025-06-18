@@ -292,18 +292,93 @@ $$
 
 ## Information Theory
 
+### Entropy
+
+TODO:
+
+* gaussian has the largest differential entropy among distributions with the same variance.
+* min. cross entropy loss (external notes)
+
+### Cross Entropy
+
+Let $p,q$ be two probability distributions. The cross entropy of $q$ w.r.t $p$ is defined as
+
+> $$
+> \begin{align}
+> H(p, q)
+> &= \mathbb E_{x \sim p(\cdot)} \left[ -\log q(x) \right]
+> \end{align}
+> $$
+
+Remarks:
+
+* **Core Inituition**: The cross entropy quantifies the average surprise when we assume $x \sim q$ while the true distribution is $p$.
+* In machine learning, $p$ often denotes the unknown ground truth distribution which generates the training data. A typical task is to compute a model distribution $q$ as close to $p$ as possible.
+
+For discrete distributions, the cross entropy becomes
+
+$$
+\begin{align}
+H(p, q)
+&= \sum_{x \in \mathcal X} p(x) \log \frac{1}{q(x)}
+\end{align}
+$$
+
+For continuous distributions, the cross entropy becomes
+
+$$
+\begin{align}
+H(p, q)
+&= \int_{-\infty}^{\infty} p(x) \log \frac{1}{q(x)} \,\mathrm dx
+\end{align}
+$$
+
+Decomposition of cross entropy:
+
+> $$
+> \begin{align}
+> H(p, q) = H(p) + D_\text{KL}(p \parallel q)
+> \end{align}
+> $$
+
+**Core Inituition**: The average surprise when we assume $x \sim q$ while the true distribution is $p$ consits of
+
+* $H(p)$: the uncertainty in the true distribution $p$
+* $D_\text{KL}(p \parallel q)$: the additional surprise incurred by assuming $x \sim q$ while the true distribution is $p$
+
+*Proof*:
+
+$$
+\begin{align*}
+H(p, q)
+&= \mathbb E_{x \sim p(\cdot)} \left[ \log\frac{1}{q(x)} \right] \\
+&= \mathbb E_{x \sim p(\cdot)} \left[ \log\frac{1}{p(x)} + \log \frac{p(x)}{q(x)} \right] \\
+&= \underbrace{\mathbb E_{x \sim p(\cdot)} \left[ \log\frac{1}{p(x)} \right]}_{H(p)} +
+   \underbrace{\mathbb E_{x \sim p(\cdot)} \left[ \log \frac{p(x)}{q(x)} \right]}_{D_\text{KL}(p \parallel q)}
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+The cross entropy is generally **not** symmetric:
+
+> $$
+> \begin{align}
+> H(p, q) \ne H(q, p)
+> \end{align}
+> $$
+
 ### KL Divergence
 
 Let $p,q$ be two probability distributions. The KL Divergence (or relative entropy) of $q$ w.r.t $p$ is defined as
 
-$$
-\begin{align}
-D_\text{KL}(p \parallel q)
-&= \mathbb E_{x \sim p(\cdot)} \left[
-    \log \frac{p(x)}{q(x)}
-\right]
-\end{align}
-$$
+> $$
+> \begin{align}
+> D_\text{KL}(p \parallel q)
+> &= \mathbb E_{x \sim p(\cdot)} \left[ \log \frac{p(x)}{q(x)} \right]
+> \end{align}
+> $$
+
+**Core Inituition**: KL divergence quantifies the additional surprise incurred by assuming $x \sim q$ while the true distribution is $p$. It can also be viewed as a asymmetric distance between $p$ and $q$.
 
 For discrete distributions, the KL divergence becomes
 
@@ -322,8 +397,6 @@ D_\text{KL}(p \parallel q)
 &= \int_{-\infty}^{\infty} p(x) \log \frac{p(x)}{q(x)} \:\mathrm dx
 \end{align}
 $$
-
-**Core Inituition**: KL divergence quantifies the surprise when we assume $x$ is sampled from $q$ while the true distribution is $p$. It can also be viewed as a asymmetric distance between $p$ and $q$.
 
 Key properties of KL divergence:
 

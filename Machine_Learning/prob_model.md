@@ -3,7 +3,6 @@ title: "Probabilistic Modeling for ML"
 author: "Ke Zhang"
 date: "2025"
 fontsize: 12pt
-
 ---
 
 # Probabilistic Modeling for ML
@@ -57,7 +56,11 @@ Unspervised learning with fully observable data:
 * Optional: prior distribution $p(\boldsymbol{\theta})$
 * Goal: estimate $\boldsymbol{\theta}$
 
-For now, we assume that the data is fully observable, i.e. there is no latent variables. Unsupervised learning with latent variables will be briefly discussed later.
+Remarks:
+
+* For now, we assume that the data is fully observable. i.e. There is no latent variables. Latent variable models will be briefly discussed later.
+* We also assume that the model is correctly specified. i.e. The ground truth distribution is gonverned by some unknown true parameter $\boldsymbol{\theta}$. The learning problem becomes far more complex when the ground truth distribution is not in the parametric family.
+* In frequentist point of view, the true parameter is unknown but fixed. In Bayesian point of view, the true parameter follows some unknown distribution.
 
 ### Maximum Likelihood Estimation (MLE)
 

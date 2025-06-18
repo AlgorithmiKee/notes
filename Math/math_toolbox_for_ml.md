@@ -294,14 +294,46 @@ $$
 
 ### Entropy
 
+Let $p$ be a probability distribution. The ***entropy*** of $p$ is defined as
+
+> $$
+> \begin{align}
+> H(p)
+> &= \mathbb E_{x \sim p(\cdot)} \left[ -\log p(x) \right]
+> \end{align}
+> $$
+
+For a discrete distribution $p$, the resulting $H(p)$ is called ***Shannon entropy***:
+
+> $$
+> \begin{align}
+> H(p)
+> &= \sum_{x \in \mathcal X} p(x) \log \frac{1}{p(x)}
+> \end{align}
+> $$
+
+For a continuous distribution $p$, the resulting $H(p)$ is called ***differential entropy***:
+
+> $$
+> \begin{align}
+> H(p)
+> &= \int_{-\infty}^{\infty} p(x) \log \frac{1}{p(x)} \,\mathrm dx
+> \end{align}
+> $$
+
+Remarks:
+
+* **Core Inituition**: The entropy quantifies the average surprise of $x$ sampled from $p$.
+* Without otherwise specified, the term "*entropy*" refers to both Shannon entropy and differential entropy.
+* The Shannon entropy is extensively studied in information theory. In machine learning, we also encounter differential entropy, whose properties are different from Shannon entropy.
+
 TODO:
 
 * gaussian has the largest differential entropy among distributions with the same variance.
-* min. cross entropy loss (external notes)
 
 ### Cross Entropy
 
-Let $p,q$ be two probability distributions. The cross entropy of $q$ w.r.t $p$ is defined as
+Let $p,q$ be two probability distributions. The ***cross entropy*** of $q$ w.r.t $p$ is defined as
 
 > $$
 > \begin{align}
@@ -317,21 +349,21 @@ Remarks:
 
 For discrete distributions, the cross entropy becomes
 
-$$
-\begin{align}
-H(p, q)
-&= \sum_{x \in \mathcal X} p(x) \log \frac{1}{q(x)}
-\end{align}
-$$
+> $$
+> \begin{align}
+> H(p, q)
+> &= \sum_{x \in \mathcal X} p(x) \log \frac{1}{q(x)}
+> \end{align}
+> $$
 
 For continuous distributions, the cross entropy becomes
 
-$$
-\begin{align}
-H(p, q)
-&= \int_{-\infty}^{\infty} p(x) \log \frac{1}{q(x)} \,\mathrm dx
-\end{align}
-$$
+> $$
+> \begin{align}
+> H(p, q)
+> &= \int_{-\infty}^{\infty} p(x) \log \frac{1}{q(x)} \,\mathrm dx
+> \end{align}
+> $$
 
 Decomposition of cross entropy:
 
@@ -369,7 +401,7 @@ The cross entropy is generally **not** symmetric:
 
 ### KL Divergence
 
-Let $p,q$ be two probability distributions. The KL Divergence (or relative entropy) of $q$ w.r.t $p$ is defined as
+Let $p,q$ be two probability distributions. The ***KL Divergence*** (or ***relative entropy***) of $q$ w.r.t $p$ is defined as
 
 > $$
 > \begin{align}
@@ -382,24 +414,40 @@ Let $p,q$ be two probability distributions. The KL Divergence (or relative entro
 
 For discrete distributions, the KL divergence becomes
 
-$$
-\begin{align}
-D_\text{KL}(p \parallel q)
-&= \sum_{x \in \mathcal X} p(x) \log \frac{p(x)}{q(x)}
-\end{align}
-$$
+> $$
+> \begin{align}
+> D_\text{KL}(p \parallel q)
+> &= \sum_{x \in \mathcal X} p(x) \log \frac{p(x)}{q(x)}
+> \end{align}
+> $$
 
 For continuous distributions, the KL divergence becomes
 
-$$
-\begin{align}
-D_\text{KL}(p \parallel q)
-&= \int_{-\infty}^{\infty} p(x) \log \frac{p(x)}{q(x)} \:\mathrm dx
-\end{align}
-$$
+> $$
+> \begin{align}
+> D_\text{KL}(p \parallel q)
+> &= \int_{-\infty}^{\infty} p(x) \log \frac{p(x)}{q(x)} \:\mathrm dx
+> \end{align}
+> $$
 
-Key properties of KL divergence:
+KL divergence is generally **asymmetric**:
 
-1. Asymmetry: $D_\text{KL}(p \parallel q) \ne D_\text{KL}(q \parallel p)$ in general
-1. Non-negativity: $D_\text{KL}(p \parallel q) \ge 0, \: \forall p,q$.
-1. $D_\text{KL}(p \parallel q) = 0 \iff p=q$ almost surely
+> $$
+> \begin{align}
+> D_\text{KL}(p \parallel q) \ne D_\text{KL}(q \parallel p)
+> \end{align}
+> $$
+
+KL divergence is **ALWAYS** non negative (Gibb's inequality):
+
+> $$
+> \begin{align}
+> D_\text{KL}(p \parallel q) &\ge 0, \quad \forall p,q \\
+> D_\text{KL}(p \parallel q) &= 0 \iff p=q
+> \end{align}
+> $$
+
+Remarks:
+
+* The KL divergence is always non negative, even for continuous distributions. (In contrast, the non negativity of differential entropy is not guaranteed)
+* In machine learning, we often compute the model distribution $q$ by minimizing its KL divergence w.r.t. the ground truth distribution $p$.

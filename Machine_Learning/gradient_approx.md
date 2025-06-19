@@ -157,7 +157,7 @@ $$
 \end{align}
 $$
 
-where (see *everthing about Gaussian*) $\forall i=1,\dots,n$:
+where (see notes *everthing about Gaussian*) $\forall i=1,\dots,n$:
 
 $$
 \begin{align}

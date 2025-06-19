@@ -640,7 +640,7 @@ d(u,v) = \sqrt{(u-v)^\top \Sigma^{-1} (u-v)}
 \end{align}
 $$
 
-$\Sigma^{-1}$ has a p.s.d. matrix square root $S$ (see *Precision Matrix Decomposition*). Under the linear transformation defined by $S$, the Mahalanobis distance becomes the standard Euclidean distance between the transformed points.
+$\Sigma^{-1}$ has a p.s.d. matrix square root $S$ (see section [Precision Matrix Decomposition](#Precision-Matrix-Decomposition)). Under the linear transformation defined by $S$, the Mahalanobis distance becomes the standard Euclidean distance between the transformed points.
 
 $$
 \begin{align}

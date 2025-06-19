@@ -443,7 +443,7 @@ KL divergence is **ALWAYS** non negative (Gibb's inequality):
 > $$
 > \begin{align}
 > D_\text{KL}(p \parallel q) &\ge 0, \quad \forall p,q \\
-> D_\text{KL}(p \parallel q) &= 0 \iff p=q
+> D_\text{KL}(p \parallel q) &= 0 \iff p=q \quad\text{a.e.}
 > \end{align}
 > $$
 

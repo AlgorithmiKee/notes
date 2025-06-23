@@ -141,7 +141,7 @@ $$
 Remark:
 
 * ML is asymptotically optimal. If the data set $D$​​ is large enough, we can guarantee to predict the true hypothesis (convergence in probability). Theoretical analysis of ML is omitted here.
-* ML balances between TPR and FPR. c.f. later.
+* ML balances between TPR and FPR. $\to$ See section [Evaluation Metrics](#evaluation-metrics).
 * ML could suffer from small data set. e.g. We toss a coin only twice and get two heads. ML would predict that the coin is 100% biased, which might be overconfident about the nature of the coin. To address this problem, frequentists extend the data set by assuming some "hypothetical" data (details not part of this article). Bayesian add prior probability, which yields MAP.
 
 ### Maximum a Posteriori (MAP) Decision

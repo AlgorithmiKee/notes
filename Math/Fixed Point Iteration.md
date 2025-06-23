@@ -294,7 +294,7 @@ Online error bound:
 
 Remarks:
 
-* The offline error bound can be computed before starting the PFI. Given some tolerance and a starting point, we can compute how many iterations are needed to achieve the tolerance. (Details: c.f. next section)
+* The offline error bound can be computed before starting the PFI. Given some tolerance and a starting point, we can compute how many iterations are needed to achieve the tolerance. $\to$ see section [Stopping Rule](#stopping-rule)
 * The online error bound estimates how close $x_n$ is to the true FP $\bar x$ given the distance between $x_n$ and $x_{n-1}$.
 
 *Proof:* The error at iteration $n$ satisfies
@@ -406,7 +406,7 @@ Remarks:
 * $f$ is a contraction **locally** in $B_\delta[\bar{x}]$
 * If the FPI starts from $x_0\in B_\delta[\bar{x}]$, Newton's method will converge to $\bar{x}$
 
-*Proof:* To show $f$ is a contraction in $B_\delta[\bar{x}]$, it is sufficient to show that $\vert f'(x) \vert$ is uniformly bounded by some constant $\gamma\in(0,1)$ in $B_\delta[\bar{x}]$. c.f. First Derivative Test. Formally, we want to show
+*Proof:* To show $f$ is a contraction in $B_\delta[\bar{x}]$, it is sufficient to show that $\vert f'(x) \vert$ is uniformly bounded by some constant $\gamma\in(0,1)$ in $B_\delta[\bar{x}]$ (see [First Derivative Test](#first-derivative-test)). Formally, we want to show
 $$
 \exist\delta >0, \exist\gamma\in(0,1),
 \text{ s.t. } \forall x\in B_\delta[\bar{x}], \vert f'(x) \vert < \gamma

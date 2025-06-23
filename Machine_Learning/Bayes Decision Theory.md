@@ -145,7 +145,7 @@ Key fact:
 
 Remark:
 
-* Here, "$\implies$" becomes "$\iff$" if we slightly relax the requirement "$\forall x \in\mathcal X$" to "almost everywhere in $\mathcal X$". c.f. Appendix for a the proof.
+* Here, "$\implies$" becomes "$\iff$" if we slightly relax the requirement "$\forall x \in\mathcal X$" to "almost everywhere in $\mathcal X$". see [Appendix](#equivalence-of-bayes-risk-minimization-and-conditional-risk-minimization) for a proof.
 * To minimize the Bayes risk, it is sufficient to minimize the conditional risk for each observation $x$​.
 
 *Proof* $\implies$ : By assumption, we have for any other decision rule $f$ that
@@ -326,7 +326,7 @@ $$
 \end{align*}
 $$
 
-Let $h(a) = h_1(a) + h_2(a)$. We take the derivative of $h(a)$ w.r.t. $a$ using Leibniz's integral rule (c.f. Appendix)
+Let $h(a) = h_1(a) + h_2(a)$. We take the derivative of $h(a)$ w.r.t. $a$ using Leibniz's integral rule (see [Appendix](#leibnizs-integral-rule))
 $$
 \begin{align*}
 \frac{\mathrm d}{\mathrm da} h_1(a)
@@ -411,7 +411,7 @@ The decision boundary is
 > \left\{ x\in\mathbb R^d: \ln \frac{p(x \mid +)}{p(x \mid -)} = T_L + T_P  \right\}
 > $$
 
-Binary classification is very similar to binary hypothesis testing. c.f. separate article.
+Binary classification is very similar to binary hypothesis testing. see notes *Binary Hypothesis Test*.
 
 # Exercise
 

@@ -213,7 +213,7 @@ v_{\pi}(s)
 \end{align*}
 $$
 
-Using the law of total expectation and the markov properties (c.f. Appendix), we get
+Using the law of total expectation and the markov properties (see [Appendix](#cascade-of-expectations)), we get
 
 $$
 \begin{align*}
@@ -440,9 +440,9 @@ $$
 \end{align*}
 $$
 
-The last step follows from the fact that $\Vert \mathbf P_{\pi} \mathbf x \Vert_{\infty} \le \Vert \mathbf x \Vert_{\infty}, \forall x\in\mathbb R^{\vert \mathcal S \vert}$, i.e. multiplication with row stochastic matrix does not increase infnity norm. (c.f. Appendix).
+The last step follows from the fact that $\Vert \mathbf P_{\pi} \mathbf x \Vert_{\infty} \le \Vert \mathbf x \Vert_{\infty}, \forall x\in\mathbb R^{\vert \mathcal S \vert}$, i.e. multiplication with row stochastic matrix does not increase infnity norm. (see [Appendix](#row-stochastic-matrix) for a proof).
 
-By contraction mapping theorem (c.f. Appendix), we conclude that
+By [contraction mapping theorem](#contractive-mapping), we conclude that
 
 1. $f_{\pi}(\cdot)$ has a unique fixed point. Since $\mathbf v_{\pi}  = f_{\pi}(\mathbf v_{\pi} )$ by Bellman equation, $\mathbf v_{\pi}$ is the unique fixed point.
 2. $\forall \mathbf v\in\mathbb R^{\vert \mathcal S \vert}$, the sequence of vectors $f_{\pi}^n (\mathbf v)$ converges to $\mathbf v_{\pi} $ in infnity norm
@@ -551,7 +551,7 @@ $$
 \forall v \in\mathcal V: \lim_{n\to\infty} \Vert B_{\pi}^n v - v_{\pi}\Vert_{\infty} =0
 $$
 
-Using the fact that convergence in sup norm implies point-wise convergence(c.f. Appendix), we get
+Using the fact that convergence in sup norm implies point-wise convergence(see [Appendix](#convergence-of-sequence-of-functions)), we get
 $$
 \forall v \in\mathcal V: \lim_{n\to\infty} B_{\pi}^n v(s) =  v_{\pi}(s), \forall s\in\mathcal S
 $$
@@ -869,7 +869,7 @@ $$
 \end{align*}
 $$
 
-where the 2nd step follows from the fact (c.f. Appendix) that
+where the 2nd step follows from the fact (see [Appendix](#dealing-with-max-and-abs)) that
 $$
 \left\vert \max_{x\in\mathcal X} f(x) - \max_{x\in\mathcal X} g(x) \right\vert
 \le \max_{x\in\mathcal X} \left\vert f(x) -g(x) \right\vert
@@ -1030,7 +1030,7 @@ Suppose we improved $\pi$ by constructing a greedy policy $\pi'$. We can repeat 
 
 *Proof*: By construction, $\pi_{n+1}$ is greedy w.r.t. $q_{\pi_n}$ for all $n\in\mathbb N$. By property of greedy policy, we have $v_{\pi_{n+1}} \ge v_{\pi_n}$, i.e. The sequence of functions $v_{\pi_n}$ monotonically increases.
 
-Moreover, all $v_{\pi_n}$ are bounded by $v^*$. By monotonic convergence theorem (c.f. Appendix), $v_{\pi_n}$ converges to some $\bar v\in\mathcal V$ with $\bar v \le v^*$. To show that $\bar v = v^*$, it remains to show that $v^*\le \bar v$.
+Moreover, all $v_{\pi_n}$ are bounded by $v^*$. By [monotonic convergence theorem](#convergence-of-sequence-of-functions), $v_{\pi_n}$ converges to some $\bar v\in\mathcal V$ with $\bar v \le v^*$. To show that $\bar v = v^*$, it remains to show that $v^*\le \bar v$.
 
 Note that we can express $q_{\pi_n} (s,\pi_{n+1}(s))$ in two differenet ways:
 
@@ -1327,7 +1327,7 @@ $$
 > 1. $f$ has unique fixed point. i.e. $\exists !\, x^* \in\mathcal X$ s.t. $f(x^*) = x^*$
 > 2. Construction of the fixed point: $\forall x\in\mathcal X, \displaystyle\lim_{n\to\infty} f^n(x) = x^*$
 
-*Proof*: c.f. Separete notes.
+*Proof*: see notes *Fixed Point Iteration*.
 
 > **Montonic Contraction**  
 > Suppose that $(\mathcal X, d)$ is a complete metric space with a **partial oder** "$\le$". Let $f:\mathcal X \to \mathcal X$ be a **monotonic increasing** contraction mapping w.r.t. "$\le$". Then,

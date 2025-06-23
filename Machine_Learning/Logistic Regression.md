@@ -87,7 +87,7 @@ $$
 \end{align*}
 $$
 
-By assumption that $Y_i \vert x_i \sim \operatorname{Ber}\left( \sigma(w^\top x_i + b) \right)$ and properties of logistic function, (c.f. appendix)
+By assumption that $Y_i \vert x_i \sim \operatorname{Ber}\left( \sigma(w^\top x_i + b) \right)$ and [properties of logistic function](#properties-of-logistic-function), we have
 
 $$
 \begin{align*}

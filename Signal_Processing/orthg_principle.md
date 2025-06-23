@@ -159,7 +159,7 @@ Remarks:
 
 * The matrix $\mathbf G$ is called ***Gram matrix*** (or ***kernel matrix***) of $\mathbf x_1, \dots, \mathbf x_n$. The element $G_{ij}=\langle\mathbf x_i,\mathbf x_j\rangle$ describes the similarity between $\mathbf x_i$ and $\mathbf x_j$. Likewise, the term $r_{i}=\langle\mathbf x_i,\mathbf y\rangle$ on the RHS describes similarity between $\mathbf x_i$ and $\mathbf y$.
 * The  Gram matrix $\mathbf G$ is Hermitian, i.e. $\mathbf G^\herm = \mathbf G$. If $\mathbb F = \mathbb R$, then $\mathbf G$ becomes symmetric.
-* The Gram matrix $\mathbf G$ is invertible iff $\mathbf x_1, \dots, \mathbf x_n$ is linearly independent vectors in $H$. (c.f. Appendix for proof.) Hence, in general, the optimal $\mathbf w$ is not unique. However, the optimal approximation $\hat{\mathbf y}$ is always unique due to uniqueness of orthogonal projection.
+* The Gram matrix $\mathbf G$ is invertible iff $\mathbf x_1, \dots, \mathbf x_n$ is linearly independent vectors in $H$. (see [Appendix](#invertibility-of-gram-matrix) for proof.) Hence, in general, the optimal $\mathbf w$ is not unique. However, the optimal approximation $\hat{\mathbf y}$ is always unique due to uniqueness of orthogonal projection.
 
 Special case: $\mathbf x_1, \dots, \mathbf x_n$ are nonzero and orthogonal to each other. The Gram matrix becomes a diagonal matrix and thus invertible
 

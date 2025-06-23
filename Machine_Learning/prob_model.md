@@ -27,25 +27,40 @@ Both supervised learning and unsupervised learning can be summarized in the figu
 
 Remarks:
 
-* training data $D$: iid from unknown ground truth $\mathbb P$.
-* ML method: compute $\mathbb{\widehat P}$ from $D$ to estimate $\mathbb{P}$. We hope that $\mathbb{\widehat P}$ is as close to $\mathbb{P}$ as possible.
-* Use $\mathbb{\widehat P}$ on new data for predictions, anormony detection, etc.
+* training data $D$: iid from unknown ground truth distribution $p^\star$.
+* ML method: compute an estimate $\hat{p}$ from $D$ to estimate $p^\star$ as closely as possible.
+* The learned distribution $\hat{p}$ is used on new data for predictions, anormaly detection, etc.
 
 Which probability do we want to learn?
 
-* For unsupervised learning: $p(\mathbf x)$
-* For supervised learning: $p(y\mid\mathbf x)$ or $p(\mathbf x, y)$
+* In unsupervised learning: $p(\mathbf x)$
+* In supervised learning: $p(y\mid\mathbf x)$ or $p(\mathbf x, y)$
 
 How to learn the probability?
 
-* Non-parametric methods: kernel density estimation
+* Non-parametric methods: kernel density estimation (not detailed here)
 
-* Parametric methods: The PDF of interest belongs to some parametric family (e.g. normal distribution)
+* Parametric methods: We restrict to some parametric family $\{p_\theta(\cdot)\}$ (e.g. Gaussian).
 
-  * parameter ***estimation***: MLE, MAP. Based on optimization. $\to$ point estimate $\hat{\boldsymbol{\theta}}$.
-  * Bayesian ***inference*** (or model averaging):  $\to$ use the full posterior distribution $p(\boldsymbol{\theta} \mid D)$.
+  * Point Estimation: Estimate (MLE or MAP) parameters by computing a single best-fit value $\hat{\boldsymbol{\theta}}$.
+  * Bayesian Inference (or model averaging):  Instead of a point estimate, compute the full posterior distribution $p(\boldsymbol{\theta} \mid D)$. $\to$ See notes *Bayesian Inference*
 
-Our focus: parametric methods. In particular, parameter estimation.
+The true distribution $p^\star$ may not lie within our assumed family $\{p_\theta(\cdot)\}$ — in which case, the model is said to be **misspecified**.
+
+Examples:
+
+* In unsupervised learning, the ground truth is a mixure model while we assume a single Gaussain.
+* In supervised learning, the ground truth is a nonlinear model while we assume linear model.
+
+Assuming correct model specification, we distinguish two major statistical philosophies:
+
+* Frequentist view: The true data-generating distribution $p^\star$ is governed by a true parameter $\boldsymbol{\theta}^\star$, which is unknown but fixed.
+* Bayesian view: The parameter is a random variable and follows a true prior distribution. The true data-generating distribution $p^\star$ is an average of $p_\theta$ w.r.t. that true prior.
+
+Throughout this notes:
+
+* We assume that all models are correctly specified, i.e. $p^\star \in \{p_\theta(\cdot)\}$
+* We adopt the frequentist perspective, focusing on point estimation. Although MAP uses a prior, we treat it only as a regularizer, not as part of the Bayesian inference.
 
 ## Unsuperivsed Learning
 
@@ -56,11 +71,7 @@ Unspervised learning with fully observable data:
 * Optional: prior distribution $p(\boldsymbol{\theta})$
 * Goal: estimate $\boldsymbol{\theta}$
 
-Remarks:
-
-* For now, we assume that the data is fully observable. i.e. There is no latent variables. Latent variable models will be briefly discussed later.
-* We also assume that the model is correctly specified. i.e. The ground truth distribution is gonverned by some unknown true parameter $\boldsymbol{\theta}$. The learning problem becomes far more complex when the ground truth distribution is not in the parametric family.
-* In frequentist point of view, the true parameter is unknown but fixed. In Bayesian point of view, the true parameter follows some unknown distribution.
+For now, we assume that the data is fully observable. i.e. There is no latent variables. Latent variable models will be briefly discussed later.
 
 ### Maximum Likelihood Estimation (MLE)
 

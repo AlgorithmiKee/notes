@@ -128,7 +128,7 @@ $$
 \end{align*}
 $$
 
-where the 2nd step follows from mean value theorem applied to $f(x) = x^n$ (c.f. Appendix).
+where the 2nd step follows from mean value theorem applied to $f(x) = x^n$ (see [Appendix](#mean-value-theorem)).
 
 Hence, maximizing $\mathbb E[W_n]$ also maximizes the lower bound of $\mathbb V[W_n]$, making the variance explode. Intuitively, $\mathbb E[W_n]$ is driven extremely rare sequences of wins, and not by typical outcomes. Intuition: If we existed in multiverse, we could just care about maximizing $\mathbb E[W_n]$ since we are playing infinitely many such games all at once. But in reality, life is only once and thus the realized wealth matters instead of expected wealth.
 

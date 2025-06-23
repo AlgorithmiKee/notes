@@ -220,7 +220,7 @@ Remarks:
   \end{align*}
   $$
 
-  * Proof: c.f. section *Bellman Equations for Q-Function*
+  * Proof: see section [*Bellman Equations for Q-Function*](#bellman-equations-for-q-function)
 
 Suppose the agent execute some policy $\pi$ on initial state $s$ and then follow another policy $\pi'$ onwards. Then, the expected total reward is
 
@@ -285,7 +285,7 @@ Remarks:
 
 * Bellman equation holds for all $s\in\mathcal S$. For finite state space, there are $\vert\mathcal S\vert$ equations in total. There are further equivalent formulation of Bellman equations in the Appendix.
 * In $\text{(BE-V)}$: The 1st term represents the expected immediate reward. The 2nd term in $\text{(BE-V)}$ represents the discounted expected future reward.
-* In $\text{(BE-V2)}$: The distributions $p(r\mid s)$ and $p(s'\mid s)$ are often denoted by $p_{\pi}(r\mid s)$ and $p_{\pi}(s'\mid s)$ since they both implicitly depend on $\pi$. Specifically, they can be obtained from system parameters by applying the law of total probability (c.f. Appendix)
+* In $\text{(BE-V2)}$: The distributions $p(r\mid s)$ and $p(s'\mid s)$ are often denoted by $p_{\pi}(r\mid s)$ and $p_{\pi}(s'\mid s)$ since they both implicitly depend on $\pi$. Specifically, they can be obtained from system parameters by applying the [law of total probability](#law-of-total-probability)
 
   > $$
   > \begin{align}
@@ -341,7 +341,7 @@ v_{\pi}(s)
 \end{align*}
 $$
 
-$\text{(BE-V)}$ and $\text{(BE-V1)}$ follow from $\text{(BE-V2)}$ and the law of total expecation (c.f. Appendix)
+$\text{(BE-V)}$ and $\text{(BE-V1)}$ follow from $\text{(BE-V2)}$ and the [law of total expecation](#law-of-total-expectation)
 as
 
 $$
@@ -672,7 +672,7 @@ $$
 v^*(s) \ge v_{\pi'}(s)
 $$
 
-On the other side, we have by the trivial bound of expectation (c.f. Appendix)
+On the other side, we have by the [trivial bound of expectation](#trivial-bounds-of-expectation):
 
 $$
 \begin{align*}

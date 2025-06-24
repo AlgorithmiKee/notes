@@ -327,9 +327,32 @@ Remarks:
 * Without otherwise specified, the term "*entropy*" refers to both Shannon entropy and differential entropy.
 * The Shannon entropy is extensively studied in information theory. In machine learning, we also encounter differential entropy, whose properties are different from Shannon entropy.
 
-TODO:
+The univariate Gaussian has the largest differential entropy among all (univariate) distributions with the same mean and the same variance:
 
-* gaussian has the largest differential entropy among distributions with the same variance.
+> Let $g(x) = \mathcal N(x; \mu, \sigma^2)$ and $p$ be any other distribution on $\mathbb R$ with mean $\mu$ and variance $\sigma^2$. Then,
+> $$
+> \begin{align}
+> H(g) \ge H(p)
+> \end{align}
+> $$
+
+*Proof*: In section [Cross Entropy](#cross-entropy), we can show that
+
+$$
+H(p,g) = H(g)
+$$
+
+By the non-negativity of [KL divergence](#kl-divergence), we conclude
+
+$$
+\begin{align*}
+D_\text{KL}(p \parallel g)
+&= H(p,g) - H(p) \\
+&= H(g) - H(p) \\
+&\ge 0
+\tag*{$\blacksquare$}
+\end{align*}
+$$
 
 ### Cross Entropy
 
@@ -398,6 +421,39 @@ The cross entropy is generally **not** symmetric:
 > H(p, q) \ne H(q, p)
 > \end{align}
 > $$
+
+The cross entropy of a univariate Gaussian is invariant to the true distribution, assuming they have the same 1st and 2nd order moments:
+
+> Let $g(x) = \mathcal N(x; \mu, \sigma^2)$ and $p$ be any other distribution on $\mathbb R$ with mean $\mu$ and variance $\sigma^2$. Then,
+> $$
+> \begin{align}
+> H(p,g) = H(g)
+> \end{align}
+> $$
+
+*Proof*: It is easy to verify that
+
+$$
+-\log g(x) = \log\sqrt{2\pi\sigma^2} + \frac{(x-\mu)^2}{2\sigma^2}
+$$
+
+Hence,
+
+$$
+\begin{align*}
+H(p, g)
+&= \mathbb E_{x \sim p(\cdot)} \left[ -\log q(x) \right]
+\\
+&= \log\sqrt{2\pi\sigma^2} + \frac{1}{2\sigma^2} \underbrace{
+   \mathbb E_{x \sim p(\cdot)} \left[ (x-\mu)^2 \right]
+   }_{\sigma^2}
+\\
+&= \log\sqrt{2\pi\sigma^2} + \frac{1}{2}
+\\
+&= H(g)
+\tag*{$\blacksquare$}
+\end{align*}
+$$
 
 ### KL Divergence
 

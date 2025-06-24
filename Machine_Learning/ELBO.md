@@ -183,7 +183,11 @@ $$
 \end{align}
 $$
 
-TODO: any insights?
+Remarks:
+
+* The 1st term is called negative free energy in statistical physics. It rewards $q$ that explain the data well.
+* The 2nd term is the entropy of the surrogate. It rewards $q$ with higher uncertainty.
+* Maximizing the ELBO is about minimizing free energy while keeping the entropy of the surragate high.
 
 *Proof*:
 

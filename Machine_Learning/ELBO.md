@@ -4,6 +4,13 @@ date: "2025"
 author: "Ke Zhang"
 ---
 
+[toc]
+
+$$
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+$$
+
 # The Evidence Lower Bound
 
 ## Motivation
@@ -185,9 +192,9 @@ $$
 
 Remarks:
 
-* The 1st term is called negative free energy in statistical physics. It rewards $q$ that explain the data well.
+* The 1st term is known as negative free energy in statistical physics. It rewards $q$ that explain the data well.
 * The 2nd term is the entropy of the surrogate. It rewards $q$ with higher uncertainty.
-* Maximizing the ELBO is about minimizing free energy while keeping the entropy of the surragate high.
+* Mximizing the ELBO involves minimizing free energy while maintaining high entropy in the surrogate distribution.
 
 *Proof*:
 
@@ -200,6 +207,16 @@ $$
 \tag*{$\blacksquare$}
 \end{align*}
 $$
+
+Without the entropy term, maximizing the ELBO would result in a point mass for $z$ at the mode of $p(x,z)$ (recall: $x$ is fixed):
+
+$$
+q^*(z) = \delta(z - \hat{z}), \quad \text{where } \hat{z} = \argmax_z p(x,z)
+$$
+
+The entropy term, however, favors $q$ with higher entropy. In contrast, the Dirac delta is infinitely narrow and thus has extremely low entropy. Therefore, maximizing the ELBO seeks a balance between those two aspects.
+
+<img src="./figs/elbo_maximizer.pdf" alt="elbo maximizer" style="zoom:67%;" />
 
 ## ELBO for a Dataset
 

@@ -24,6 +24,25 @@ TODO:
 * total variance
 * conditional independence
 
+### Notation Caveats
+
+The PDF of a random variable $X$ has multiple notations:
+
+* $p_X(\cdot)$ or $p_X(x)$: the standard notation in probability theory and statistics.
+* $p(x)$: short-hand notation when the context is clear
+
+The parameterized PDF of random variable $X$ also has multiple notations:
+
+* $p_X(x ; \theta)$: standard notation in frequentist statistics
+* $p(x ; \theta)$: short-hand notation in frequentist statistics
+* $p(x \mid \theta)$: standard notation in Bayesian statistics
+* $p_\theta(x)$: modern notation, especially in deep learning
+
+Remarks:
+
+* In some literatures, PDFs are denoted by $f$ rather than $p$. e.g. $f_X(\cdot)$ rather than $p_X(\cdot)$.
+* Not to be confused: $p_X(x)$ vs. $p_\theta(x)$. The subscript in the former notation indicates that the density is defined for random variable $X$. The subscript in the latter notations denotes the parameter.
+
 ### Important inequalities
 
 #### Markov inequality

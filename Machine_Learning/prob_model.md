@@ -282,7 +282,7 @@ $$
 Unspervised learning with latent variables:
 
 * Model: $p(\mathbf x, \mathbf z \mid \boldsymbol{\theta})$ with unknown $\boldsymbol{\theta}$
-* Given: training data $D = \{\mathbf x_1, \cdots, \mathbf x_n\} \stackrel{\text{iid}}{\sim} p(\mathbf x) = \displaystyle\int p(\mathbf x, \mathbf z \mid \boldsymbol{\theta}) \,\mathrm d\mathbf z$. The latent variables $\mathbf z_{1:n}$ are missing.
+* Given: training data $D = \{\mathbf x_1, \cdots, \mathbf x_n\} \stackrel{\text{iid}}{\sim} p(\mathbf x \mid \boldsymbol{\theta}) = \displaystyle\int p(\mathbf x, \mathbf z \mid \boldsymbol{\theta}) \,\mathrm d\mathbf z$. The latent variables $\mathbf z_{1:n}$ are missing.
 * Optional: prior distribution $p(\boldsymbol{\theta})$
 
 Two predominant goals:

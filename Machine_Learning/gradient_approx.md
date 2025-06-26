@@ -173,11 +173,11 @@ $$
 
 ## Reparameterization Trick
 
-We say the distribution $x\sim p_\theta$ ***reparameterizable*** if there exists a random vector $\epsilon\in\mathbb R^d$ and a bijective function $g_{\theta}: \mathbb R^d \to \mathbb R^d$, s.t.
+We say the distribution $x\sim p_\theta$ ***reparameterizable*** if there exists a random vector $\epsilon\in\mathbb R^d$ with PDF $\phi(\epsilon)$ and a bijective function $g_{\theta}: \mathbb R^d \to \mathbb R^d$, s.t.
 
 $$
 \begin{align}
-\epsilon \sim p(\epsilon),
+\epsilon \sim \phi,
 \quad
 x = g_{\theta}(\epsilon)
 \end{align}
@@ -185,7 +185,7 @@ $$
 
 Remarks:
 
-* The PDF of $\epsilon$ is called ***reference density*** and it must **not** depend on the optimization variable $\theta$.
+* The PDF $\phi$ is called ***reference density*** and it must **not** depend on the optimization variable $\theta$.
 * Instead of sampling $x$ directly from $p_\theta$, we obtain $x$ by first sampling $\epsilon$ from $p$ and then applying $g_{\theta}$.
 * The function $g_\theta$ defines a differentiable (w.r.t $\theta$) transformation of random vectors.
 
@@ -194,10 +194,10 @@ Suppose $x\sim p_\theta$ is reparameterizable with reference density $p$ and tra
 $$
 \begin{align}
 \mathbb E_{x \sim p_\theta} [f(x)]
-&= \mathbb E_{\epsilon \sim p} \left[ f(g_{\theta}(\epsilon)) \right]
+&= \mathbb E_{\epsilon \sim \phi} \left[ f(g_{\theta}(\epsilon)) \right]
 \\[6pt]
 \nabla_{\theta} \mathbb E_{x \sim p_\theta} [f(x)]
-&= \mathbb E_{\epsilon \sim p} \left[ \nabla_{\theta} f(g_{\theta}(\epsilon)) \right]
+&= \mathbb E_{\epsilon \sim \phi} \left[ \nabla_{\theta} f(g_{\theta}(\epsilon)) \right]
 \end{align}
 $$
 
@@ -217,14 +217,14 @@ $$
 \end{align}
 $$
 
-where $\epsilon^{(1)}, \dots, \epsilon^{(N)} \stackrel{\text{iid}}{\sim} p$.
+where $\epsilon^{(1)}, \dots, \epsilon^{(N)} \stackrel{\text{iid}}{\sim} \phi$.
 
 Assuming we are minimizing $\mathbb E_{x \sim p_\theta} [f(x)]$ over $\theta$, the SGD becomes
 
 > **Algorithm (SGD with reparameterization trick)**  
 > Init $\theta^{(0)} \in\mathbb R^p$  
 > For $t=0,1,2,\dots$ until convergence, do  
-> $\qquad$ Draw a sample $\epsilon^{(1)}, \dots, \epsilon^{(N)} \stackrel{\text{iid}}{\sim} p$  
+> $\qquad$ Draw a sample $\epsilon^{(1)}, \dots, \epsilon^{(N)} \stackrel{\text{iid}}{\sim} \phi$  
 > $\qquad$ Update parameters
 > $$
 > \theta^{(t+1)} = \theta^{(t)} - \eta^{(t)} \frac{1}{N}\sum_{i=1}^N \left. \nabla_{\theta} f(g_{\theta}(\epsilon^{(i)})) \right|_{\theta = \theta^{(t)}}
@@ -251,7 +251,7 @@ One reparameterization is
 
 $$
 \begin{align}
-\epsilon &\sim p(\epsilon) = \mathcal N(\epsilon; 0, I),
+\epsilon &\sim \phi(\epsilon) = \mathcal N(\epsilon; 0, I),
 \\
 x &= g_{\mu,C}(\epsilon) = C \epsilon + \mu
 \end{align}

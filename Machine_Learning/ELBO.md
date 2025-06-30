@@ -15,7 +15,7 @@ $$
 
 ## Motivation
 
-Consider an observable random variable $X$, explained by some latent random variable $Z$. In general, both variables can be high dimensional. Assume we know the joint distribution $p(x,z)$, which can be very complex in general.
+Consider an observable random variable $X\in\mathbb R^d$, explained by some latent random variable $Z\in\mathbb R^\ell$. In general, both variables can be high dimensional. Assume we know the joint distribution $p(x,z)$.
 
 For a given instance $x$, we would like to compute the posterior distribution of the latent variable.
 
@@ -25,9 +25,9 @@ p(z \mid x)
 = \frac{p(x,z)}{\int p(x,z) \,\mathrm dz}
 $$
 
-Even though we know the joint distribution, the above computation is still intractable in general.
+Even though we know the joint distribution, the above computation is still intractable in general due to the high dimensional integral in the denominator.
 
-We choose a tractable distribution family $\mathcal Q$ and use a surrogate distribution $q\in\mathcal Q$ to approximate the true posterior $p(z \mid x)$. To assess how well $q$ approximates the true posterior, we minimize the KL divergence:
+In variational inference, we choose a tractable distribution family $\mathcal Q$ and use a surrogate distribution $q\in\mathcal Q$ to approximate the true posterior $p(z \mid x)$. To assess how well $q$ approximates the true posterior, we minimize the KL divergence:
 
 $$
 \min_{q \in\mathcal Q} D_\text{KL}(q(z) \parallel p(z \mid x))
@@ -35,10 +35,13 @@ $$
 
 Remarks:
 
-* Now, we turned the inference problem (a high dimensional integral) into an optimization problem.
+* The optimal approximation $q^*$ implicitly depends on $x$. Given another observation $x$, we typically end up with another $q^*$, as illustrated below.
 * In practice, $\mathcal Q$ is a parameterized family (e.g. Gaussian). Computing the optimal $q$ is equivalent to computing the optimal parameters.
+* Here, we tolerate the slight abuse of notation. Strictly speaking, the KL divergence should be written as $D_\text{KL}(q(\cdot) \parallel p(\cdot \mid x))$ where $\cdot$ is the place holder for $z$.
 
-However, minimizing the KL divergence still requires knowledge of the posterior. Next, we will make the above optimization problem tractable.
+<img src="./figs/vi_illustration.pdf" alt="elbo maximizer" style="zoom:67%;" />
+
+Now, we turned the inference problem (a high dimensional integral) into an optimization problem. However, minimizing the KL divergence still requires knowledge of the posterior. Next, we will make the above optimization problem tractable.
 
 > Final goal: Approximate the intractable posterior $p(z \mid x)$ with a tractable $q(z)$ by maximing the ELBO.
 
@@ -218,6 +221,10 @@ The entropy term, however, favors $q$ with higher entropy. In contrast, the Dira
 
 <img src="./figs/elbo_maximizer.pdf" alt="elbo maximizer" style="zoom:67%;" />
 
+## Mean Field Assumption
+
+TODO
+
 ## ELBO for a Dataset
 
 Consider the unspervised learning with latent variables:
@@ -225,9 +232,17 @@ Consider the unspervised learning with latent variables:
 * Model: $p(x,z)$
 * Given: training data $D = \{ x_1, \cdots,  x_n\}$.
 
-Can we derive the ELBO for the dataset?
+### ELBO as functional
 
-depends on the form of $q(z_{1:n})$
+Classical VI: For each $x_i \in D$ we use $q_i(z)$ to approximate $p(z \mid x_i)$:
+
+$$
+\begin{align}
+q_i^* &= \argmax_{q_i \in \mathcal Q} \mathcal L(q_i,x_i)
+\end{align}
+$$
+
+Amotized VI: ?
 
 ### Parameterization
 

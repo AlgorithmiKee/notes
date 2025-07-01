@@ -128,7 +128,7 @@ Remarks:
 * $\phi$ is called ***variational parameter***. $q_\phi(z \vert x)$  is called ***variational distribution***.
 * In amortized VI, the same variational parameter $\phi$ is shared by all $x \in \mathbb R^d$.
 
-Therefore, we turned the inference problem into an optimization problem
+This reformulates the inference problem into an optimization problem
 
 $$
 \begin{align}
@@ -138,8 +138,6 @@ $$
 
 Remarks:
 
-* $\phi$ is called ***variational parameter***. $q_\phi(z \vert x)$  is called ***variational distribution***.
-* In amortized VI, the same variational parameter $\phi$ is shared by all $x \in \mathbb R^d$.
 * The KL divergence requires knowledge of $p_\theta(z \vert x)$, which is what we want to approximate in the first place. Later, we will make this optimization problem tractable by introducing [evidence lower bound](#evidence-lower-bound).
 
 #### Example: Variational Gaussian
@@ -200,7 +198,7 @@ $$
 \end{align}
 $$
 
-### Reparamterization Trick
+### Reparameterization Trick
 
 We apply SGD to maximize the ELBO w.r.t. $\phi$
 
@@ -220,18 +218,54 @@ $$
 \end{align}
 $$
 
-Here, we cannot move the gradient $\nabla_\phi$ into the expecatation which iteself depends on $\phi$. This problem can be tackled by **reparameterization trick**. (see notes *gradient approximation*)
+We cannot move the gradient operator $\nabla_\phi$ inside the expectation because the distribution $q_\phi(z \vert x)$ depends on $\phi$. This problem can be tackled by **reparameterization trick**. (see notes *gradient approximation*)
 
 We find a function $g$ and a reference random variable $\epsilon$ s.t.
 
+1. The reference density $p(\epsilon)$ does not depend on $\phi$.
+1. $z = g_{x, \phi}(\epsilon)$ has the distribution $q_\phi(z \vert x)$.
+1. $g_{x, \phi}$ is differentiable w.r.t. $\phi$.
+
+After we apply the reparameterizaiton trick, both the ELBO and its gradient are expressed in the form $\mathbb E_{\epsilon \sim p(\epsilon)}[\cdot]$. Hence, they can be estimated by Monte Carlo sampling.
+
 $$
-z = g(\epsilon; x, \phi)
+\begin{align}
+\mathcal L_{\theta, \phi}(x)
+&= \mathbb E_{\epsilon \sim p(\epsilon)} \left[ \left.
+  \log\frac{p_\theta(x,z)}{q_\phi(z \vert x)}
+\right|_{z=g_{x, \phi}(\epsilon)} \right]
+\\
+\nabla_\phi \mathcal L_{\theta, \phi}(x)
+&= \mathbb E_{\epsilon \sim p(\epsilon)} \left[ \left.
+  \nabla_\phi \log\frac{p_\theta(x,z)}{q_\phi(z \vert x)}
+\right|_{z=g_{x, \phi}(\epsilon)} \right]
+\end{align}
 $$
 
-has the distribution $q_\phi(z \vert x)$.
+For example, the variational Gaussian
 
-After we apply the reparameterizaiton, the ELBO and its gradient becomes
+$$
+\begin{align*}
+q_\phi(z \vert x) = \mathcal N(z ; \mu_\phi(x), \Sigma_\phi(x))
+\end{align*}
+$$
 
-TODO
+can be reparameterized as
+
+$$
+\begin{align}
+z = \mu_\phi(x) + L_\phi(x) \cdot \epsilon, \quad \epsilon \sim\mathcal N(0, I)
+\end{align}
+$$
+
+where $L_\phi(x)$ is the Chekovskey factor of the covariance matrix $\Sigma_\phi(x)$.
+
+In special case where $z\in\mathbb R$, the reparameterization simplifies to
+
+$$
+\begin{align}
+z = \mu_\phi(x) + \sigma_\phi(x) \cdot \epsilon, \quad \epsilon \sim\mathcal N(0, 1)
+\end{align}
+$$
 
 ### The Complete VI Algorithm

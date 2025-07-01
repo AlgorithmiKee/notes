@@ -30,7 +30,9 @@ Even though we know the joint distribution, the above computation is still intra
 In variational inference, we choose a tractable distribution family $\mathcal Q$ and use a surrogate distribution $q\in\mathcal Q$ to approximate the true posterior $p(z \mid x)$. To assess how well $q$ approximates the true posterior, we minimize the KL divergence:
 
 $$
+\begin{align}
 \min_{q \in\mathcal Q} D_\text{KL}(q(z) \parallel p(z \mid x))
+\end{align}
 $$
 
 Remarks:
@@ -69,7 +71,7 @@ $$
 
 Remarks:
 
-* Other common notations for ELBO: $\mathcal L(q)$, $\mathcal L$ or simply $\mathrm{ELBO}$
+* The ELBO is a functional of $q$. Other common notations for ELBO: $\mathcal L(q)$, $\mathcal L$ or simply $\mathrm{ELBO}$
 * Computing the ELBO is **tractable** since it does not require evaluating high dimensional integral.
 
 *Proof*: First, we express $p(x)$ as
@@ -151,7 +153,7 @@ $$
 \end{align}
 $$
 
-In practice, this optimization problem is solved by parameterizing $q$ and applying gradient methods (detailed later).
+In practice, this optimization problem is usually solved by parameterizing $q$ and applying gradient methods (instead of applying calculus of variations).
 
 ### ELBO as regularized reconstruction
 
@@ -221,30 +223,114 @@ The entropy term, however, favors $q$ with higher entropy. In contrast, the Dira
 
 <img src="./figs/elbo_maximizer.pdf" alt="elbo maximizer" style="zoom:67%;" />
 
-## Mean Field Assumption
-
-TODO
-
 ## ELBO for a Dataset
+
+Previously, we derived the ELBO $\mathcal L(q,x)$ for a single observation $x$. From now on, let's call it **per-sample** ELBO (or **per-observation** ELBO).
+
+**Question**: What if we have a dataset consisting of multiple iid observations? Can we lower-bound the evidence of the whole dataset?
 
 Consider the unspervised learning with latent variables:
 
 * Model: $p(x,z)$
-* Given: training data $D = \{ x_1, \cdots,  x_n\}$.
+* Given: training data $D = \{ x_1, \cdots,  x_n\} \stackrel{\text{iid}}{\sim} p(x) = \int_z p(x,z) \:\mathrm dz$.
 
-### ELBO as functional
-
-Classical VI: For each $x_i \in D$ we use $q_i(z)$ to approximate $p(z \mid x_i)$:
+We call the lower bound of $\log p(D)$ **dataset ELBO**. In fact, dataset ELBO does exist since the evidence of the dataset is the sum of evidence of observations
 
 $$
 \begin{align}
-q_i^* &= \argmax_{q_i \in \mathcal Q} \mathcal L(q_i,x_i)
+\log p(D) = \log \prod_{i=1}^n p(x_i) = \sum_{i=1}^n \log p(x_i)
 \end{align}
 $$
 
-Amotized VI: ?
+Each $\log p(x_i)$ can be lower bounded by its individual per-sample ELBO. Therefore, $\log p(D)$ can also be lower bounded. The remaining question is how to design the surrogate.
 
-### Parameterization
+### Per-Sample Surrogate
+
+**Per-sample surrogate** means: For each $x_i$, we use $q_i(z)$ as the surrogate of the true posterior $p(z \mid x_i)$.
+
+For any combination of surrogates $q_1, \dots, q_n \in \mathcal Q$, it holds that
+
+$$
+\begin{align}
+\log p(D) &\ge \mathcal L(q_1, \dots, q_n, D)
+\end{align}
+$$
+
+where the RHS is the dataset ELBO, defined as
+
+$$
+\begin{align}
+\mathcal L(q_1, \dots, q_n, D)
+&\triangleq \sum_{i=1}^n \mathcal L(q_i, x_i) \\
+&= \sum_{i=1}^n \mathbb E_{z \sim q_i} \left[ \log\frac{p(x_i, z)}{q_i(z)} \right]
+\end{align}
+$$
+
+Remarks:
+
+* The (dataset) ELBO is a functional of $q_1, \dots, q_n$.
+* We assume that $q_1, \dots, q_n \in \mathcal Q$. i.e. All surrogates belong to the same distribution class.
+* Per-sample surrogates are used in classical variational inference.
+
+*Proof*: By our previous discussion, each $\log p(x_i)$ is lowered bounded by its per-sample ELBO:
+
+$$
+\begin{align*}
+\mathcal L(q_i, x_i) = \mathbb E_{z \sim q_i} \left[ \log\frac{p(x_i, z)}{q_i(z)} \right]
+\end{align*}
+$$
+
+Summing over all observations, we obtain the dataset ELBO for $\log p(D)$:
+
+$$
+\begin{align*}
+\log p(D)
+= \sum_{i=1}^n \log p(x_i)
+\ge \sum_{i=1}^n \mathcal L(q_i, x_i)
+= \sum_{i=1}^n \mathbb E_{z \sim q_i} \left[ \log\frac{p(x_i, z)}{q_i(z)} \right]
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+The optimal surrogates can be obtained by separately solving the functional optimization problems
+
+$$
+\begin{align}
+q_i^* = \argmax_{q_i \in \mathcal Q} \mathcal L(q_i, x_i), \quad i=1,\dots,n
+\end{align}
+$$
+
+Remarks;
+
+* Due to the additive structure of dataset ELBO, each $q_i$ can be optimized independently of each other.
+* In practice, $\mathcal Q$ is a parametric distribution class, e.g. Gaussian. Therefore, we turn this functional optimization problem into a parameter optimization problem.
+* The idea of per-sample surrogate allows very high flexibility. Consider $z\in\mathbb R$ and $\mathcal Q$ as the set of all univariate Gaussians. Per-sample surrogate assumption allows that each $q_i$ has its own mean and variance, i.e. $q_i(z) = \mathcal N(z; \mu_i, \sigma^2_i)$.
+* The drawback of per-sample surrogate is that the number of parameters $\{\mu_i, \sigma^2_i\}_{i=1}^n$ grows as dataset becoming large. Poor scalability.
+
+Again, the dataset ELBO also has three popular decompositions
+
+$$
+\begin{align}
+\mathcal L(q_1, \dots, q_n, D)
+&= \log p(D) - \sum_{i=1}^n D_\text{KL}(q_i(z) \parallel p(z \mid x_i)) \\
+&= \sum_{i=1}^n \Big\{ \mathbb E_{z \sim q_i} \left[ \log p(x_i \mid z) \right] - D_\text{KL}(q_i(z) \parallel p(z)) \Big\} \\
+&= \sum_{i=1}^n \Big\{ \mathbb E_{z \sim q_i} \left[ \log p(x_i, z) \right] + H(q_i) \Big\}
+\end{align}
+$$
+
+*Proof*: The decomposition of dataset ELBO follows immediately by summing the decomposition equalities of per-sample ELBO:
+
+$$
+\begin{align*}
+\mathcal L(q_i, x_i)
+&= \log p(x_i) - D_\text{KL}(q_i(z) \parallel p(z \mid x_i)) \\
+&= \mathbb E_{z \sim q_i} \left[ \log p(x_i \mid z) \right] - D_\text{KL}(q_i(z) \parallel p(z)) \\
+&= \mathbb E_{z \sim q_i} \left[ \log p(x_i, z) \right] + H(q_i)
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+### Global Surrogate
 
 TODO
 

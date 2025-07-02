@@ -39,15 +39,15 @@ Remarks:
 
 * The optimal approximation $q^*$ implicitly depends on $x$. Given another observation $x$, we typically end up with another $q^*$, as illustrated below.
 * In practice, $\mathcal Q$ is a parameterized family (e.g. Gaussian). Computing the optimal $q$ is equivalent to computing the optimal parameters.
-* Here, we tolerate the slight abuse of notation. Strictly speaking, the KL divergence should be written as $D_\text{KL}(q(\cdot) \parallel p(\cdot \mid x))$ where $\cdot$ is the place holder for $z$.
+* Here, we slightly abuse notation for clarity. Strictly speaking, the KL divergence should be written as $D_\text{KL}(q(\cdot) \parallel p(\cdot \mid x))$ where $\cdot$ is the place holder for $z$.
 
 <img src="./figs/vi_illustration.pdf" alt="elbo maximizer" style="zoom:67%;" />
 
-Now, we turned the inference problem (a high dimensional integral) into an optimization problem. However, minimizing the KL divergence still requires knowledge of the posterior. Next, we will make the above optimization problem tractable.
+We have transformed the inference problem — a high-dimensional integration — into an optimization problem. However, minimizing the KL divergence still requires knowledge of the posterior. Next, we will make the above optimization problem tractable.
 
 > Final goal: Approximate the intractable posterior $p(z \mid x)$ with a tractable $q(z)$ by maximing the ELBO.
 
-## Theoretical Foundations of ELBO
+## ELBO for a Single Observation
 
 For a given instance $x$, we call $\log p(x)$ the ***evidence***. Then:
 
@@ -71,11 +71,12 @@ $$
 
 Remarks:
 
-* The ELBO is a functional of $q$. Other common notations for ELBO: $\mathcal L(q)$, $\mathcal L$ or simply $\mathrm{ELBO}$
+* Other common notations for ELBO: $\mathcal L(q)$, $\mathcal L$ or simply $\mathrm{ELBO}$.
+* For a fixed $x$, the ELBO is a functional of $q$. The higher the ELBO, the better $q$ approximates the true posterior.
+* The ELBO also depends on the observation $x$. For a fixed $q$, evaluating ELBO at another $x'$ will give another bound (for another posterior $p(z \mid x')$).
 * Computing the ELBO is **tractable** since it does not require evaluating high dimensional integral.
 
 *Proof*: First, we express $p(x)$ as
-
 $$
 \begin{align*}
 p(x)
@@ -130,7 +131,7 @@ $$
 Remarks:
 
 * The gap between the evidence and ELBO is exactly the KL divergence we want to minimize earlier (also known as ***variational gap***). Minimizing the variational gap is equivalent to maximizing the ELBO, which is the key idea of variational inference.
-* The ELBO becomes tight (or maximized) iff $q(z) = p(z \mid x)$, which is typically not achievable in practice due to the restricted distribution class $\mathcal Q$.
+* The ELBO becomes tight (or maximized) iff $q(z) = p(z \mid x)$, which is typically not achievable in practice due to the limited expressiveness of the distribution class $\mathcal Q$.
 
 *Proof*: Substitute $p(x,z) = p(z \mid x) \cdot p(x)$ into the definition of ELBO, we conclude
 
@@ -199,7 +200,7 @@ Remarks:
 
 * The 1st term is known as negative free energy in statistical physics. It rewards $q$ that explain the data well.
 * The 2nd term is the entropy of the surrogate. It rewards $q$ with higher uncertainty.
-* Mximizing the ELBO involves minimizing free energy while maintaining high entropy in the surrogate distribution.
+* Maximizing the ELBO can be interpreted as minimizing the free energy while maintaining high entropy in the surrogate distribution.
 
 *Proof*:
 
@@ -234,7 +235,7 @@ Consider the unspervised learning with latent variables:
 * Model: $p(x,z)$
 * Given: training data $D = \{ x_1, \cdots,  x_n\} \stackrel{\text{iid}}{\sim} p(x) = \int_z p(x,z) \:\mathrm dz$.
 
-We call the lower bound of $\log p(D)$ **dataset ELBO**. In fact, dataset ELBO does exist since the evidence of the dataset is the sum of evidence of observations
+We refer to the lower bound on $\log p(D)$ as the **dataset ELBO**. In fact, dataset ELBO does exist since the evidence of the dataset is the sum of evidence of observations
 
 $$
 \begin{align}
@@ -273,11 +274,10 @@ Remarks:
 * Per-sample surrogates are used in classical variational inference.
 
 *Proof*: By our previous discussion, each $\log p(x_i)$ is lowered bounded by its per-sample ELBO:
-
 $$
-\begin{align*}
+\begin{align}
 \mathcal L(q_i, x_i) = \mathbb E_{z \sim q_i} \left[ \log\frac{p(x_i, z)}{q_i(z)} \right]
-\end{align*}
+\end{align}
 $$
 
 Summing over all observations, we obtain the dataset ELBO for $\log p(D)$:
@@ -300,12 +300,12 @@ q_i^* = \argmax_{q_i \in \mathcal Q} \mathcal L(q_i, x_i), \quad i=1,\dots,n
 \end{align}
 $$
 
-Remarks;
+Remarks:
 
 * Due to the additive structure of dataset ELBO, each $q_i$ can be optimized independently of each other.
 * In practice, $\mathcal Q$ is a parametric distribution class, e.g. Gaussian. Therefore, we turn this functional optimization problem into a parameter optimization problem.
-* The idea of per-sample surrogate allows very high flexibility. Consider $z\in\mathbb R$ and $\mathcal Q$ as the set of all univariate Gaussians. Per-sample surrogate assumption allows that each $q_i$ has its own mean and variance, i.e. $q_i(z) = \mathcal N(z; \mu_i, \sigma^2_i)$.
-* The drawback of per-sample surrogate is that the number of parameters $\{\mu_i, \sigma^2_i\}_{i=1}^n$ grows as dataset becoming large. Poor scalability.
+* The idea of per-sample surrogate allows very high flexibility. Consider $z\in\mathbb R$ (1D latent space) and $\mathcal Q$ as the set of all univariate Gaussians. Per-sample surrogate assumption allows that each $q_i$ has its own mean and variance, i.e. $q_i(z) = \mathcal N(z; \mu_i, \sigma^2_i)$.
+* The drawback of per-sample surrogate is that the number of variational parameters $\{\mu_i, \sigma^2_i\}_{i=1}^n$ grows as dataset becoming large. Poor scalability.
 
 Again, the dataset ELBO also has three popular decompositions
 
@@ -319,7 +319,6 @@ $$
 $$
 
 *Proof*: The decomposition of dataset ELBO follows immediately by summing the decomposition equalities of per-sample ELBO:
-
 $$
 \begin{align*}
 \mathcal L(q_i, x_i)
@@ -332,8 +331,66 @@ $$
 
 ### Global Surrogate
 
-TODO
+Under per-sample surrogate settings, the number of surrogate distributions scales linearly w.r.t. the size of the dataset $D$. In practice, the number of variational parameters also grows with the dataset size. With a global surrogate, we make the variational inference scalable.
 
-## Optional? relation bw. ELBO and EM
+Essentially, we want to learn the mapping $\mathcal F$
+$$
+\mathcal F: \mathbb R^d \to \mathcal Q, x \mapsto q(\cdot \mid x)
+$$
+where $\cdot$ is the placeholder for $z$, s.t. $\forall x_i \in D$
+$$
+q(\cdot \mid x_i) \approx p(\cdot \mid x_i)
+$$
+Remarks:
 
-TODO
+* The abstract mapping $\mathcal F$ maps each data point to a surrogate distribution. Mathematically, it is a complex point-to-function mapping.
+* In practice, $\mathcal Q$ is a parameteric distribution class (e.g. univariate Gaussian). Each surrogate distribution is represented by its parameter: $\mu$ and $\sigma$. The point-to-function mapping $\mathcal F$ boils down to a mapping from $x$ to $[\mu, \sigma]^\top$. Since both the input and output are points (aka vectors), we can represent $\mathcal F$ with a neural net.
+* Global surrogate is used in amortized variational inference (e.g. VAE). The term "amortized" hightlights the fact that all $x\in\mathbb R^d$ share the mapping rule $\mathcal F: x \mapsto q(\cdot \mid x)$.
+
+For each sample $x_i$, the per-sample ELBO is
+$$
+\begin{align}
+\mathcal L(\mathcal F(x_i), x_i)
+&= \mathcal L(q(\cdot \mid x_i), x_i) \\
+&= \mathbb E_{z \sim q(\cdot \mid x_i)} \left[ \log\frac{p(x_i, z)}{q(z \mid x_i)} \right]
+\end{align}
+$$
+
+
+Summing over all samples, we obtain the dataset ELBO
+$$
+\begin{align}
+\mathcal L(\mathcal F, D)
+&\triangleq \sum_{i=1}^n \mathcal L(\mathcal F(x_i), x_i)\\
+&= \sum_{i=1}^n \mathbb E_{z \sim q(\cdot \mid x_i)} \left[ \log\frac{p(x_i, z)}{q(z \mid x_i)} \right]
+\end{align}
+$$
+Remarks:
+
+* Not to be confused by the notation: $\mathcal F(x_i) = q(\cdot \mid x_i) \in \mathcal Q$, i.e. $\mathcal F(x_i)$ is a (proability density) function.
+* Comparing to per-sample surrogate scheme, there is a key distinction between $q_i(\cdot)$ and $q(\cdot \mid x_i)$:
+  * Per-sample surrogate: We choose each $q_i(\cdot) \in \mathcal Q$ freely.
+  * Global surrogate: Each $q(\cdot \mid x_i)$ are determined by plugging $x_i$ into the point-to-function mapping $\mathcal F$, which shared by all $x_i \in D$.
+
+To maximize the dataset ELBO, we aim to solve
+$$
+\begin{align}
+\mathcal F^* = \argmax_{\mathcal F} \mathcal L(\mathcal F, D)
+\end{align}
+$$
+This is again a functional optimization problem. In practice, we avoid dealing directly with a functional optimization problem by characterizing $\mathcal F$ with its parameters.
+
+**Example: Global variational Gaussian**  
+Consider 1D latent space ($z\in\mathbb R$). A global variational Gaussian chooses $\mathcal Q$ as the set of all univariate Gaussians.
+$$
+\mathcal Q = \{\mathcal N(\cdot; \mu,\sigma^2) \mid \mu,\sigma\in\mathbb R\}
+$$
+The goal is to learn the mapping
+$$
+\mathcal F: \mathbb R^d \to \mathbb R^2, x \mapsto [\mu, \sigma]^\top
+$$
+Where $\mu$ and $\sigma$ depends on $x$ in a complex way (e.g. neural net), s.t.
+$$
+q(z \mid x_i) = \left.\mathcal N(z ; \mu_i, \sigma_i)\right|_{[\mu_i, \sigma_i] = \mathcal F(x)} \approx p(z \mid x_i)
+$$
+In this settings, all $x\in\mathbb R^d$ share the same mapping rule $\mathcal F: x \to [\mu, \sigma]^\top$.

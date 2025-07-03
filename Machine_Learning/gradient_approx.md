@@ -232,20 +232,20 @@ Assuming we are minimizing $\mathbb E_{x \sim p_\theta} [f(x)]$ over $\theta$, t
 
 ### Example: Reparameterization for Gaussian
 
-Consider the multivariate Gaussian $p_\theta(x) = \mathcal N(x; \mu, \Sigma)$ with $\theta = (\mu, C)$ where $C \triangleq \Sigma^{1/2}$ is the Cholesky factor of $\Sigma$.
+Consider the multivariate Gaussian $p_\theta(x) = \mathcal N(x; \mu, \Sigma)$ with $\theta = (\mu, L)$ where $L \triangleq \Sigma^{1/2}$ is the Cholesky factor of $\Sigma$.
 
 We would like to approximate
 
 $$
 \begin{align}
-\nabla_{\mu, C} \, \mathbb E_{x \sim \mathcal N(\mu, \Sigma)} [f(x)]
+\nabla_{\mu, L} \, \mathbb E_{x \sim \mathcal N(\mu, \Sigma)} [f(x)]
 \end{align}
 $$
 
 Remarks:
 
 * We consider $\Sigma^{1/2}$ instead of $\Sigma$ as part of $\theta$ because the reparameterization function directly depends on $\Sigma^{1/2}$. Otherwise, we would have to compute $\nabla_{\mu, \Sigma} \Sigma^{1/2}$, which is very hard in practice.
-* In the following, we perform SGD for parameters $\theta = (\mu, C)$. After SGD converges, we can simply recover the covariance matrix by computing $\Sigma = CC^\top$
+* In the following, we perform SGD for parameters $\theta = (\mu, L)$. After SGD converges, we can simply recover the covariance matrix by computing $\Sigma = LL^\top$
 
 One reparameterization is
 
@@ -253,38 +253,38 @@ $$
 \begin{align}
 \epsilon &\sim \phi(\epsilon) = \mathcal N(\epsilon; 0, I),
 \\
-x &= g_{\mu,C}(\epsilon) = C \epsilon + \mu
+x &= g_{\mu,L}(\epsilon) = L \epsilon + \mu
 \end{align}
 $$
 
-Hence, the gradient $\nabla_{\mu, C} \, \mathbb E_{x \sim \mathcal N(\mu, \Sigma)} [f(x)]$ can be approximated by
+Hence, the gradient $\nabla_{\mu, L} \, \mathbb E_{x \sim \mathcal N(\mu, \Sigma)} [f(x)]$ can be approximated by
 
 $$
 \begin{align}
-\nabla_{\mu, C} \, \mathbb E_{x \sim \mathcal N(\mu, \Sigma)} [f(x)]
-&= \nabla_{\mu, C} \, \mathbb E_{\epsilon \sim \mathcal N(0, I)} [f(C \epsilon + \mu)]
+\nabla_{\mu, L} \, \mathbb E_{x \sim \mathcal N(\mu, \Sigma)} [f(x)]
+&= \nabla_{\mu, L} \, \mathbb E_{\epsilon \sim \mathcal N(0, I)} [f(L \epsilon + \mu)]
 && \text{reparam. trick}
 \\
-&= \mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[ \nabla_{\mu, C} f(C \epsilon + \mu) \right]
+&= \mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[ \nabla_{\mu, L} f(L \epsilon + \mu) \right]
 && \text{move $\nabla$ inside}
 \\
-&\approx \frac{1}{N} \sum_{i=1}^N \nabla_{\mu, C} f(C \epsilon^{(i)} + \mu)
+&\approx \frac{1}{N} \sum_{i=1}^N \nabla_{\mu, L} f(L \epsilon^{(i)} + \mu)
 && \epsilon^{(i)} \stackrel{\text{iid}}{\sim} \mathcal N(0, I)
 \end{align}
 $$
 
-Modern ML frameworks (e.g. `torch.autograd`) automatically compute $\nabla_{\mu, C} f(C \epsilon^{(i)} + \mu)$ using chain rule. In practice, we do not need to manually code the detailed computations like
+Modern ML frameworks (e.g. `torch.autograd`) automatically compute $\nabla_{\mu, L} f(L \epsilon^{(i)} + \mu)$ using chain rule. In practice, we do not need to manually code the detailed computations like
 
 $$
 \begin{align*}
-\nabla_{\mu} f(C \epsilon^{(i)} + \mu)
+\nabla_{\mu} f(L \epsilon^{(i)} + \mu)
 &= \frac{\partial f}{\partial x} \cdot \frac{\partial x}{\partial \mu}
 = \frac{\partial f}{\partial x} \cdot I \\
-&= \left. \nabla_x f(x) \right|_{x = C \epsilon^{(i)} + \mu}
+&= \left. \nabla_x f(x) \right|_{x = L \epsilon^{(i)} + \mu}
 \\
-\nabla_{C} f(C \epsilon^{(i)} + \mu)
-&= \frac{\partial f}{\partial x} \cdot \frac{\partial x}{\partial C}
+\nabla_{L} f(L \epsilon^{(i)} + \mu)
+&= \frac{\partial f}{\partial x} \cdot \frac{\partial x}{\partial L}
 = \frac{\partial f}{\partial x} \cdot (\epsilon^{(i)})^\top \\
-&= \left. \nabla_x f(x) \right|_{x = C \epsilon^{(i)} + \mu} \otimes \epsilon^{(i)}
+&= \left. \nabla_x f(x) \right|_{x = L \epsilon^{(i)} + \mu} \otimes \epsilon^{(i)}
 \end{align*}
 $$

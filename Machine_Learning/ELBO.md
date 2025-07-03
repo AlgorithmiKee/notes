@@ -185,7 +185,7 @@ $$
 \end{align*}
 $$
 
-### ELBO as average log joint plus entropy
+### ELBO as entropy minus free energy
 
 The 3rd decomposition of ELBO is
 
@@ -223,6 +223,107 @@ $$
 The entropy term, however, favors $q$ with higher entropy. In contrast, the Dirac delta is infinitely narrow and thus has extremely low entropy. Therefore, maximizing the ELBO seeks a balance between those two aspects.
 
 <img src="./figs/elbo_maximizer.pdf" alt="elbo maximizer" style="zoom:67%;" />
+
+### ELBO Maximization for Gaussian Surrogate
+
+We use mutlivariate Gaussian as the surrogate
+
+$$
+\begin{align*}
+q(z) &= \mathcal N(z ; \mu, \Sigma)
+\end{align*}
+$$
+
+The corresponding distribution class $\mathcal Q$ is
+
+$$
+\begin{align*}
+\mathcal Q
+&= \{\mathcal N(\mu, \Sigma) \mid
+  \mu\in\mathbb R^\ell, \Sigma\in\mathbb R^{\ell \times \ell}, \Sigma \text{ is s.p.d.}
+\}
+\end{align*}
+$$
+
+Remarks:
+
+* "s.p.d." is short for *symmetric positive definite*.
+* Alternatively, we can shrink the distribution class $\mathcal Q$ by restricting it to diagonal Gaussian or even spherical Gaussian.
+
+Each surrogate $q$ is represented by its parameters $(\mu, \Sigma)$. The ELBO, previously defined as a functional of $q$, now becomes a function of $(\mu, \Sigma)$.
+
+$$
+\begin{align}
+\mathcal L(\mu, \Sigma,x)
+&= \mathbb E_{z \sim \mathcal N(\mu, \Sigma)} \left[ \log\frac{p(x,z)}{\mathcal N(z ; \mu, \Sigma)} \right]
+\end{align}
+$$
+
+or equivalently using the [3rd decomposition rule](#elbo-as-entropy-minus-free-energy)
+
+$$
+\begin{align}
+\mathcal L(\mu, \Sigma,x)
+&= \mathbb E_{z \sim \mathcal N(\mu, \Sigma)} \left[ \log p(x,z) \right] + H(\mathcal N(\mu, \Sigma))
+\end{align}
+$$
+
+The entropy of multivariate Gaussian has closed-form solution.
+
+$$
+\begin{align*}
+H(\mathcal N(\mu, \Sigma))
+&= \frac{1}{2} \log\vert\Sigma\vert + \frac{\ell}{2}\log(2\pi e)
+\end{align*}
+$$
+
+The ELBO thus becomes
+
+$$
+\begin{align}
+\mathcal L(\mu, \Sigma,x)
+&= \mathbb E_{z \sim \mathcal N(\mu, \Sigma)} \left[ \log p(x,z) \right] + \frac{1}{2} \log\vert\Sigma\vert + \text{const.}
+\end{align}
+$$
+
+The best Gaussian surrogate is obtained by maximizing the ELBO, or equivalently
+
+$$
+\begin{align}
+\max_{\mu, \Sigma}
+\mathbb E_{z \sim \mathcal N(\mu, \Sigma)} \left[ \log p(x,z) \right] + \frac{1}{2} \log\vert\Sigma\vert
+\end{align}
+$$
+
+Note that the expectation is taken w.r.t. $z \sim \mathcal N(\mu, \Sigma)$, which depends on the optimization variable. Hence, we use reparameterization trick by expressing $z$ as a deterministic transformation of a standard Gaussian:
+
+$$
+z = \mu + L\epsilon, \quad \text{ where } \epsilon \sim \mathcal N(0, I), \: \Sigma = LL^\top
+$$
+
+The optimziation problem then becomes
+
+$$
+\begin{align}
+\max_{\mu, L}
+\mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[ \log p(x,\mu + L\epsilon) \right] + \log\vert L \vert
+\end{align}
+$$
+
+Remarks:
+
+* $\frac{1}{2} \log\vert\Sigma\vert = \frac{1}{2} \log\vert LL^\top \vert = \frac{1}{2} \log\vert L \vert \vert L^\top \vert = \frac{1}{2} \log\vert L \vert^2 = \log \vert L \vert$
+* After reparameterization, we treat the Cholesky factor $L$ as the optimization variable instead of $\Sigma$.
+
+The objective function can be approximated by Monte Carlo sampling. Hence, we solve
+
+$$
+\begin{align}
+\max_{\mu, L}
+\frac{1}{M} \sum_{k=1}^M \log p(x, \mu + L\epsilon_k) + \log\vert L \vert
+\quad \text{ where } \epsilon_k \sim \mathcal N(0, I)
+\end{align}
+$$
 
 ## ELBO for a Dataset
 

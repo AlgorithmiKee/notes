@@ -39,7 +39,7 @@ Remarks:
 
 * The optimal approximation $q^*$ implicitly depends on $x$. Given another observation $x$, we typically end up with another $q^*$, as illustrated below.
 * In practice, $\mathcal Q$ is a parameterized family (e.g. Gaussian). Computing the optimal $q$ is equivalent to computing the optimal parameters.
-* Here, we slightly abuse notation for clarity. Strictly speaking, the KL divergence should be written as $D_\text{KL}(q(\cdot) \parallel p(\cdot \mid x))$ where $\cdot$ is the place holder for $z$.
+* Here, we slightly abuse notation for clarity. Formally, the KL divergence should be written as $D_\text{KL}(q(\cdot) \parallel p(\cdot \mid x))$ where $\cdot$ is the place holder for $z$.
 
 <img src="./figs/vi_illustration.pdf" alt="elbo maximizer" style="zoom:67%;" />
 
@@ -74,7 +74,6 @@ Remarks:
 * Other common notations for ELBO: $\mathcal L(q)$, $\mathcal L$ or simply $\mathrm{ELBO}$.
 * For a fixed $x$, the ELBO is a functional of $q$. The higher the ELBO, the better $q$ approximates the true posterior.
 * The ELBO also depends on the observation $x$. For a fixed $q$, evaluating ELBO at another $x'$ will give another bound (for another posterior $p(z \mid x')$).
-* Computing the ELBO is **tractable** since it does not require evaluating high dimensional integral.
 
 *Proof*: First, we express $p(x)$ as
 $$
@@ -97,20 +96,48 @@ $$
 \end{align*}
 $$
 
-There are three ways to decompose the ELBO $\mathcal L(q,x)$ as we will show below. Each decomposation gives us insights from different perspectives.
+By definition, the ELBO is an expectation w.r.t. $q$ which again requires integrating in latent space. However, we can estimate the ELBO via Monte Carlo sampling, avoiding integrating in the latent space.
+
+$$
+\begin{align}
+\mathcal L(q,x)
+\approx \frac{1}{M} \sum_{k=1}^M \log\frac{p(x, z^{(k)})}{q(z^{(k)})},
+\quad z^{(k)} \sim q
+\end{align}
+$$
+
+[Later](#elbo-as-evidence-minus-variational-gap), we will show that the best approximation of the true posterior in distribution class $\mathcal Q$ is the maximizer of the (estimated) ELBO
+
+$$
+\begin{align}
+q^*
+&= \argmax_{q \in \mathcal Q} \mathcal L(q,x)
+\\
+q^*
+&= \argmax_{q \in \mathcal Q} \frac{1}{M} \sum_{k=1}^M \log\frac{p(x, z^{(k)})}{q(z^{(k)})},
+\quad z^{(k)} \sim q
+\end{align}
+$$
+
+These are functional optimization problems. In practice, $\mathcal Q$ is a parametric distribution class and each $q$ is represented by its parameters. Instead of optimizing the ELBO w.r.t. function $q$, we optimize it w.r.t. the parameters. For details: $\to$ see example [Gaussian surrogates](#elbo-maximization-for-gaussian-surrogate).
+
+### Equivalent Reformulation of ELBO
+
+There are three equivalent reformulations of the ELBO $\mathcal L(q,x)$. Each reformulations provides insights from a different perspective.
 
 $$
 \begin{align*}
 \mathcal L(q,x)
+&\triangleq \mathbb E_{z \sim q} \left[ \log\frac{p(x,z)}{q(z)} \right] \\
 &= \log p(x) - D_\text{KL}(q(z) \parallel p(z \mid x)) \\
-&= \mathbb E_{z \sim q} \left[ \log p(x \mid z) \right] - D_\text{KL}(q(z) \parallel p(z)) \\
-&= \mathbb E_{z \sim q} \left[ \log p(x,z) \right] + H(q)
+&= \mathbb E_{z \sim q} \Big[ \log p(x \mid z) \Big] - D_\text{KL}(q(z) \parallel p(z)) \\
+&= \mathbb E_{z \sim q} \Big[ \log p(x,z) \Big] + H(q)
 \end{align*}
 $$
 
-### ELBO as evidence minus variational gap
+#### ELBO as evidence minus variational gap
 
-The 1st decomposition of ELBO is
+The 1st reformulation of ELBO is
 
 $$
 \begin{align}
@@ -130,7 +157,7 @@ $$
 
 Remarks:
 
-* The gap between the evidence and ELBO is exactly the KL divergence we want to minimize earlier (also known as ***variational gap***). Minimizing the variational gap is equivalent to maximizing the ELBO, which is the key idea of variational inference.
+* The gap between the evidence and ELBO is exactly the KL divergence we want to minimize earlier (also known as ***variational gap***). Minimizing the variational gap is equivalent to maximizing the ELBO, which captures the core idea of variational inference.
 * The ELBO becomes tight (or maximized) iff $q(z) = p(z \mid x)$, which is typically not achievable in practice due to the limited expressiveness of the distribution class $\mathcal Q$.
 
 *Proof*: Substitute $p(x,z) = p(z \mid x) \cdot p(x)$ into the definition of ELBO, we conclude
@@ -145,7 +172,7 @@ $$
 \end{align*}
 $$
 
-Now, we are able to approximate $p(z \mid x)$ with $q(z)$ by
+Therefore, the best approximation $p(z \mid x)$ in $\mathcal Q$ is the solution of
 
 $$
 \begin{align}
@@ -156,9 +183,9 @@ $$
 
 In practice, this optimization problem is usually solved by parameterizing $q$ and applying gradient methods (instead of applying calculus of variations).
 
-### ELBO as regularized reconstruction
+#### ELBO as regularized reconstruction
 
-The 2nd decomposition of ELBO is
+The 2nd reformulation of ELBO is
 
 $$
 \begin{align}
@@ -170,7 +197,7 @@ $$
 Remarks:
 
 * The 1st term is expected log likelihood w.r.t. the surrogate. It measures the average goodness of reconstruction, assuming that $z \sim q$.
-* The 2nd term is the KL divergence of the surrogate $q(z)$ w.r.t. the prior $p(z)$. i.e. We penalize those surrogates far from the prior. Thus, this term has a regularization effect.
+* The 2nd term is the KL divergence of the surrogate $q(z)$ w.r.t. the prior $p(z)$. i.e. We penalize those surrogates that significantly deviate from the prior. $\to$ regularization effect.
 * Maximizing the ELBO is a trade-off between maximizing the reconstruction fidelity and keeping surrogate close to the prior. This is the key idea behind variational autoencoders (VAEs).
 
 *Proof*: Substitute $p(x,z) = p(x \mid z) \cdot p(z)$ into the definition of ELBO, we conclude
@@ -185,9 +212,9 @@ $$
 \end{align*}
 $$
 
-### ELBO as entropy minus free energy
+#### ELBO as entropy minus free energy
 
-The 3rd decomposition of ELBO is
+The 3rd reformulation of ELBO is
 
 $$
 \begin{align}
@@ -226,7 +253,7 @@ The entropy term, however, favors $q$ with higher entropy. In contrast, the Dira
 
 ### ELBO Maximization for Gaussian Surrogate
 
-We use mutlivariate Gaussian as the surrogate
+We use multivariate Gaussian as the surrogate
 
 $$
 \begin{align*}
@@ -259,7 +286,7 @@ $$
 \end{align}
 $$
 
-or equivalently using the [3rd decomposition rule](#elbo-as-entropy-minus-free-energy)
+or equivalently using the [3rd ELBO reformulation](#elbo-as-entropy-minus-free-energy)
 
 $$
 \begin{align}
@@ -298,10 +325,12 @@ $$
 Note that the expectation is taken w.r.t. $z \sim \mathcal N(\mu, \Sigma)$, which depends on the optimization variable. Hence, we use reparameterization trick by expressing $z$ as a deterministic transformation of a standard Gaussian:
 
 $$
-z = \mu + L\epsilon, \quad \text{ where } \epsilon \sim \mathcal N(0, I), \: \Sigma = LL^\top
+z = \mu + L\epsilon
 $$
 
-The optimziation problem then becomes
+where $\epsilon \sim \mathcal N(0, I)$ and $L$ is the Cholesky factor of $\Sigma$. (i.e. $\Sigma = LL^\top$)
+
+The optimization problem then becomes
 
 $$
 \begin{align}
@@ -331,7 +360,7 @@ Previously, we derived the ELBO $\mathcal L(q,x)$ for a single observation $x$. 
 
 **Question**: What if we have a dataset consisting of multiple iid observations? Can we lower-bound the evidence of the whole dataset?
 
-Consider the unspervised learning with latent variables:
+Consider the unsupervised learning with latent variables:
 
 * Model: $p(x,z)$
 * Given: training data $D = \{ x_1, \cdots,  x_n\} \stackrel{\text{iid}}{\sim} p(x) = \int_z p(x,z) \:\mathrm dz$.
@@ -344,7 +373,7 @@ $$
 \end{align}
 $$
 
-Each $\log p(x_i)$ can be lower bounded by its individual per-sample ELBO. Therefore, $\log p(D)$ can also be lower bounded. The remaining question is how to design the surrogate.
+Each $\log p(x_i)$ can be lower bounded by its individual per-sample ELBO. Therefore, $\log p(D)$ can also be lower bounded. The remaining question is how to design the surrogate for each $x_i$.
 
 ### Per-Sample Surrogate
 
@@ -408,7 +437,7 @@ Remarks:
 * The idea of per-sample surrogate allows very high flexibility. Consider $z\in\mathbb R$ (1D latent space) and $\mathcal Q$ as the set of all univariate Gaussians. Per-sample surrogate assumption allows that each $q_i$ has its own mean and variance, i.e. $q_i(z) = \mathcal N(z; \mu_i, \sigma^2_i)$.
 * The drawback of per-sample surrogate is that the number of variational parameters $\{\mu_i, \sigma^2_i\}_{i=1}^n$ grows as dataset becoming large. Poor scalability.
 
-Again, the dataset ELBO also has three popular decompositions
+Again, the dataset ELBO also has three equivalent reformulations
 
 $$
 \begin{align}
@@ -419,7 +448,7 @@ $$
 \end{align}
 $$
 
-*Proof*: The decomposition of dataset ELBO follows immediately by summing the decomposition equalities of per-sample ELBO:
+*Proof*: The reformulation of dataset ELBO follows immediately by summing the reformulated per-sample ELBO:
 $$
 \begin{align*}
 \mathcal L(q_i, x_i)

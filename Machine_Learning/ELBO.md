@@ -300,7 +300,7 @@ The entropy of multivariate Gaussian has closed-form solution.
 $$
 \begin{align*}
 H(\mathcal N(\mu, \Sigma))
-&= \frac{1}{2} \log\vert\Sigma\vert + \frac{\ell}{2}\log(2\pi e)
+&= \frac{1}{2} \log\vert\Sigma\vert + \underbrace{\frac{\ell}{2}\log(2\pi e)}_{\text{const.}}
 \end{align*}
 $$
 
@@ -322,7 +322,7 @@ $$
 \end{align}
 $$
 
-Note that the expectation is taken w.r.t. $z \sim \mathcal N(\mu, \Sigma)$, which depends on the optimization variable. Hence, we use reparameterization trick by expressing $z$ as a deterministic transformation of a standard Gaussian:
+Note that the expectation is taken w.r.t. $z \sim \mathcal N(\mu, \Sigma)$, which depends on the optimization variable. Hence, we need reparameterization trick by expressing $z$ as a deterministic transformation of a standard Gaussian:
 
 $$
 z = \mu + L\epsilon
@@ -349,8 +349,8 @@ The objective function can be approximated by Monte Carlo sampling. Hence, we so
 $$
 \begin{align}
 \max_{\mu, L}
-\frac{1}{M} \sum_{k=1}^M \log p(x, \mu + L\epsilon_k) + \log\vert L \vert
-\quad \text{ where } \epsilon_k \sim \mathcal N(0, I)
+\frac{1}{M} \sum_{k=1}^M \log p(x, \mu + L\epsilon^{(k)}) + \log\vert L \vert
+\quad \text{ where } \epsilon^{(k)} \sim \mathcal N(0, I)
 \end{align}
 $$
 
@@ -434,8 +434,6 @@ Remarks:
 
 * Due to the additive structure of dataset ELBO, each $q_i$ can be optimized independently of each other.
 * In practice, $\mathcal Q$ is a parametric distribution class, e.g. Gaussian. Therefore, we turn this functional optimization problem into a parameter optimization problem.
-* The idea of per-sample surrogate allows very high flexibility. Consider $z\in\mathbb R$ (1D latent space) and $\mathcal Q$ as the set of all univariate Gaussians. Per-sample surrogate assumption allows that each $q_i$ has its own mean and variance, i.e. $q_i(z) = \mathcal N(z; \mu_i, \sigma^2_i)$.
-* The drawback of per-sample surrogate is that the number of variational parameters $\{\mu_i, \sigma^2_i\}_{i=1}^n$ grows as dataset becoming large. Poor scalability.
 
 Again, the dataset ELBO also has three equivalent reformulations
 
@@ -458,6 +456,90 @@ $$
 \tag*{$\blacksquare$}
 \end{align*}
 $$
+
+### Classical Variational Inference with Gaussian Surrogate
+
+Clarification of jargon:
+
+* Gaussian Surrogate: each $p(z \mid x_i)$ is approximated by $\mathcal N (z \mid \mu_i, \Sigma_i)$
+* Classical: We choose $\mu_i,\Sigma_i$ freely for each $x_i$.
+
+For each observation $x_i$, we use $\mathcal N(z; \mu_i, \Sigma_i)$ to approximate the true posterior $p(z \mid x_i)$. The dataset ELBO, previously as a functional of $\{q_i\}_{i=1}^n$, now becomes a function of $\{\mu_i, \Sigma_i\}_{i=1}^n$:
+
+$$
+\begin{align}
+\mathcal L(\mu_1, \Sigma_1, \dots, \mu_n, \Sigma_n, D)
+&\triangleq \sum_{i=1}^n \mathcal L(\mu_i, \Sigma_i, x_i) \\
+&= \sum_{i=1}^n \mathbb E_{z \sim \mathcal N(\mu_i, \Sigma_i)} \left[ \log\frac{p(x_i, z)}{\mathcal N(z; \mu_i, \Sigma_i)} \right] \\
+&= \sum_{i=1}^n \mathbb E_{z \sim \mathcal N(\mu_i, \Sigma_i)} \left[ \log p(x_i, z) \right] + H(\mathcal N(\mu_i, \Sigma_i)) \\
+&= \sum_{i=1}^n \mathbb E_{z \sim \mathcal N(\mu_i, \Sigma_i)} \left[ \log p(x_i, z) \right] + \frac{1}{2} \log\vert\Sigma_i\vert
+\end{align}
+$$
+
+The dataset ELBO can be maximized sample-wise as follows
+
+$$
+\begin{align}
+\forall x_i \in D: \quad
+\max_{\mu_i, \Sigma_i} \mathbb E_{z \sim \mathcal N(\mu_i, \Sigma_i)} \left[ \log p(x_i, z) \right] + \frac{1}{2} \log\vert\Sigma_i\vert
+\end{align}
+$$
+
+Again, we apply reparameterization trick to allow Monte Carlo estimation of the objective
+
+$$
+\begin{align}
+z
+&= \mu_i + L_i \epsilon, \quad \epsilon \sim \mathcal N(0,I)
+\\
+\max_{\mu_i, L_i}\:
+&\mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[ \log p(x_i, \mu_i + L_i \epsilon) \right] + \log\vert L_i \vert
+\\
+\max_{\mu_i, L_i}\:
+&\frac{1}{M} \sum_{k=1}^M \log p(x_i, \mu_i + L_i\epsilon^{(k)}) + \log\vert L_i \vert
+\quad \text{ where } \epsilon^{(k)} \sim \mathcal N(0, I)
+\end{align}
+$$
+
+The complete algorithm is then
+
+---
+**Algorithm: classical variational inference with Gaussian surrogates**  
+**Input**: $x_1, \dots, x_n \in\mathbb R^d$  
+**Output**: $\mu_1,\dots,\mu_n\in\mathbb R^\ell, \Sigma_1,\dots,\Sigma_n\in\mathbb R^{\ell \times \ell}$  
+**Goal**: use $\mathcal N(z; \mu_i,\Sigma_i)$ to approximate $p(z \mid x_i)$
+
+For each $i=1,\dots,n$: do  
+$\quad$ Init $\mu_i \in \mathbb R^\ell$ and $L_i \in \mathbb R^{\ell \times \ell}$  
+$\quad$ While the SGD for $\mu_i$ and $L_i$ is not converged: do  
+$\qquad$ Sample a mini-batch $\epsilon^{(1)}, \dots, \epsilon^{(M)} \sim \mathcal N(0, I_{\ell})$  
+$\qquad$ Compute the objective $\mathcal L(\mu_i, L_i)$ and its gradient
+
+$$
+\mathcal L(\mu_i, L_i) \triangleq
+\frac{1}{M} \sum_{k=1}^M \log p(x_i, z^{(k)}) + \log\vert L_i \vert,
+\quad z^{(k)} = \mu_i + L_i \epsilon^{(k)}
+$$
+
+$\qquad$ Update $\mu_i$ and $L_i$
+
+$$
+\begin{align*}
+\mu_i &\leftarrow \mu_i + \eta_t \nabla_{\mu_i} \mathcal L(\mu_i, L_i) \\
+L_i   &\leftarrow L_i + \eta_t \nabla_{L_i} \mathcal L(\mu_i, L_i) \\
+\end{align*}
+$$
+
+$\quad$ Set $\Sigma_i = L_iL_i^\top$
+
+return $\mu_1,\dots,\mu_n, \Sigma_1,\dots,\Sigma_n$
+
+---
+
+Remarks:
+
+* The total \# parameters we need to learn is $O(n\ell^2)$. It scales up with the size of the dataset, making the algorithm not scalable for large dataset.
+* The idea of per-sample surrogate allows very high flexibility: The mean $\mu_i$ and variance $\Sigma_i$ of each surrogate are totally independent of each other.
 
 ### Global Surrogate
 
@@ -503,24 +585,20 @@ Remarks:
   * Global surrogate: Each $q(\cdot \mid x_i)$ are determined by plugging $x_i$ into the point-to-function mapping $\mathcal F$, which shared by all $x_i \in D$.
 
 To maximize the dataset ELBO, we aim to solve
+
 $$
 \begin{align}
 \mathcal F^* = \argmax_{\mathcal F} \mathcal L(\mathcal F, D)
 \end{align}
 $$
+
 This is again a functional optimization problem. In practice, we avoid dealing directly with a functional optimization problem by characterizing $\mathcal F$ with its parameters.
 
-**Example: Global variational Gaussian**  
-Consider 1D latent space ($z\in\mathbb R$). A global variational Gaussian chooses $\mathcal Q$ as the set of all univariate Gaussians.
-$$
-\mathcal Q = \{\mathcal N(\cdot; \mu,\sigma^2) \mid \mu,\sigma\in\mathbb R\}
-$$
-The goal is to learn the mapping
-$$
-\mathcal F: \mathbb R^d \to \mathbb R^2, x \mapsto [\mu, \sigma]^\top
-$$
-Where $\mu$ and $\sigma$ depends on $x$ in a complex way (e.g. neural net), s.t.
-$$
-q(z \mid x_i) = \left.\mathcal N(z ; \mu_i, \sigma_i)\right|_{[\mu_i, \sigma_i] = \mathcal F(x)} \approx p(z \mid x_i)
-$$
-In this settings, all $x\in\mathbb R^d$ share the same mapping rule $\mathcal F: x \to [\mu, \sigma]^\top$.
+### Amortized Variational Inference with Gaussian Surrogate
+
+Clarification of jargon:
+
+* Gaussian Surrogate: each $p(z \mid x_i)$ is approximated by $\mathcal N (z \mid \mu_i, \Sigma_i)$
+* Amortized: The mapping rule $\mathcal F: x_i \mapsto \mu_i, \Sigma_i$ is now shared by all $x_i\in D$.
+
+TODO: learn the mapping $\mathcal F$.

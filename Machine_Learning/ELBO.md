@@ -229,7 +229,7 @@ Remarks:
 * The 2nd term is the entropy of the surrogate. It rewards $q$ with higher uncertainty.
 * Maximizing the ELBO can be interpreted as minimizing the free energy while maintaining high entropy in the surrogate distribution.
 
-*Proof*:
+*Proof*: This reformulation follows directly from the definition of the ELBO:
 
 $$
 \begin{align*}
@@ -275,7 +275,7 @@ $$
 Remarks:
 
 * "s.p.d." is short for *symmetric positive definite*.
-* Alternatively, we can shrink the distribution class $\mathcal Q$ by restricting it to diagonal Gaussian or even spherical Gaussian.
+* Alternatively, we can shrink the distribution class $\mathcal Q$ by restricting it to diagonal Gaussian (also known as ***mean-field*** Gaussian) or even spherical Gaussian (also known as ***isotrophic*** Gaussian).
 
 Each surrogate $q$ is represented by its parameters $(\mu, \Sigma)$. The ELBO, previously defined as a functional of $q$, now becomes a function of $(\mu, \Sigma)$.
 
@@ -360,10 +360,12 @@ Previously, we derived the ELBO $\mathcal L(q,x)$ for a single observation $x$. 
 
 **Question**: What if we have a dataset consisting of multiple iid observations? Can we lower-bound the evidence of the whole dataset?
 
-Consider the unsupervised learning with latent variables:
+Problem formulation:
 
-* Model: $p(x,z)$
+* Known: generative model $p(x,z) = p(z) \, p(x \mid z)$
 * Given: training data $D = \{ x_1, \cdots,  x_n\} \stackrel{\text{iid}}{\sim} p(x) = \int_z p(x,z) \:\mathrm dz$.
+* Select: distribution class $\mathcal Q$ for the surrogates.
+* Goal: derive a lower bound on $\log p(D)$.
 
 We refer to the lower bound on $\log p(D)$ as the **dataset ELBO**. In fact, dataset ELBO does exist since the evidence of the dataset is the sum of evidence of observations
 
@@ -399,7 +401,7 @@ $$
 
 Remarks:
 
-* The (dataset) ELBO is a functional of $q_1, \dots, q_n$.
+* The (dataset) ELBO is a functional of $q_1, \dots, q_n$, which are **freely** chosen.
 * We assume that $q_1, \dots, q_n \in \mathcal Q$. i.e. All surrogates belong to the same distribution class.
 * Per-sample surrogates are used in classical variational inference.
 
@@ -457,14 +459,91 @@ $$
 \end{align*}
 $$
 
-### Classical Variational Inference with Gaussian Surrogate
+### Global Surrogate
 
-Clarification of jargon:
+Under per-sample surrogate settings, the number of surrogate distributions scales linearly w.r.t. the size of the dataset $D$. In practice, the number of variational parameters also grows with the dataset size. With a global surrogate, we make the variational inference scalable.
 
-* Gaussian Surrogate: each $p(z \mid x_i)$ is approximated by $\mathcal N (z \mid \mu_i, \Sigma_i)$
-* Classical: We choose $\mu_i,\Sigma_i$ freely for each $x_i$.
+**Global surrogate** means: We want to learn the mapping $\mathcal F$
 
-For each observation $x_i$, we use $\mathcal N(z; \mu_i, \Sigma_i)$ to approximate the true posterior $p(z \mid x_i)$. The dataset ELBO, previously as a functional of $\{q_i\}_{i=1}^n$, now becomes a function of $\{\mu_i, \Sigma_i\}_{i=1}^n$:
+$$
+\mathcal F: \mathbb R^d \to \mathcal Q, x \mapsto q(\cdot \mid x)
+$$
+
+where $\cdot$ is the placeholder for $z$, s.t. $\forall x_i \in D$
+
+$$
+q(\cdot \mid x_i) \approx p(\cdot \mid x_i)
+$$
+
+Remarks:
+
+* The abstract mapping $\mathcal F$ maps each data point to a surrogate distribution. Mathematically, it is a complex point-to-function mapping.
+* Global surrogate is used in amortized variational inference (e.g. VAE). The term "amortized" hightlights the fact that all $x\in\mathbb R^d$ (not only $x \in D$) share the mapping rule $\mathcal F: x \mapsto q(\cdot \mid x)$.
+
+For each sample $x_i$, the per-sample ELBO is
+
+$$
+\begin{align}
+\mathcal L(\mathcal F(x_i), x_i)
+&= \mathcal L(q(\cdot \mid x_i), x_i) \\
+&= \mathbb E_{z \sim q(\cdot \mid x_i)} \left[ \log\frac{p(x_i, z)}{q(z \mid x_i)} \right]
+\end{align}
+$$
+
+Summing over all samples, we obtain the dataset ELBO
+
+$$
+\begin{align}
+\mathcal L(\mathcal F, D)
+&\triangleq \sum_{i=1}^n \mathcal L(\mathcal F(x_i), x_i)\\
+&= \sum_{i=1}^n \mathbb E_{z \sim q(\cdot \mid x_i)} \left[ \log\frac{p(x_i, z)}{q(z \mid x_i)} \right]
+\end{align}
+$$
+
+Remarks:
+
+* Not to be confused by the notation: $\mathcal F(x_i) = q(\cdot \mid x_i) \in \mathcal Q$, i.e. $\mathcal F(x_i)$ is a (proability density) function.
+* Comparing to per-sample surrogate scheme, there is a key distinction between $q_i(\cdot)$ and $q(\cdot \mid x_i)$:
+  * Per-sample surrogate: We choose each $q_i(\cdot) \in \mathcal Q$ freely.
+  * Global surrogate: Each $q(\cdot \mid x_i)$ are determined by plugging $x_i$ into the point-to-function mapping $\mathcal F$, which shared by all $x_i \in D$.
+
+To maximize the dataset ELBO, we aim to solve
+
+$$
+\begin{align}
+\mathcal F^* = \argmax_{\mathcal F} \mathcal L(\mathcal F, D)
+\end{align}
+$$
+
+This is again a functional optimization problem. In practice, we avoid dealing directly with a functional optimization problem by
+
+1. using parametric family $\mathcal Q$, e.g. multivariate Gaussian with parameter $(\mu, \Sigma)$
+1. designing $\mathcal F$ as a neural net mapping $x$ to $(\mu, \Sigma)$.
+
+The abstract point-to-function mapping $\mathcal F$ now becomes a neraul net. Learning $\mathcal F$ boilds down to training a neual net.
+
+## Variational Inference
+
+Without otherwise specified, we use **Gaussian surrogate** to approximate the true posterior.
+
+Previously, we have seen [variational inference for a single observation](#elbo-maximization-for-gaussian-surrogate). Now, we would like to extend to variational inference for multiple observations.
+
+Problem formulation:
+
+* Known: generative model $p(x,z) = p(z) \, p(x \mid z)$
+* Given: training data $D = \{ x_1, \cdots,  x_n\} \stackrel{\text{iid}}{\sim} p(x) = \int_z p(x,z) \:\mathrm dz$.
+* Select: distribution class $\mathcal Q$ of Gaussian for the surrogates.
+* Goal: maximize the dataset lower bound
+
+In the following, we will consider per-sample surrogate scheme and gloabl surrogate scheme. The dataset ELBO which are defined as abstract functional earlier, will be reformulated into "ordinary" vector-to-vector function.
+
+### Classical Variational Inference
+
+For each observation $x_i$, we use $\mathcal N(z; \mu_i, \Sigma_i)$ to approximate the true posterior $p(z \mid x_i)$.
+
+* Classical: We use per-sample surrogates. i.e. We choose $\mu_i,\Sigma_i$ freely for each $x_i$.
+
+The dataset ELBO, previously as a functional of $\{q_i\}_{i=1}^n$, now becomes a function of $\{\mu_i, \Sigma_i\}_{i=1}^n$:
 
 $$
 \begin{align}
@@ -541,64 +620,79 @@ Remarks:
 * The total \# parameters we need to learn is $O(n\ell^2)$. It scales up with the size of the dataset, making the algorithm not scalable for large dataset.
 * The idea of per-sample surrogate allows very high flexibility: The mean $\mu_i$ and variance $\Sigma_i$ of each surrogate are totally independent of each other.
 
-### Global Surrogate
+### Amortized Variational Inference
 
-Under per-sample surrogate settings, the number of surrogate distributions scales linearly w.r.t. the size of the dataset $D$. In practice, the number of variational parameters also grows with the dataset size. With a global surrogate, we make the variational inference scalable.
+Again, for each observation $x_i$, we use $\mathcal N(z; \mu_i, \Sigma_i)$ to approximate the true posterior $p(z \mid x_i)$.
 
-Essentially, we want to learn the mapping $\mathcal F$
+* Amortized: The mapping rule $\mathcal F: x_i \mapsto (\mu_i, \Sigma_i)$ is now shared by all $x_i\in D$. Instead of learning each $(\mu_i, \Sigma_i)$ separately, we learn $\mathcal F$.
+
+Illustration:
+
 $$
-\mathcal F: \mathbb R^d \to \mathcal Q, x \mapsto q(\cdot \mid x)
+x \longrightarrow \boxed{ \text{Neural Net } \mathcal F_\phi \vphantom{\int} } \longrightarrow
+\begin{bmatrix} \mu \\ \Sigma \end{bmatrix}
+\longrightarrow \underbrace{q_\phi(z \mid x)}_{\mathcal N(z \, ; \, \mu, \Sigma)} \longrightarrow
+\boxed{\text{MC estim.}} \longrightarrow \mathcal L(\phi,x)
 $$
-where $\cdot$ is the placeholder for $z$, s.t. $\forall x_i \in D$
+
+The point-to-function mapping $\mathcal F$ now becomes a neural net with parameters $\phi$:
+
 $$
-q(\cdot \mid x_i) \approx p(\cdot \mid x_i)
+\mathcal F_\phi: \mathbb R^d \to \mathbb R^\ell \times \mathbb R^{\ell\times\ell}, x \mapsto (\mu, \Sigma)
 $$
+
+The reuslting surrogate for each $x\in\mathbb R^d$ becomes
+
+$$
+q_\phi(z \mid x) = \mathcal N(z ; \mu, \Sigma)
+$$
+
 Remarks:
 
-* The abstract mapping $\mathcal F$ maps each data point to a surrogate distribution. Mathematically, it is a complex point-to-function mapping.
-* In practice, $\mathcal Q$ is a parameteric distribution class (e.g. univariate Gaussian). Each surrogate distribution is represented by its parameter: $\mu$ and $\sigma$. The point-to-function mapping $\mathcal F$ boils down to a mapping from $x$ to $[\mu, \sigma]^\top$. Since both the input and output are points (aka vectors), we can represent $\mathcal F$ with a neural net.
-* Global surrogate is used in amortized variational inference (e.g. VAE). The term "amortized" hightlights the fact that all $x\in\mathbb R^d$ share the mapping rule $\mathcal F: x \mapsto q(\cdot \mid x)$.
+* The output $(\mu, \Sigma)$ of the NN depends on both the observation $x$ and the network parameter $\phi$.
+* TODO: should we write $(\mu_\phi, \Sigma_\phi)$ instead? Later, we need to compute the gradient of ELBO. So it makes sense to hightlight that $(\mu, \Sigma)$ depends on the network paramter $\phi$. But a lot of literature (including the original VAE paper) does not write the subscript $\phi$.
 
-For each sample $x_i$, the per-sample ELBO is
+Goal: Learn the neural net (aka $\phi$) such that
+
 $$
-\begin{align}
-\mathcal L(\mathcal F(x_i), x_i)
-&= \mathcal L(q(\cdot \mid x_i), x_i) \\
-&= \mathbb E_{z \sim q(\cdot \mid x_i)} \left[ \log\frac{p(x_i, z)}{q(z \mid x_i)} \right]
-\end{align}
+q_\phi(z \mid x) \approx p(z \mid x), \forall x \in D
 $$
 
+To achieve this goal, we need to maximize the ELBO. Previously, the ELBOs are defined as an abstract functional of $\mathcal F$. Now, they become a function of $\phi$.
 
-Summing over all samples, we obtain the dataset ELBO
-$$
-\begin{align}
-\mathcal L(\mathcal F, D)
-&\triangleq \sum_{i=1}^n \mathcal L(\mathcal F(x_i), x_i)\\
-&= \sum_{i=1}^n \mathbb E_{z \sim q(\cdot \mid x_i)} \left[ \log\frac{p(x_i, z)}{q(z \mid x_i)} \right]
-\end{align}
-$$
-Remarks:
-
-* Not to be confused by the notation: $\mathcal F(x_i) = q(\cdot \mid x_i) \in \mathcal Q$, i.e. $\mathcal F(x_i)$ is a (proability density) function.
-* Comparing to per-sample surrogate scheme, there is a key distinction between $q_i(\cdot)$ and $q(\cdot \mid x_i)$:
-  * Per-sample surrogate: We choose each $q_i(\cdot) \in \mathcal Q$ freely.
-  * Global surrogate: Each $q(\cdot \mid x_i)$ are determined by plugging $x_i$ into the point-to-function mapping $\mathcal F$, which shared by all $x_i \in D$.
-
-To maximize the dataset ELBO, we aim to solve
+For each $x \in D$, the per-sample ELBO is
 
 $$
 \begin{align}
-\mathcal F^* = \argmax_{\mathcal F} \mathcal L(\mathcal F, D)
+\mathcal L(\phi, x)
+&= \mathbb E_{z \sim q_\phi(\cdot \mid x)} \left[ \log\frac{p(x, z)}{q_\phi(z \mid x)} \right]
+\\
+&= \mathbb E_{z \sim q_\phi(\cdot \mid x)} \left[ \log p(x,z) \right] + H(q_\phi(\cdot \mid x))
+&& \text{ELBO reformulation}
+\\
+&= \mathbb E_{z \sim \mathcal N(\mu_\phi, \Sigma_\phi)} \left[ \log p(x,z) \right] + \frac{1}{2} \log\vert\Sigma_\phi\vert
+&& q_\phi(z \mid x) = \mathcal N(z ; \mu_\phi, \Sigma_\phi)
+\\
+&= \mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[\left. \log p(x,z) \right|_{z = \mu_\phi + L_\phi\epsilon} \right] + \log\vert L_\phi \vert
+&& \text{reparam. trick } \Sigma_\phi = L_\phi L_\phi^\top
 \end{align}
 $$
 
-This is again a functional optimization problem. In practice, we avoid dealing directly with a functional optimization problem by characterizing $\mathcal F$ with its parameters.
+The dataset ELBO becomes
 
-### Amortized Variational Inference with Gaussian Surrogate
+$$
+\begin{align}
+\mathcal L(\phi, D)
+&= \sum_{x\in D} \mathcal L(\phi, x) \\
+&= \sum_{x\in D} \mathbb E_{z \sim q_\phi(\cdot \mid x)} \left[ \log\frac{p(x, z)}{q_\phi(z \mid x)} \right] \\
+&= \sum_{x\in D} \mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[\left. \log p(x,z) \right|_{z = \mu_\phi(x) + L_\phi(x) \epsilon} \right] + \log\vert L_\phi(x) \vert
+\\
+&= |D| \cdot \sum_{x\in D} \frac{1}{|D|} \left[\mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[\left. \log p(x,z) \right|_{z = \mu_\phi(x) + L_\phi(x) \epsilon} \right] + \log\vert L_\phi(x) \vert \right]
+\\
+&= |D| \cdot \mathbb E_{x \sim \mathrm{Unif}(D)} \left[\mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[\left. \log p(x,z) \right|_{z = \mu_\phi(x) + L_\phi(x) \epsilon} \right] + \log\vert L_\phi(x) \vert \right]
+\end{align}
+$$
 
-Clarification of jargon:
+TODO: Ok, it seems here that we have to write $(\mu_\phi(x), \Sigma_\phi(x))$ to highlight that the output of NN also depens on x.
 
-* Gaussian Surrogate: each $p(z \mid x_i)$ is approximated by $\mathcal N (z \mid \mu_i, \Sigma_i)$
-* Amortized: The mapping rule $\mathcal F: x_i \mapsto \mu_i, \Sigma_i$ is now shared by all $x_i\in D$.
-
-TODO: learn the mapping $\mathcal F$.
+Now, we can apply MC estimation

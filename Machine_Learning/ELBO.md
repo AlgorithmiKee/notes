@@ -335,13 +335,12 @@ The optimization problem then becomes
 $$
 \begin{align}
 \max_{\mu, L}
-\mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[ \log p(x,\mu + L\epsilon) \right] + \log\vert L \vert
+\mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[ \log p(x,z) \mid_{z = \mu + L\epsilon} \right] + \log\vert L \vert
 \end{align}
 $$
 
 Remarks:
 
-* $\frac{1}{2} \log\vert\Sigma\vert = \frac{1}{2} \log\vert LL^\top \vert = \frac{1}{2} \log\vert L \vert \vert L^\top \vert = \frac{1}{2} \log\vert L \vert^2 = \log \vert L \vert$
 * After reparameterization, we treat the Cholesky factor $L$ as the optimization variable instead of $\Sigma$.
 
 The objective function can be approximated by Monte Carlo sampling. Hence, we solve
@@ -349,7 +348,7 @@ The objective function can be approximated by Monte Carlo sampling. Hence, we so
 $$
 \begin{align}
 \max_{\mu, L}
-\frac{1}{M} \sum_{k=1}^M \log p(x, \mu + L\epsilon^{(k)}) + \log\vert L \vert
+\frac{1}{M} \sum_{k=1}^M \log p(x, z^{(k)}) \mid_{z^{(k)} = \mu + L\epsilon^{(k)}} + \log\vert L \vert
 \quad \text{ where } \epsilon^{(k)} \sim \mathcal N(0, I)
 \end{align}
 $$
@@ -463,10 +462,10 @@ $$
 
 Under per-sample surrogate settings, the number of surrogate distributions scales linearly w.r.t. the size of the dataset $D$. In practice, the number of variational parameters also grows with the dataset size. With a global surrogate, we make the variational inference scalable.
 
-**Global surrogate** means: We want to learn the mapping $\mathcal F$
+**Global surrogate** means: We want to learn the mapping $f$
 
 $$
-\mathcal F: \mathbb R^d \to \mathcal Q, x \mapsto q(\cdot \mid x)
+f: \mathbb R^d \to \mathcal Q, x \mapsto q(\cdot \mid x)
 $$
 
 where $\cdot$ is the placeholder for $z$, s.t. $\forall x_i \in D$
@@ -477,14 +476,15 @@ $$
 
 Remarks:
 
-* The abstract mapping $\mathcal F$ maps each data point to a surrogate distribution. Mathematically, it is a complex point-to-function mapping.
-* Global surrogate is used in amortized variational inference (e.g. VAE). The term "amortized" hightlights the fact that all $x\in\mathbb R^d$ (not only $x \in D$) share the mapping rule $\mathcal F: x \mapsto q(\cdot \mid x)$.
+* The abstract mapping $f$ maps each data point to a surrogate distribution. Mathematically, it is a complex point-to-function mapping.
+* ⚠️ To reduce visual clutter, we write $f(x) = q(\cdot \mid x)$ rather than $f(x) = q_{f}(\cdot \mid x)$
+* Global surrogate is used in amortized variational inference (e.g. VAE). The term "amortized" hightlights the fact that all $x\in\mathbb R^d$ (not only $x \in D$) share the mapping rule $f: x \mapsto q(\cdot \mid x)$.
 
 For each sample $x_i$, the per-sample ELBO is
 
 $$
 \begin{align}
-\mathcal L(\mathcal F(x_i), x_i)
+\mathcal L(f(x_i), x_i)
 &= \mathcal L(q(\cdot \mid x_i), x_i) \\
 &= \mathbb E_{z \sim q(\cdot \mid x_i)} \left[ \log\frac{p(x_i, z)}{q(z \mid x_i)} \right]
 \end{align}
@@ -494,33 +494,33 @@ Summing over all samples, we obtain the dataset ELBO
 
 $$
 \begin{align}
-\mathcal L(\mathcal F, D)
-&\triangleq \sum_{i=1}^n \mathcal L(\mathcal F(x_i), x_i)\\
+\mathcal L(f, D)
+&\triangleq \sum_{i=1}^n \mathcal L(f(x_i), x_i)\\
 &= \sum_{i=1}^n \mathbb E_{z \sim q(\cdot \mid x_i)} \left[ \log\frac{p(x_i, z)}{q(z \mid x_i)} \right]
 \end{align}
 $$
 
 Remarks:
 
-* Not to be confused by the notation: $\mathcal F(x_i) = q(\cdot \mid x_i) \in \mathcal Q$, i.e. $\mathcal F(x_i)$ is a (proability density) function.
+* Not to be confused by the notation: $f(x_i) = q(\cdot \mid x_i) \in \mathcal Q$, i.e. $f(x_i)$ is a (probability density) function.
 * Comparing to per-sample surrogate scheme, there is a key distinction between $q_i(\cdot)$ and $q(\cdot \mid x_i)$:
   * Per-sample surrogate: We choose each $q_i(\cdot) \in \mathcal Q$ freely.
-  * Global surrogate: Each $q(\cdot \mid x_i)$ are determined by plugging $x_i$ into the point-to-function mapping $\mathcal F$, which shared by all $x_i \in D$.
+  * Global surrogate: Each $q(\cdot \mid x_i)$ are determined by plugging $x_i$ into the point-to-function mapping $f$, which shared by all $x_i \in D$.
 
 To maximize the dataset ELBO, we aim to solve
 
 $$
 \begin{align}
-\mathcal F^* = \argmax_{\mathcal F} \mathcal L(\mathcal F, D)
+f^* = \argmax_{f} \mathcal L(f, D)
 \end{align}
 $$
 
 This is again a functional optimization problem. In practice, we avoid dealing directly with a functional optimization problem by
 
 1. using parametric family $\mathcal Q$, e.g. multivariate Gaussian with parameter $(\mu, \Sigma)$
-1. designing $\mathcal F$ as a neural net mapping $x$ to $(\mu, \Sigma)$.
+1. designing $f$ as a neural net mapping $x$ to $(\mu, \Sigma)$.
 
-The abstract point-to-function mapping $\mathcal F$ now becomes a neraul net. Learning $\mathcal F$ boilds down to training a neual net.
+The abstract point-to-function mapping $f$ now becomes a neural net. Learning $f$ boils down to training a neual net.
 
 ## Variational Inference
 
@@ -532,10 +532,10 @@ Problem formulation:
 
 * Known: generative model $p(x,z) = p(z) \, p(x \mid z)$
 * Given: training data $D = \{ x_1, \cdots,  x_n\} \stackrel{\text{iid}}{\sim} p(x) = \int_z p(x,z) \:\mathrm dz$.
-* Select: distribution class $\mathcal Q$ of Gaussian for the surrogates.
+* Select: $\mathcal Q = \{ \mathcal N(\mu, \Sigma) \}$ for the surrogates.
 * Goal: maximize the dataset lower bound
 
-In the following, we will consider per-sample surrogate scheme and gloabl surrogate scheme. The dataset ELBO which are defined as abstract functional earlier, will be reformulated into "ordinary" vector-to-vector function.
+In the following, we will consider per-sample surrogate scheme and global surrogate scheme. The dataset ELBO, previously defined as an abstract functional, will now be reformulated as an ordinary function from vectors to scalars.
 
 ### Classical Variational Inference
 
@@ -550,8 +550,8 @@ $$
 \mathcal L(\mu_1, \Sigma_1, \dots, \mu_n, \Sigma_n, D)
 &\triangleq \sum_{i=1}^n \mathcal L(\mu_i, \Sigma_i, x_i) \\
 &= \sum_{i=1}^n \mathbb E_{z \sim \mathcal N(\mu_i, \Sigma_i)} \left[ \log\frac{p(x_i, z)}{\mathcal N(z; \mu_i, \Sigma_i)} \right] \\
-&= \sum_{i=1}^n \mathbb E_{z \sim \mathcal N(\mu_i, \Sigma_i)} \left[ \log p(x_i, z) \right] + H(\mathcal N(\mu_i, \Sigma_i)) \\
-&= \sum_{i=1}^n \mathbb E_{z \sim \mathcal N(\mu_i, \Sigma_i)} \left[ \log p(x_i, z) \right] + \frac{1}{2} \log\vert\Sigma_i\vert
+&= \sum_{i=1}^n \mathbb E_{z \sim \mathcal N(\mu_i, \Sigma_i)} \left[ \log p(x_i, z) \right] + H(\mathcal N(\mu_i, \Sigma_i)) + \text{const} \\
+&= \sum_{i=1}^n \mathbb E_{z \sim \mathcal N(\mu_i, \Sigma_i)} \left[ \log p(x_i, z) \right] + \frac{1}{2} \log\vert\Sigma_i\vert + \text{const}
 \end{align}
 $$
 
@@ -575,7 +575,7 @@ z
 &\mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[ \log p(x_i, \mu_i + L_i \epsilon) \right] + \log\vert L_i \vert
 \\
 \max_{\mu_i, L_i}\:
-&\frac{1}{M} \sum_{k=1}^M \log p(x_i, \mu_i + L_i\epsilon^{(k)}) + \log\vert L_i \vert
+&\frac{1}{M} \sum_{k=1}^M \log p(x_i, z^{(k)}) |_{z^{(k)} = \mu_i + L_i\epsilon^{(k)}} + \log\vert L_i \vert
 \quad \text{ where } \epsilon^{(k)} \sim \mathcal N(0, I)
 \end{align}
 $$
@@ -624,41 +624,40 @@ Remarks:
 
 Again, for each observation $x_i$, we use $\mathcal N(z; \mu_i, \Sigma_i)$ to approximate the true posterior $p(z \mid x_i)$.
 
-* Amortized: The mapping rule $\mathcal F: x_i \mapsto (\mu_i, \Sigma_i)$ is now shared by all $x_i\in D$. Instead of learning each $(\mu_i, \Sigma_i)$ separately, we learn $\mathcal F$.
+* Amortized: The mapping rule $f: x_i \mapsto (\mu_i, \Sigma_i)$ is now shared by all $x_i\in D$. Instead of learning each $(\mu_i, \Sigma_i)$ separately, we learn $f$.
 
 Illustration:
 
 $$
-x \longrightarrow \boxed{ \text{Neural Net } \mathcal F_\phi \vphantom{\int} } \longrightarrow
-\begin{bmatrix} \mu \\ \Sigma \end{bmatrix}
-\longrightarrow \underbrace{q_\phi(z \mid x)}_{\mathcal N(z \, ; \, \mu, \Sigma)} \longrightarrow
+x \longrightarrow \boxed{ \text{Neural Net } f_\phi \vphantom{\int} } \longrightarrow
+\begin{bmatrix} \mu_\phi(x) \\ \Sigma_\phi(x) \end{bmatrix}
+\longrightarrow q_\phi(z \mid x) \longrightarrow
 \boxed{\text{MC estim.}} \longrightarrow \mathcal L(\phi,x)
 $$
 
-The point-to-function mapping $\mathcal F$ now becomes a neural net with parameters $\phi$:
+The point-to-function mapping $f$ now becomes a neural net (NN) with parameters $\phi$:
 
 $$
-\mathcal F_\phi: \mathbb R^d \to \mathbb R^\ell \times \mathbb R^{\ell\times\ell}, x \mapsto (\mu, \Sigma)
+f_\phi: \mathbb R^d \to \mathbb R^\ell \times \mathbb R^{\ell\times\ell}, x \mapsto (\mu, \Sigma)
 $$
 
-The reuslting surrogate for each $x\in\mathbb R^d$ becomes
+The resulting surrogate for each $x\in\mathbb R^d$ becomes
 
 $$
-q_\phi(z \mid x) = \mathcal N(z ; \mu, \Sigma)
+q_\phi(z \mid x) = \mathcal N(z ; \mu_\phi(x), \Sigma_\phi(x))
 $$
 
 Remarks:
 
-* The output $(\mu, \Sigma)$ of the NN depends on both the observation $x$ and the network parameter $\phi$.
-* TODO: should we write $(\mu_\phi, \Sigma_\phi)$ instead? Later, we need to compute the gradient of ELBO. So it makes sense to hightlight that $(\mu, \Sigma)$ depends on the network paramter $\phi$. But a lot of literature (including the original VAE paper) does not write the subscript $\phi$.
+* The output $(\mu_\phi(x), \Sigma_\phi(x))$ of the NN depends on both the observation $x$ and the network parameter $\phi$.
 
-Goal: Learn the neural net (aka $\phi$) such that
+Goal: Train the NN (aka $\phi$) such that
 
 $$
 q_\phi(z \mid x) \approx p(z \mid x), \forall x \in D
 $$
 
-To achieve this goal, we need to maximize the ELBO. Previously, the ELBOs are defined as an abstract functional of $\mathcal F$. Now, they become a function of $\phi$.
+To achieve this goal, we need to maximize the ELBO. Previously, the ELBOs are defined as an abstract functional of $f$. Now, they become a function of $\phi$.
 
 For each $x \in D$, the per-sample ELBO is
 
@@ -668,15 +667,26 @@ $$
 &= \mathbb E_{z \sim q_\phi(\cdot \mid x)} \left[ \log\frac{p(x, z)}{q_\phi(z \mid x)} \right]
 \\
 &= \mathbb E_{z \sim q_\phi(\cdot \mid x)} \left[ \log p(x,z) \right] + H(q_\phi(\cdot \mid x))
-&& \text{ELBO reformulation}
 \\
-&= \mathbb E_{z \sim \mathcal N(\mu_\phi, \Sigma_\phi)} \left[ \log p(x,z) \right] + \frac{1}{2} \log\vert\Sigma_\phi\vert
-&& q_\phi(z \mid x) = \mathcal N(z ; \mu_\phi, \Sigma_\phi)
-\\
-&= \mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[\left. \log p(x,z) \right|_{z = \mu_\phi + L_\phi\epsilon} \right] + \log\vert L_\phi \vert
-&& \text{reparam. trick } \Sigma_\phi = L_\phi L_\phi^\top
+&= \mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[ \log p(x,z) \vert_{z = \mu_\phi(x) + L_\phi(x)\epsilon} \right] + \log\vert L_\phi(x) \vert
 \end{align}
 $$
+
+where the last step follows from:
+
+* The entropy term has closed-form solution
+  $$
+  H(q_\phi(\cdot \mid x)) = \log\vert L_\phi(x) \vert + \text{const}
+  $$
+
+* The negative free engergy term can be reparamterized
+
+  $$
+  \begin{align*}
+  z &= \mu_\phi(x) + L_\phi(x) \cdot \epsilon, \quad  \epsilon \sim \mathcal N(0,I) \\
+  \Sigma_\phi(x) &= L_\phi(x) L_\phi(x)^\top
+  \end{align*}
+  $$
 
 The dataset ELBO becomes
 
@@ -685,14 +695,101 @@ $$
 \mathcal L(\phi, D)
 &= \sum_{x\in D} \mathcal L(\phi, x) \\
 &= \sum_{x\in D} \mathbb E_{z \sim q_\phi(\cdot \mid x)} \left[ \log\frac{p(x, z)}{q_\phi(z \mid x)} \right] \\
-&= \sum_{x\in D} \mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[\left. \log p(x,z) \right|_{z = \mu_\phi(x) + L_\phi(x) \epsilon} \right] + \log\vert L_\phi(x) \vert
+&= \sum_{x\in D} \mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[ \log p(x,z)  \right] + \log\vert L_\phi(x) \vert,
+\quad z = \mu_\phi(x) + L_\phi(x) \epsilon
 \\
-&= |D| \cdot \sum_{x\in D} \frac{1}{|D|} \left[\mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[\left. \log p(x,z) \right|_{z = \mu_\phi(x) + L_\phi(x) \epsilon} \right] + \log\vert L_\phi(x) \vert \right]
-\\
-&= |D| \cdot \mathbb E_{x \sim \mathrm{Unif}(D)} \left[\mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[\left. \log p(x,z) \right|_{z = \mu_\phi(x) + L_\phi(x) \epsilon} \right] + \log\vert L_\phi(x) \vert \right]
+&= |D| \cdot \sum_{x\in D} \frac{1}{|D|} \left[\mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[ \log p(x,z) \right] + \log\vert L_\phi(x) \vert \right],
+\quad z = \mu_\phi(x) + L_\phi(x) \epsilon
+\nonumber \\
+&= |D| \cdot \mathbb E_{x \sim \mathrm{Unif}(D)} \left[\mathbb E_{\epsilon \sim \mathcal N(0, I)} \left[ \log p(x,z) \right] + \log\vert L_\phi(x) \vert \right],
+\quad z = \mu_\phi(x) + L_\phi(x) \epsilon
 \end{align}
 $$
 
-TODO: Ok, it seems here that we have to write $(\mu_\phi(x), \Sigma_\phi(x))$ to highlight that the output of NN also depens on x.
+Now, we apply MC estimation for $\mathcal L(\phi, D)$ and its gradient
 
-Now, we can apply MC estimation
+$$
+\begin{align}
+B &\subseteq D = \{x_1, \dots, x_n\} \\
+\epsilon^{(k)} &\stackrel{\text{iid}}{\sim} \mathcal N(0,I), \quad k=1,\dots,m \\
+z^{(k)} & = \mu_\phi(x) + L_\phi(x) \epsilon^{(k)} \\
+\mathcal L(\phi, D)
+&\approx \frac{|D|}{|B|} \sum_{x \in B} \left[\frac{1}{m} \sum_{k=1}^m \log p(x,z^{(k)}) + \log\vert L_\phi(x) \vert \right]
+\end{align}
+$$
+
+---
+
+**Algorithm: amortized variational inference with Gaussian surrogates**  
+**Input**: $D = \{x_1, \dots, x_n \in\mathbb R^d\}$  
+**Output**: $\phi$  
+**Goal**: train a $\mathrm{NN}_\phi: x \mapsto (\mu_\phi(x),\Sigma_\phi(x))$ s.t. $\mathcal N(z; \mu_\phi(x),\Sigma_\phi(x)) \approx p(z \mid x)$
+
+While SGD for $\phi$ is not converged: do  
+$\quad$ Sample a mini-batch: $B \subseteq D$  
+$\quad$ For each $x\in B$: do  
+$\qquad$ Forward-pass: compute $\mu_\phi(x), L_\phi(x)$  
+$\qquad$ Sample from standard Gaussian: $\epsilon^{(k)} \stackrel{\text{iid}}{\sim} \mathcal N(0,I), \quad k=1,\dots,m$  
+$\qquad$ For each $k = 1,\dots,m$: do  
+$\qquad\quad$ Reparamterization: compute $z^{(k)} = \mu_\phi(x) + L_\phi(x) \epsilon^{(k)}$  
+
+$\qquad$ Compute the per-sample ELBO:
+
+$$
+\begin{align*}
+\mathcal L(\phi, x)
+&= \frac{1}{m} \sum_{k=1}^m \log p(x,z^{(k)}) + \log\vert L_\phi(x) \vert
+\end{align*}
+$$
+
+$\quad$ Compute the dataset ELBO:
+
+$$
+\begin{align*}
+\mathcal L(\phi, B)
+&= \frac{|D|}{|B|} \sum_{x \in B} \mathcal L(\phi, x)
+\end{align*}
+$$
+
+$\quad$ Backward-pass: compute the gradient $\nabla_\phi \mathcal L(\phi, B)$  
+$\quad$ Update: $\phi \leftarrow \phi + \eta_t \nabla_\phi \mathcal L(\phi, B)$
+
+Return $\phi$
+
+---
+
+## Appendix
+
+### Entropy of Gaussian
+
+For a multivariate Gaussian $p(x) = \mathcal N(x ; \mu, \Sigma), \, x \in \mathbb R^d$, the differential entropy is:
+
+$$
+\begin{align}
+H(p)
+&= -\int p(x) \log p(x) \, dx \\
+&= \frac{1}{2} \log \left[ (2\pi e)^d \det(\Sigma) \right] \\
+&= \frac{1}{2} \log \left[ \det(\Sigma) \right] + \frac{d}{2} \log (2\pi e) \\
+\end{align}
+$$
+
+Let $L$ (lower triangular) be the Cholesky factor of the covariance maxtrix, i.e. $\Sigma = L L^\top$. Then,
+
+$$
+\begin{align*}
+\log \left[ \det(\Sigma) \right]
+&= \log \left[ \det(L L^\top) \right] \\
+&= \log \left[ \det(L) \cdot \det(L^\top) \right] \\
+&= \log \left[ \det(L)^2 \right] \\
+&= 2\log \left[ \det(L) \right] \\
+\end{align*}
+$$
+
+Therefore, We can express $H(p)$ as
+
+$$
+\begin{align}
+H(p)
+&= \log \left[ \det(L) \right] + \frac{d}{2} \log (2\pi e) \\
+\end{align}
+$$

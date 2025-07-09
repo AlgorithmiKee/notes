@@ -1,5 +1,5 @@
 ---
-title: "ELBO"
+title: "VI & ELBO"
 date: "2025"
 author: "Ke Zhang"
 ---
@@ -11,9 +11,11 @@ $$
 \DeclareMathOperator*{\argmin}{argmin}
 $$
 
-# The Evidence Lower Bound
+TODO: move BBVI into section VI. move dataset ELBO into section ELBO.
 
-## Motivation
+# Variational Inference and Evidence Lower Bound
+
+## Overarching Goal of Variational Inference
 
 Consider an observable random variable $X\in\mathbb R^d$, explained by some latent random variable $Z\in\mathbb R^\ell$. In general, both variables can be high dimensional. Assume we know the joint distribution $p(x,z)$.
 
@@ -27,31 +29,33 @@ $$
 
 Even though we know the joint distribution, the above computation is still intractable in general due to the high dimensional integral in the denominator.
 
-In variational inference, we choose a tractable distribution family $\mathcal Q$ and use a surrogate distribution $q\in\mathcal Q$ to approximate the true posterior $p(z \mid x)$. To assess how well $q$ approximates the true posterior, we minimize the KL divergence:
+In variational inference, we choose a tractable variational family $\mathcal Q$ and use a variational distribution $q\in\mathcal Q$ to approximate the true posterior $p(z \mid x)$. To assess how well $q$ approximates the true posterior, we minimize the KL divergence:
 
 $$
 \begin{align}
-\min_{q \in\mathcal Q} D_\text{KL}(q(z) \parallel p(z \mid x))
+\min_{q \in\mathcal Q} D_\text{KL}(q(\cdot) \parallel p(\cdot \mid x))
 \end{align}
 $$
+
+where $\cdot$ is the place holder for $z$.
 
 Remarks:
 
 * The optimal approximation $q^*$ implicitly depends on $x$. Given another observation $x$, we typically end up with another $q^*$, as illustrated below.
 * In practice, $\mathcal Q$ is a parameterized family (e.g. Gaussian). Computing the optimal $q$ is equivalent to computing the optimal parameters.
-* Here, we slightly abuse notation for clarity. Formally, the KL divergence should be written as $D_\text{KL}(q(\cdot) \parallel p(\cdot \mid x))$ where $\cdot$ is the place holder for $z$.
 
 <img src="./figs/vi_illustration.pdf" alt="elbo maximizer" style="zoom:67%;" />
 
 We have transformed the inference problem — a high-dimensional integration — into an optimization problem. However, minimizing the KL divergence still requires knowledge of the posterior. Next, we will make the above optimization problem tractable.
 
-> Final goal: Approximate the intractable posterior $p(z \mid x)$ with a tractable $q(z)$ by maximing the ELBO.
+> **Core idea of variational inference**:  
+> Approximate the intractable posterior $p(z \mid x)$ with a tractable $q(z)$ by maximing the [ELBO](#the-evidence-lower-bound).
 
-## ELBO for a Single Observation
+## The Evidence Lower Bound
 
-For a given instance $x$, we call $\log p(x)$ the ***evidence***. Then:
+For a given instance $x$, we call $\log p(x)$ the ***evidence*** (or log of evidence).
 
-For any surrogate $q$, it holds that
+For any variational distribution $q$, it holds that
 
 $$
 \begin{align}
@@ -96,30 +100,29 @@ $$
 \end{align*}
 $$
 
-By definition, the ELBO is an expectation w.r.t. $q$ which again requires integrating in latent space. However, we can estimate the ELBO via Monte Carlo sampling, avoiding integrating in the latent space.
-
-$$
-\begin{align}
-\mathcal L(q,x)
-\approx \frac{1}{M} \sum_{k=1}^M \log\frac{p(x, z^{(k)})}{q(z^{(k)})},
-\quad z^{(k)} \sim q
-\end{align}
-$$
-
-[Later](#elbo-as-evidence-minus-variational-gap), we will show that the best approximation of the true posterior in distribution class $\mathcal Q$ is the maximizer of the (estimated) ELBO
+[Later](#elbo-as-evidence-minus-variational-gap), we will show that the best approximation of the true posterior in distribution class $\mathcal Q$ is the maximizer of the ELBO
 
 $$
 \begin{align}
 q^*
-&= \argmax_{q \in \mathcal Q} \mathcal L(q,x)
-\\
-q^*
-&= \argmax_{q \in \mathcal Q} \frac{1}{M} \sum_{k=1}^M \log\frac{p(x, z^{(k)})}{q(z^{(k)})},
-\quad z^{(k)} \sim q
+&= \argmax_{q \in\mathcal Q} \mathcal L(q,x) \\
+&= \argmin_{q \in\mathcal Q} D_\text{KL}(q(\cdot) \parallel p(\cdot \mid x))
 \end{align}
 $$
 
-These are functional optimization problems. In practice, $\mathcal Q$ is a parametric distribution class and each $q$ is represented by its parameters. Instead of optimizing the ELBO w.r.t. function $q$, we optimize it w.r.t. the parameters. For details: $\to$ see example [Gaussian surrogates](#elbo-maximization-for-gaussian-surrogate).
+However, by definition, the ELBO is an expectation w.r.t. $q$ which again requires integrating in latent space. This issue can be addressed in two ways:
+
+* In traditional variational inference (not covered here): the ELBO can be expressed in closed form if we restrict to the exponential family and apply conjugacy. $\to$ Not suitable for modeling complex distributions. ❌
+* In ***black-box variatioanl inferece (BBVI)***, the ELBO is estimated by **Monte Carlo (MC)** sampling rather than computed exactly.
+
+MC estimation of ELBO:
+
+$$
+\begin{align}
+\tilde{\mathcal L}(q,x)
+&= \frac{1}{M} \sum_{k=1}^M \log\frac{p(x, z^{(k)})}{q(z^{(k)})}, \quad z^{(k)} \sim q
+\end{align}
+$$
 
 ### Equivalent Reformulation of ELBO
 
@@ -129,7 +132,7 @@ $$
 \begin{align*}
 \mathcal L(q,x)
 &\triangleq \mathbb E_{z \sim q} \left[ \log\frac{p(x,z)}{q(z)} \right] \\
-&= \log p(x) - D_\text{KL}(q(z) \parallel p(z \mid x)) \\
+&= \log p(x) - D_\text{KL}(q(\cdot) \parallel p(\cdot \mid x)) \\
 &= \mathbb E_{z \sim q} \Big[ \log p(x \mid z) \Big] - D_\text{KL}(q(z) \parallel p(z)) \\
 &= \mathbb E_{z \sim q} \Big[ \log p(x,z) \Big] + H(q)
 \end{align*}
@@ -142,7 +145,7 @@ The 1st reformulation of ELBO is
 $$
 \begin{align}
 \mathcal L(q,x)
-&= \log p(x) - D_\text{KL}(q(z) \parallel p(z \mid x))
+&= \log p(x) - D_\text{KL}(q(\cdot) \parallel p(\cdot \mid x))
 \end{align}
 $$
 
@@ -151,7 +154,7 @@ or equivalently
 $$
 \begin{align}
 \underbrace{\log p(x)}_\text{evidence}
-&= \underbrace{\mathcal L(q,x)}_\text{ELBO} + \underbrace{D_\text{KL}(q(z) \parallel p(z \mid x))}_\text{variational gap}
+&= \underbrace{\mathcal L(q,x)}_\text{ELBO} + \underbrace{D_\text{KL}(q(\cdot) \parallel p(\cdot \mid x))}_\text{variational gap}
 \end{align}
 $$
 
@@ -167,7 +170,7 @@ $$
 \mathcal L(q,x)
 &= \mathbb E_{z \sim q} \left[ \log\frac{p(z \mid x) \cdot p(x)}{q(z)} \right] \\
 &= \mathbb E_{z \sim q} \left[ \log\frac{p(z \mid x)}{q(z)} + \log p(x) \right] \\
-&= \underbrace{\mathbb E_{z \sim q} \left[ \log\frac{p(z \mid x)}{q(z)} \right]}_{- D_\text{KL}(q(z) \parallel p(z \mid x))} + \log p(x)
+&= \underbrace{\mathbb E_{z \sim q} \left[ \log\frac{p(z \mid x)}{q(z)} \right]}_{- D_\text{KL}(q(\cdot) \parallel p(\cdot \mid x))} + \log p(x)
 \tag*{$\blacksquare$}
 \end{align*}
 $$
@@ -196,9 +199,9 @@ $$
 
 Remarks:
 
-* The 1st term is expected log likelihood w.r.t. the surrogate. It measures the average goodness of reconstruction, assuming that $z \sim q$.
-* The 2nd term is the KL divergence of the surrogate $q(z)$ w.r.t. the prior $p(z)$. i.e. We penalize those surrogates that significantly deviate from the prior. $\to$ regularization effect.
-* Maximizing the ELBO is a trade-off between maximizing the reconstruction fidelity and keeping surrogate close to the prior. This is the key idea behind variational autoencoders (VAEs).
+* The 1st term is expected log likelihood w.r.t. the variational distribution. It measures the average goodness of reconstruction, assuming that $z \sim q$.
+* The 2nd term is the KL divergence of the variational distribution $q(z)$ w.r.t. the prior $p(z)$. i.e. We penalize those variational distributions that significantly deviate from the prior. $\to$ regularization effect.
+* Maximizing the ELBO is a trade-off between maximizing the reconstruction fidelity and keeping variational distribution close to the prior. This is the key idea behind variational autoencoders (VAEs).
 
 *Proof*: Substitute $p(x,z) = p(x \mid z) \cdot p(z)$ into the definition of ELBO, we conclude
 
@@ -226,8 +229,8 @@ $$
 Remarks:
 
 * The 1st term is known as negative free energy in statistical physics. It rewards $q$ that explain the data well.
-* The 2nd term is the entropy of the surrogate. It rewards $q$ with higher uncertainty.
-* Maximizing the ELBO can be interpreted as minimizing the free energy while maintaining high entropy in the surrogate distribution.
+* The 2nd term is the entropy of the variational distribution. It rewards $q$ with higher uncertainty.
+* Maximizing the ELBO can be interpreted as minimizing the free energy while maintaining high entropy in the variational distribution.
 
 *Proof*: This reformulation follows directly from the definition of the ELBO:
 
@@ -251,9 +254,9 @@ The entropy term, however, favors $q$ with higher entropy. In contrast, the Dira
 
 <img src="./figs/elbo_maximizer.pdf" alt="elbo maximizer" style="zoom:67%;" />
 
-### ELBO Maximization for Gaussian Surrogate
+## Black-Box Variational Inference
 
-We use multivariate Gaussian as the surrogate
+We use multivariate Gaussian as the variational distribution
 
 $$
 \begin{align*}
@@ -277,7 +280,7 @@ Remarks:
 * "s.p.d." is short for *symmetric positive definite*.
 * Alternatively, we can shrink the distribution class $\mathcal Q$ by restricting it to diagonal Gaussian (also known as ***mean-field*** Gaussian) or even spherical Gaussian (also known as ***isotrophic*** Gaussian).
 
-Each surrogate $q$ is represented by its parameters $(\mu, \Sigma)$. The ELBO, previously defined as a functional of $q$, now becomes a function of $(\mu, \Sigma)$.
+Each variational distribution $q$ is represented by its parameters $(\mu, \Sigma)$. The ELBO, previously defined as a functional of $q$, now becomes a function of $(\mu, \Sigma)$.
 
 $$
 \begin{align}
@@ -313,7 +316,7 @@ $$
 \end{align}
 $$
 
-The best Gaussian surrogate is obtained by maximizing the ELBO, or equivalently
+The best Gaussian variational distribution is obtained by maximizing the ELBO, or equivalently
 
 $$
 \begin{align}
@@ -355,18 +358,18 @@ $$
 
 ## ELBO for a Dataset
 
-Previously, we derived the ELBO $\mathcal L(q,x)$ for a single observation $x$. From now on, let's call it **per-sample** ELBO (or **per-observation** ELBO).
+[Previously](#the-evidence-lower-bound), we derived the ELBO $\mathcal L(q,x)$ for a single observation $x$. From now on, let's call it **per-sample** ELBO (or **per-observation** ELBO).
 
 **Question**: What if we have a dataset consisting of multiple iid observations? Can we lower-bound the evidence of the whole dataset?
 
 Problem formulation:
 
-* Known: generative model $p(x,z) = p(z) \, p(x \mid z)$
+* Known: generative model $p(x,z) = p(z) \, p(x \mid z)$.
 * Given: training data $D = \{ x_1, \cdots,  x_n\} \stackrel{\text{iid}}{\sim} p(x) = \int_z p(x,z) \:\mathrm dz$.
-* Select: distribution class $\mathcal Q$ for the surrogates.
+* Select: variational family $\mathcal Q$.
 * Goal: derive a lower bound on $\log p(D)$.
 
-We refer to the lower bound on $\log p(D)$ as the **dataset ELBO**. In fact, dataset ELBO does exist since the evidence of the dataset is the sum of evidence of observations
+We refer to the lower bound on $\log p(D)$ as the **dataset ELBO**. In fact, dataset ELBO does exist since
 
 $$
 \begin{align}
@@ -374,56 +377,48 @@ $$
 \end{align}
 $$
 
-Each $\log p(x_i)$ can be lower bounded by its individual per-sample ELBO. Therefore, $\log p(D)$ can also be lower bounded. The remaining question is how to design the surrogate for each $x_i$.
+Each $\log p(x_i)$ can be lower bounded by its individual per-sample ELBO. Therefore, $\log p(D)$ can also be lower bounded. The remaining question is how to design the variational distribution for each $x_i$.
 
-### Per-Sample Surrogate
+### Local Variational Distribution
 
-**Per-sample surrogate** means: For each $x_i$, we use $q_i(z)$ as the surrogate of the true posterior $p(z \mid x_i)$.
+A natural extension of per-sample ELBO to dataset ELBO is choosing variational distribution independently for each observation. Formally:
 
-For any combination of surrogates $q_1, \dots, q_n \in \mathcal Q$, it holds that
+For each $x_i$, we choose $q_i \in\mathcal Q$ independently to approximate the true posterior $p(z \mid x_i)$. This gives per-sample ELBO
 
 $$
 \begin{align}
-\log p(D) &\ge \mathcal L(q_1, \dots, q_n, D)
+\mathcal L(q_i, x_i)
+&= \sum_{i=1}^n \mathbb E_{z \sim q_i} \left[ \log\frac{p(x_i, z)}{q_i(z)} \right]
 \end{align}
 $$
 
-where the RHS is the dataset ELBO, defined as
+For any combination of variational distributions $q_1, \dots, q_n \in \mathcal Q$, it holds that
+
+$$
+\begin{align*}
+\log p(D)
+= \sum_{i=1}^n \log p(x_i)
+\ge \underbrace{\sum_{i=1}^n \mathcal L(q_i, x_i)}_{\mathcal L(q_1, \dots, q_n, D)}
+\end{align*}
+$$
+
+Hence, we obtain the dataset ELBO:
 
 $$
 \begin{align}
 \mathcal L(q_1, \dots, q_n, D)
-&\triangleq \sum_{i=1}^n \mathcal L(q_i, x_i) \\
-&= \sum_{i=1}^n \mathbb E_{z \sim q_i} \left[ \log\frac{p(x_i, z)}{q_i(z)} \right]
+\triangleq \sum_{i=1}^n \mathcal L(q_i, x_i)
+= \sum_{i=1}^n \mathbb E_{z \sim q_i} \left[ \log\frac{p(x_i, z)}{q_i(z)} \right]
 \end{align}
 $$
 
 Remarks:
 
 * The (dataset) ELBO is a functional of $q_1, \dots, q_n$, which are **freely** chosen.
-* We assume that $q_1, \dots, q_n \in \mathcal Q$. i.e. All surrogates belong to the same distribution class.
-* Per-sample surrogates are used in classical variational inference.
+* We assume that $q_1, \dots, q_n \in \mathcal Q$. i.e. All variational distributions belong to the same distribution class.
+* Local variational distributions are used in classical variational inference.
 
-*Proof*: By our previous discussion, each $\log p(x_i)$ is lowered bounded by its per-sample ELBO:
-$$
-\begin{align}
-\mathcal L(q_i, x_i) = \mathbb E_{z \sim q_i} \left[ \log\frac{p(x_i, z)}{q_i(z)} \right]
-\end{align}
-$$
-
-Summing over all observations, we obtain the dataset ELBO for $\log p(D)$:
-
-$$
-\begin{align*}
-\log p(D)
-= \sum_{i=1}^n \log p(x_i)
-\ge \sum_{i=1}^n \mathcal L(q_i, x_i)
-= \sum_{i=1}^n \mathbb E_{z \sim q_i} \left[ \log\frac{p(x_i, z)}{q_i(z)} \right]
-\tag*{$\blacksquare$}
-\end{align*}
-$$
-
-The optimal surrogates can be obtained by separately solving the functional optimization problems
+The optimal variational distributions are obtained by solving the functional optimization problems
 
 $$
 \begin{align}
@@ -436,49 +431,31 @@ Remarks:
 * Due to the additive structure of dataset ELBO, each $q_i$ can be optimized independently of each other.
 * In practice, $\mathcal Q$ is a parametric distribution class, e.g. Gaussian. Therefore, we turn this functional optimization problem into a parameter optimization problem.
 
-Again, the dataset ELBO also has three equivalent reformulations
+Drawbacks:
 
-$$
-\begin{align}
-\mathcal L(q_1, \dots, q_n, D)
-&= \log p(D) - \sum_{i=1}^n D_\text{KL}(q_i(z) \parallel p(z \mid x_i)) \\
-&= \sum_{i=1}^n \Big\{ \mathbb E_{z \sim q_i} \left[ \log p(x_i \mid z) \right] - D_\text{KL}(q_i(z) \parallel p(z)) \Big\} \\
-&= \sum_{i=1}^n \Big\{ \mathbb E_{z \sim q_i} \left[ \log p(x_i, z) \right] + H(q_i) \Big\}
-\end{align}
-$$
+1. **Poor scalability**: The number of optimization problems scales linearly with the size of the dataset. If we have $n$ observations, we have solve $n$ independent optimization problems.
+1. **No generalization**: Given a new observation $x_*$, we have to solve the optimization problem again. We cannot forge the variational distribution for $x_*$ from $q_1^*, \dots, q_n^*$.
 
-*Proof*: The reformulation of dataset ELBO follows immediately by summing the reformulated per-sample ELBO:
-$$
-\begin{align*}
-\mathcal L(q_i, x_i)
-&= \log p(x_i) - D_\text{KL}(q_i(z) \parallel p(z \mid x_i)) \\
-&= \mathbb E_{z \sim q_i} \left[ \log p(x_i \mid z) \right] - D_\text{KL}(q_i(z) \parallel p(z)) \\
-&= \mathbb E_{z \sim q_i} \left[ \log p(x_i, z) \right] + H(q_i)
-\tag*{$\blacksquare$}
-\end{align*}
-$$
+### Global Inference Model
 
-### Global Surrogate
-
-Under per-sample surrogate settings, the number of surrogate distributions scales linearly w.r.t. the size of the dataset $D$. In practice, the number of variational parameters also grows with the dataset size. With a global surrogate, we make the variational inference scalable.
-
-**Global surrogate** means: We want to learn the mapping $f$
+Instead of learning $q_i$ for each $x_i$ individually, we learn a **global inference model**, conceptually defined as a mapping $f$
 
 $$
 f: \mathbb R^d \to \mathcal Q, x \mapsto q(\cdot \mid x)
 $$
 
-where $\cdot$ is the placeholder for $z$, s.t. $\forall x_i \in D$
+where $\cdot$ is the placeholder for $z$, such that $\forall x \in \mathbb R^d$
 
 $$
-q(\cdot \mid x_i) \approx p(\cdot \mid x_i)
+q(\cdot \mid x) \approx p(\cdot \mid x)
 $$
 
 Remarks:
 
-* The abstract mapping $f$ maps each data point to a surrogate distribution. Mathematically, it is a complex point-to-function mapping.
+* The abstract mapping $f$ maps each data point to a variational distribution. Mathematically, it is a complex point-to-function mapping.
 * ⚠️ To reduce visual clutter, we write $f(x) = q(\cdot \mid x)$ rather than $f(x) = q_{f}(\cdot \mid x)$
-* Global surrogate is used in amortized variational inference (e.g. VAE). The term "amortized" hightlights the fact that all $x\in\mathbb R^d$ (not only $x \in D$) share the mapping rule $f: x \mapsto q(\cdot \mid x)$.
+* The globalness hightlights the fact that $f$ is shared by all $x\in\mathbb R^d$.
+* Once we learned such $f$ on training data $D$, not only can we plug in $x_i$ and use $q(\cdot \mid x_i) \approx p(\cdot \mid x_i)$, but also we can plug in any unseen $x_*$ and get $q(\cdot \mid x_*) \approx p(\cdot \mid x_*)$.
 
 For each sample $x_i$, the per-sample ELBO is
 
@@ -503,9 +480,9 @@ $$
 Remarks:
 
 * Not to be confused by the notation: $f(x_i) = q(\cdot \mid x_i) \in \mathcal Q$, i.e. $f(x_i)$ is a (probability density) function.
-* Comparing to per-sample surrogate scheme, there is a key distinction between $q_i(\cdot)$ and $q(\cdot \mid x_i)$:
-  * Per-sample surrogate: We choose each $q_i(\cdot) \in \mathcal Q$ freely.
-  * Global surrogate: Each $q(\cdot \mid x_i)$ are determined by plugging $x_i$ into the point-to-function mapping $f$, which shared by all $x_i \in D$.
+* Comparing to local variational distribution scheme, there is a key distinction between $q_i(\cdot)$ and $q(\cdot \mid x_i)$:
+  * Local variational distribution: We choose each $q_i(\cdot) \in \mathcal Q$ freely.
+  * Global variational distribution: Each $q(\cdot \mid x_i)$ are determined by plugging $x_i$ into the point-to-function mapping $f$, which shared by all $x_i \in D$.
 
 To maximize the dataset ELBO, we aim to solve
 
@@ -518,30 +495,30 @@ $$
 This is again a functional optimization problem. In practice, we avoid dealing directly with a functional optimization problem by
 
 1. using parametric family $\mathcal Q$, e.g. multivariate Gaussian with parameter $(\mu, \Sigma)$
-1. designing $f$ as a neural net mapping $x$ to $(\mu, \Sigma)$.
+1. designing $f$ as a neural net with $x$ as its input layer, and $(\mu, \Sigma)$ as its output layer.
 
-The abstract point-to-function mapping $f$ now becomes a neural net. Learning $f$ boils down to training a neual net.
+Learning $f$ boils down to training such a neual net.
 
 ## Variational Inference
 
-Without otherwise specified, we use **Gaussian surrogate** to approximate the true posterior.
+Unless otherwise specified, we use a **Gaussian variational distribution** to approximate the true posterior.
 
-Previously, we have seen [variational inference for a single observation](#elbo-maximization-for-gaussian-surrogate). Now, we would like to extend to variational inference for multiple observations.
+Previously, we have seen [variational inference for a single observation](#elbo-maximization-for-gaussian-variational distribution). Now, we extend variational inference to the case of multiple observations.
 
 Problem formulation:
 
 * Known: generative model $p(x,z) = p(z) \, p(x \mid z)$
 * Given: training data $D = \{ x_1, \cdots,  x_n\} \stackrel{\text{iid}}{\sim} p(x) = \int_z p(x,z) \:\mathrm dz$.
-* Select: $\mathcal Q = \{ \mathcal N(\mu, \Sigma) \}$ for the surrogates.
-* Goal: maximize the dataset lower bound
+* Select: Gaussian variational family $\mathcal Q = \{ \mathcal N(\mu, \Sigma) \}$.
+* Goal: maximize the dataset ELBO
 
-In the following, we will consider per-sample surrogate scheme and global surrogate scheme. The dataset ELBO, previously defined as an abstract functional, will now be reformulated as an ordinary function from vectors to scalars.
+In the following, we will consider local variational distribution scheme and global variational distribution scheme. The dataset ELBO, previously defined as a functional over variational distributions, will be reformulated as a scalar-valued function of parameter vectors.
 
 ### Classical Variational Inference
 
 For each observation $x_i$, we use $\mathcal N(z; \mu_i, \Sigma_i)$ to approximate the true posterior $p(z \mid x_i)$.
 
-* Classical: We use per-sample surrogates. i.e. We choose $\mu_i,\Sigma_i$ freely for each $x_i$.
+* Classical: We use local variational distributions, i.e. we choose $\mu_i,\Sigma_i$ independently for each $x_i$.
 
 The dataset ELBO, previously as a functional of $\{q_i\}_{i=1}^n$, now becomes a function of $\{\mu_i, \Sigma_i\}_{i=1}^n$:
 
@@ -580,10 +557,10 @@ z
 \end{align}
 $$
 
-The complete algorithm is then
+The complete algorithm is summarized below:
 
 ---
-**Algorithm: classical variational inference with Gaussian surrogates**  
+**Algorithm: classical variational inference with Gaussian variational distributions**  
 **Input**: $x_1, \dots, x_n \in\mathbb R^d$  
 **Output**: $\mu_1,\dots,\mu_n\in\mathbb R^\ell, \Sigma_1,\dots,\Sigma_n\in\mathbb R^{\ell \times \ell}$  
 **Goal**: use $\mathcal N(z; \mu_i,\Sigma_i)$ to approximate $p(z \mid x_i)$
@@ -617,31 +594,31 @@ return $\mu_1,\dots,\mu_n, \Sigma_1,\dots,\Sigma_n$
 
 Remarks:
 
-* The total \# parameters we need to learn is $O(n\ell^2)$. It scales up with the size of the dataset, making the algorithm not scalable for large dataset.
-* The idea of per-sample surrogate allows very high flexibility: The mean $\mu_i$ and variance $\Sigma_i$ of each surrogate are totally independent of each other.
+* This approach is essentially performing BBVI for each observation.
+* The total \# parameters to be learned is $O(n\ell^2)$, which scales linearly with the dataset size $n$. This limits scalability for large datasets.
+* Local variational distributions provide high flexibility, as each variational distribution's mean and covariance are learned independently.
 
 ### Amortized Variational Inference
 
-Again, for each observation $x_i$, we use $\mathcal N(z; \mu_i, \Sigma_i)$ to approximate the true posterior $p(z \mid x_i)$.
+For each observation $x_i$, we again use $\mathcal N(z; \mu_i, \Sigma_i)$ to approximate the true posterior $p(z \mid x_i)$, but now:
 
-* Amortized: The mapping rule $f: x_i \mapsto (\mu_i, \Sigma_i)$ is now shared by all $x_i\in D$. Instead of learning each $(\mu_i, \Sigma_i)$ separately, we learn $f$.
+* Amortized: The mapping rule $f: x_i \mapsto (\mu_i, \Sigma_i)$ is now shared by all $x_i\in D$. Instead of learning each $(\mu_i, \Sigma_i)$ individually, we learn the shared function $f$.
 
-Illustration:
+Basic idea of amortized variational inference:
 
 $$
 x \longrightarrow \boxed{ \text{Neural Net } f_\phi \vphantom{\int} } \longrightarrow
 \begin{bmatrix} \mu_\phi(x) \\ \Sigma_\phi(x) \end{bmatrix}
-\longrightarrow q_\phi(z \mid x) \longrightarrow
-\boxed{\text{MC estim.}} \longrightarrow \mathcal L(\phi,x)
+\longrightarrow q_\phi(z \mid x) \approx p(z \mid x)
 $$
 
-The point-to-function mapping $f$ now becomes a neural net (NN) with parameters $\phi$:
+The mapping $f$ is typically implemented as a neural net (NN) parameterized by $\phi$:
 
 $$
-f_\phi: \mathbb R^d \to \mathbb R^\ell \times \mathbb R^{\ell\times\ell}, x \mapsto (\mu, \Sigma)
+f_\phi: \mathbb R^d \to \mathbb R^\ell \times \mathbb R^{\ell\times\ell}, x \mapsto (\mu_\phi(x), \Sigma_\phi(x))
 $$
 
-The resulting surrogate for each $x\in\mathbb R^d$ becomes
+The resulting variational distribution for each $x\in\mathbb R^d$ becomes
 
 $$
 q_\phi(z \mid x) = \mathcal N(z ; \mu_\phi(x), \Sigma_\phi(x))
@@ -650,8 +627,9 @@ $$
 Remarks:
 
 * The output $(\mu_\phi(x), \Sigma_\phi(x))$ of the NN depends on both the observation $x$ and the network parameter $\phi$.
+* In practice, the output of the NN is $(\mu_\phi(x), L_\phi(x))$ where $L_\phi(x)$ is the Cholesky factor of $\Sigma_\phi(x)$. This design later helps letting the gradient flow from ELBO to $x$ by reparameterization trick.
 
-Goal: Train the NN (aka $\phi$) such that
+Goal: Train the NN (aka learn $\phi$) so that
 
 $$
 q_\phi(z \mid x) \approx p(z \mid x), \forall x \in D
@@ -674,17 +652,18 @@ $$
 
 where the last step follows from:
 
-* The entropy term has closed-form solution
+* Entropy of multivariate Gaussian
   $$
   H(q_\phi(\cdot \mid x)) = \log\vert L_\phi(x) \vert + \text{const}
   $$
 
-* The negative free engergy term can be reparamterized
+* Reparameterization trick
 
   $$
   \begin{align*}
-  z &= \mu_\phi(x) + L_\phi(x) \cdot \epsilon, \quad  \epsilon \sim \mathcal N(0,I) \\
-  \Sigma_\phi(x) &= L_\phi(x) L_\phi(x)^\top
+  z = \mu_\phi(x) + L_\phi(x) \cdot \epsilon, \quad
+  \epsilon \sim \mathcal N(0,I), \quad
+  \Sigma_\phi(x) = L_\phi(x) L_\phi(x)^\top
   \end{align*}
   $$
 
@@ -710,17 +689,25 @@ Now, we apply MC estimation for $\mathcal L(\phi, D)$ and its gradient
 
 $$
 \begin{align}
-B &\subseteq D = \{x_1, \dots, x_n\} \\
-\epsilon^{(k)} &\stackrel{\text{iid}}{\sim} \mathcal N(0,I), \quad k=1,\dots,m \\
-z^{(k)} & = \mu_\phi(x) + L_\phi(x) \epsilon^{(k)} \\
 \mathcal L(\phi, D)
 &\approx \frac{|D|}{|B|} \sum_{x \in B} \left[\frac{1}{m} \sum_{k=1}^m \log p(x,z^{(k)}) + \log\vert L_\phi(x) \vert \right]
+\\
+\nabla_\phi \mathcal L(\phi, D)
+&\approx \frac{|D|}{|B|} \sum_{x \in B} \left[\frac{1}{m} \sum_{k=1}^m \nabla_\phi \log p(x,z^{(k)}) + \nabla_\phi \log\vert L_\phi(x) \vert \right]
 \end{align}
 $$
 
+where
+
+* $B$ is a mini-batch sampled from the whole dataset: $B \subseteq D = \{x_1, \dots, x_n\}$
+* $\epsilon^{(k)} \stackrel{\text{iid}}{\sim} \mathcal N(0,I), \quad k=1,\dots,m$
+* $z^{(k)} = \mu_\phi(x) + L_\phi(x) \epsilon^{(k)}, \quad k=1,\dots,m$
+
+The complete algorith of amortized variatioal inference is summarized below:
+
 ---
 
-**Algorithm: amortized variational inference with Gaussian surrogates**  
+**Algorithm: amortized variational inference with Gaussian variational distributions**  
 **Input**: $D = \{x_1, \dots, x_n \in\mathbb R^d\}$  
 **Output**: $\phi$  
 **Goal**: train a $\mathrm{NN}_\phi: x \mapsto (\mu_\phi(x),\Sigma_\phi(x))$ s.t. $\mathcal N(z; \mu_\phi(x),\Sigma_\phi(x)) \approx p(z \mid x)$
@@ -729,9 +716,9 @@ While SGD for $\phi$ is not converged: do
 $\quad$ Sample a mini-batch: $B \subseteq D$  
 $\quad$ For each $x\in B$: do  
 $\qquad$ Forward-pass: compute $\mu_\phi(x), L_\phi(x)$  
-$\qquad$ Sample from standard Gaussian: $\epsilon^{(k)} \stackrel{\text{iid}}{\sim} \mathcal N(0,I), \quad k=1,\dots,m$  
-$\qquad$ For each $k = 1,\dots,m$: do  
-$\qquad\quad$ Reparamterization: compute $z^{(k)} = \mu_\phi(x) + L_\phi(x) \epsilon^{(k)}$  
+$\qquad$ For $k = 1,\dots,m$: do  
+$\qquad\quad$ Sampling: $\epsilon^{(k)} \stackrel{\text{iid}}{\sim} \mathcal N(0,I)$  
+$\qquad\quad$ Reparamterization: $z^{(k)} = \mu_\phi(x) + L_\phi(x) \epsilon^{(k)}$  
 
 $\qquad$ Compute the per-sample ELBO:
 
@@ -758,6 +745,11 @@ Return $\phi$
 
 ---
 
+Remarks:
+
+* The \# parameters is now fully determined by the architecture of NN (or the \# scalars in $\phi$). No longer scales up with the dataset size.
+* Once, we trained the NN. We can compute $q_\phi(z \mid x_*)$ for unseen data $x_*$ by simply performing a forward pass. This allows us effortless generalization for inference. In contrast, classical VI has no generalizaiton ability.
+
 ## Appendix
 
 ### Entropy of Gaussian
@@ -773,7 +765,7 @@ H(p)
 \end{align}
 $$
 
-Let $L$ (lower triangular) be the Cholesky factor of the covariance maxtrix, i.e. $\Sigma = L L^\top$. Then,
+Let $L$ (lower triangular) be the Cholesky factor of the covariance matrix, i.e. $\Sigma = L L^\top$. Then,
 
 $$
 \begin{align*}

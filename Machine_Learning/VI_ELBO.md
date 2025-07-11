@@ -98,7 +98,7 @@ $$
 \end{align*}
 $$
 
-[Later](#elbo-as-evidence-minus-variational-gap), we will show that the best approximation of the true posterior in distribution class $\mathcal Q$ is the maximizer of the ELBO
+[Later](#elbo-as-evidence-minus-variational-gap), we will show that the best approximation of the true posterior in variational family $\mathcal Q$ is the maximizer of the ELBO
 
 $$
 \begin{align}
@@ -121,6 +121,11 @@ $$
 &= \frac{1}{M} \sum_{k=1}^M \log\frac{p(\mathbf{x}, \mathbf{z}^{(k)})}{q(\mathbf{z}^{(k)})}, \quad \mathbf{z}^{(k)} \sim q
 \end{align}
 $$
+
+Remarks:
+
+* This illustrates MC estimation of the **entire** ELBO.
+* Later, we will see different reformulation of the ELBO. When the variational distribution $q$ is Gaussian, certain terms of ELBO can be computed in closed-form (entropy of $q$, KL divergence to Gaussian prior). Therefore, we only need to apply MC to estimate the remaining terms.
 
 There are three equivalent reformulations of the ELBO $\mathcal L(q,\mathbf{x})$. Each reformulations provides insights from a different perspective.
 
@@ -157,7 +162,7 @@ $$
 Remarks:
 
 * The gap between the evidence and ELBO is exactly the KL divergence we want to minimize earlier (also known as ***variational gap***). Minimizing the variational gap is equivalent to maximizing the ELBO, which captures the core idea of variational inference.
-* The ELBO becomes tight (or maximized) iff $q(\mathbf{z}) = p(\mathbf{z} \mid \mathbf{x})$, which is typically not achievable in practice due to the limited expressiveness of the distribution class $\mathcal Q$.
+* The ELBO becomes tight (or maximized) iff $q(\mathbf{z}) = p(\mathbf{z} \mid \mathbf{x})$, which is typically not achievable in practice due to the limited expressiveness of the variational family $\mathcal Q$.
 
 *Proof*: Substitute $p(\mathbf{x},\mathbf{z}) = p(\mathbf{z} \mid \mathbf{x}) \cdot p(\mathbf{x})$ into the definition of ELBO, we conclude
 
@@ -196,7 +201,7 @@ $$
 Remarks:
 
 * The 1st term is expected log likelihood w.r.t. the variational distribution. It measures the average goodness of reconstruction, assuming that $\mathbf{z} \sim q$.
-* The 2nd term is the KL divergence of the variational distribution $q(\mathbf{z})$ w.r.t. the prior $p(\mathbf{z})$. i.e. We penalize those variational distributions that significantly deviate from the prior. $\to$ regularization effect.
+* The 2nd term measures the proximity of $q(\mathbf{z})$ to the prior $p(\mathbf{z})$. i.e. We penalize those variational distributions that significantly deviate from the prior. $\to$ regularization effect.
 * Maximizing the ELBO is a trade-off between maximizing the reconstruction fidelity and keeping variational distribution close to the prior. This is the key idea behind variational autoencoders (VAEs).
 
 *Proof*: Substitute $p(\mathbf{x},\mathbf{z}) = p(\mathbf{x} \mid \mathbf{z}) \cdot p(\mathbf{z})$ into the definition of ELBO, we conclude
@@ -208,6 +213,18 @@ $$
 &= \mathbb E_{\mathbf{z} \sim q} \left[ \log\frac{p(\mathbf{z})}{q(\mathbf{z})} + \log p(\mathbf{x} \mid \mathbf{z}) \right] \\
 &= \underbrace{\mathbb E_{\mathbf{z} \sim q} \left[ \log\frac{p(\mathbf{z})}{q(\mathbf{z})} \right]}_{- D_\text{KL}(q(\mathbf{z}) \parallel p(\mathbf{z}))} + \mathbb E_{\mathbf{z} \sim q} \left[ \log p(\mathbf{x} \mid \mathbf{z}) \right]
 \tag*{$\blacksquare$}
+\end{align*}
+$$
+
+If both the prior $p(\mathbf{z})$ and the variational distribution $q(\mathbf{z})$ are Gaussian, the KL divergence in the 2nd term can be computed in closed form. To compute the ELBO, we only need to apply MC esimation to the 1st term.
+
+$$
+\begin{align*}
+\mathcal L(q,\mathbf{x})
+&= \underbrace{
+  \mathbb E_{\mathbf{z} \sim q} \left[ \log p(\mathbf{x} \mid \mathbf{z}) \right]
+}_{\text{MC estimation}}
+- \underbrace{D_\text{KL}(q(\mathbf{z}) \parallel p(\mathbf{z}))}_{\text{closed-form}}
 \end{align*}
 $$
 
@@ -250,108 +267,206 @@ The entropy term, however, favors $q$ with higher entropy. In contrast, the Dira
 
 <img src="./figs/elbo_maximizer.pdf" alt="elbo maximizer" style="zoom:67%;" />
 
+Again, if the variational distribution $q(\mathbf{z})$ is Gaussian, the entropy in the 2nd term can be computed in closed form. To compute the ELBO, we only need to apply MC esimation to the 1st term.
+
+$$
+\begin{align*}
+\mathcal L(q,\mathbf{x})
+&= \underbrace{\mathbb E_{\mathbf{z} \sim q} \left[ \log p(\mathbf{x},\mathbf{z}) \right]}_{\text{MC estimation}}
++ \underbrace{H(q)}_{\text{closed form}}
+\end{align*}
+$$
+
 ## Gaussian Variational Distribution
 
 We use multivariate Gaussian as the variational distribution
 
 $$
 \begin{align*}
-q(\mathbf{z}) &= \mathcal N(\mathbf{z} ; \boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma})
+q(\mathbf{z}) &= \mathcal N(\mathbf{z} ; \boldsymbol{\mu}, \boldsymbol{\Sigma})
 \end{align*}
 $$
 
-The corresponding distribution class $\mathcal Q$ is
+The corresponding variational family $\mathcal Q$ is
 
 $$
 \begin{align*}
 \mathcal Q
-&= \{\mathcal N(\boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma}) \mid
-  \boldsymbol{\boldsymbol{\mu}}\in\mathbb R^\ell, \boldsymbol{\Sigma}\in\mathbb R^{\ell \times \ell}, \boldsymbol{\Sigma} \text{ is s.p.d.}
+&= \{\mathcal N(\boldsymbol{\mu}, \boldsymbol{\Sigma}) \mid
+  \boldsymbol{\mu}\in\mathbb R^\ell, \boldsymbol{\Sigma}\in\mathbb R^{\ell \times \ell}, \boldsymbol{\Sigma} \text{ is s.p.d.}
 \}
 \end{align*}
 $$
 
 Remarks:
 
-* "s.p.d." is short for *symmetric positive definite*.
-* Alternatively, we can shrink the distribution class $\mathcal Q$ by restricting it to diagonal Gaussian (also known as ***mean-field*** Gaussian) or even spherical Gaussian (also known as ***isotrophic*** Gaussian).
+* "s.p.d." stands for *symmetric positive definite*.
+* Here, we use full covariance matrix in $\mathcal Q$. Alternatively, we can shrink the variational family $\mathcal Q$ by restricting it to diagonal Gaussian (also known as ***mean-field*** Gaussian) or even spherical Gaussian (also known as ***isotropic*** Gaussian).
 
-TODO: summarize Cholesky factorization, Reparameterization Trick, and MC estimation of ELBO here. Avoid repetition in subsequentail sections.
-
-Each variational distribution $q$ is represented by its parameters $(\boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma})$. The ELBO, previously defined as a functional of $q$, now becomes a function of $(\boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma})$.
+Each variational distribution $q$ is represented by its parameters $(\boldsymbol{\mu}, \boldsymbol{\Sigma})$. The ELBO, previously defined as a functional of $q$, now becomes a function of $(\boldsymbol{\mu}, \boldsymbol{\Sigma})$.
 $$
 \begin{align}
-\mathcal L(\boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma},\mathbf{x})
-&= \mathbb E_{\mathbf{z} \sim \mathcal N(\boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma})} \left[ \log\frac{p(\mathbf{x},\mathbf{z})}{\mathcal N(\mathbf{z} ; \boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma})} \right]
+\mathcal L(\boldsymbol{\mu}, \boldsymbol{\Sigma},\mathbf{x})
+&= \mathbb E_{\mathbf{z} \sim \mathcal N(\boldsymbol{\mu}, \boldsymbol{\Sigma})} \left[ \log\frac{p(\mathbf{x},\mathbf{z})}{\mathcal N(\mathbf{z} ; \boldsymbol{\mu}, \boldsymbol{\Sigma})} \right]
 \end{align}
 $$
 
-or equivalently using the [3rd ELBO reformulation](#elbo-as-entropy-minus-free-energy)
+Next, we derive the ELBO into a form that can be optimized efficiently by exploiting properties of Gaussian distributions:
+
+1. Closed-form expression for entropy and KL divergence. $\to$ Only part of the ELBO needs to be estimated via MC sampling, reducing the variance.
+1. Allows reparameterization. $\to$ Enables gradient approximation in SGD.
+
+For a multivariate Gaussian $q(\mathbf{z}) = \mathcal N(\mathbf{z} ; \boldsymbol{\mu}, \boldsymbol{\Sigma}), \, \mathbf{z} \in \mathbb R^\ell$, the differential entropy is:
 
 $$
 \begin{align}
-\mathcal L(\boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma},\mathbf{x})
-&= \mathbb E_{\mathbf{z} \sim \mathcal N(\boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma})} \left[ \log p(\mathbf{x},\mathbf{z}) \right] + H(\mathcal N(\boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma}))
+H(q)
+&= -\mathbb E_{q(\mathbf{z})} \left[ \log q(\mathbf{z}) \right] \nonumber \\
+&= \frac{1}{2} \log \left[ (2\pi e)^\ell \det(\boldsymbol{\Sigma}) \right] \\
+&= \frac{1}{2} \log \left[ \det(\boldsymbol{\Sigma}) \right] + \frac{\ell}{2} \log (2\pi e) \\
+&= \log \left[ \det(\mathbf{L}) \right] + \frac{\ell}{2} \log (2\pi e)
 \end{align}
 $$
 
-The entropy of multivariate Gaussian has closed-form solution.
+where $\mathbf{L}$ is the Cholesky factor of $\boldsymbol{\Sigma}$, i.e. $\boldsymbol{\Sigma} = \mathbf{LL}^\top$.
+
+Using this entropy expression, we [reformulate the ELBO](#elbo-as-entropy-minus-free-energy) as
+
+$$
+\begin{align}
+\mathcal L(\boldsymbol{\mu}, \boldsymbol{\Sigma},\mathbf{x})
+&= \mathbb E_{\mathbf{z} \sim \mathcal N(\boldsymbol{\mu}, \boldsymbol{\Sigma})} \left[ \log p(\mathbf{x},\mathbf{z}) \right] + H(\mathcal N(\boldsymbol{\mu}, \boldsymbol{\Sigma}))
+\nonumber \\
+&= \mathbb E_{\mathbf{z} \sim \mathcal N(\boldsymbol{\mu}, \boldsymbol{\Sigma})} \left[ \log p(\mathbf{x},\mathbf{z}) \right] + \frac{1}{2} \log \left[ \det(\boldsymbol{\Sigma}) \right] + \text{const.}
+\end{align}
+$$
+
+### Reparameterization Trick
+
+The optimal Gaussian variational distribution is obtained by maximizing the ELBO:
 
 $$
 \begin{align*}
-H(\mathcal N(\boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma}))
-&= \frac{1}{2} \log\vert\boldsymbol{\Sigma}\vert + \underbrace{\frac{\ell}{2}\log(2\pi e)}_{\text{const.}}
+\max_{\boldsymbol{\mu}, \boldsymbol{\Sigma}} \:
+\mathbb E_{\mathbf{z} \sim \mathcal N(\boldsymbol{\mu}, \boldsymbol{\Sigma})} \left[ \log p(\mathbf{x},\mathbf{z}) \right] + \frac{1}{2} \log \left[ \det(\boldsymbol{\Sigma}) \right]
 \end{align*}
 $$
 
-The ELBO thus becomes
+To perform the optimization, we need the gradient of the ELBO. However, the expectation is taken w.r.t. $\mathbf{z} \sim \mathcal N(\boldsymbol{\mu}, \boldsymbol{\Sigma})$, which depends on the optimization variables. Hence, we cannot directly move the gradient inside the expectation and then compute the MC estimation of the gradient. This issue can be addressed in two ways:
+
+1. score function method: not covered here. $\to$ see notes *Gradient Approximation*.
+1. reparameterization trick: commonly used in variational inference.
+
+We reparameterize $\mathbf{z}$ as a deterministic transformation of a standard Gaussian:
 
 $$
 \begin{align}
-\mathcal L(\boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma},\mathbf{x})
-&= \mathbb E_{\mathbf{z} \sim \mathcal N(\boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma})} \left[ \log p(\mathbf{x},\mathbf{z}) \right] + \frac{1}{2} \log\vert\boldsymbol{\Sigma}\vert + \text{const.}
+\mathbf{z} = \boldsymbol{\mu} + \mathbf{L}\boldsymbol{\epsilon},
+\quad \boldsymbol{\epsilon} \sim \mathcal N(\mathbf{0}, \mathbf{I})
 \end{align}
 $$
 
-The best Gaussian variational distribution is obtained by maximizing the ELBO, or equivalently
+where $\mathbf{L}$ is the Cholesky factor of $\boldsymbol{\Sigma}$, i.e. $\boldsymbol{\Sigma} = \mathbf{LL}^\top$.
+
+Remarks:
+
+* The Cholesky factor $\mathbf{L}$ is a **lower triangular** matrix with **positive diagonal elements**.
+* After reparameterization, we treat $\boldsymbol{\mu}$ and $\mathbf{L}$ as the optimization variables instead of $\boldsymbol{\mu}$ and $\boldsymbol{\Sigma}$.
+
+The reparameterized ELBO and its gradient become:
 
 $$
 \begin{align}
-\max_{\boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma}}
-\mathbb E_{\mathbf{z} \sim \mathcal N(\boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma})} \left[ \log p(\mathbf{x},\mathbf{z}) \right] + \frac{1}{2} \log\vert\boldsymbol{\Sigma}\vert
-\end{align}
-$$
-
-Note that the expectation is taken w.r.t. $\mathbf{z} \sim \mathcal N(\boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma})$, which depends on the optimization variable. Hence, we need reparameterization trick by expressing $\mathbf{z}$ as a deterministic transformation of a standard Gaussian:
-
-$$
-\mathbf{z} = \boldsymbol{\boldsymbol{\mu}} + L\boldsymbol{\epsilon}
-$$
-
-where $\boldsymbol{\epsilon} \sim \mathcal N(\mathbf{0}, \mathbf{I})$ and $L$ is the Cholesky factor of $\boldsymbol{\Sigma}$. (i.e. $\boldsymbol{\Sigma} = \mathbf{LL}^\top$)
-
-The optimization problem then becomes
-
-$$
-\begin{align}
-\max_{\boldsymbol{\boldsymbol{\mu}}, \mathbf{L}}
-\mathbb E_{\boldsymbol{\epsilon} \sim \mathcal N(\mathbf{0}, \mathbf{I})} \left[ \log p(\mathbf{x},\mathbf{z}) \mid_{\mathbf{z} = \boldsymbol{\boldsymbol{\mu}} + L\boldsymbol{\epsilon}} \right] + \log\vert \mathbf{L} \vert
+\mathcal L(\boldsymbol{\mu}, \mathbf{L},\mathbf{x})
+&= \mathbb E_{\boldsymbol{\epsilon} \sim \mathcal N(\mathbf{0}, \mathbf{I})} \left[ \log p(\mathbf{x},\mathbf{z}) \big|_{\mathbf{z} = \boldsymbol{\mu} + \mathbf{L}\boldsymbol{\epsilon}} \right] + \log \left[ \det(\mathbf{L}) \right]
+\\
+\nabla_{\boldsymbol{\mu}, \mathbf{L}} \mathcal L(\boldsymbol{\mu}, \mathbf{L},\mathbf{x})
+&= \mathbb E_{\boldsymbol{\epsilon} \sim \mathcal N(\mathbf{0}, \mathbf{I})} \left[ \nabla_{\boldsymbol{\mu}, \mathbf{L}} \log p(\mathbf{x},\mathbf{z}) \big|_{\mathbf{z} = \boldsymbol{\mu} + \mathbf{L}\boldsymbol{\epsilon}} \right] + \nabla_{\boldsymbol{\mu}, \mathbf{L}} \log \left[ \det(\mathbf{L}) \right]
 \end{align}
 $$
 
 Remarks:
 
-* After reparameterization, we treat the Cholesky factor $L$ as the optimization variable instead of $\boldsymbol{\Sigma}$.
+* The constant term $\frac{\ell}{2} \log (2\pi e)$ from in the entropy $H(q)$ is discarded.
+* The determinant in $\log \left[ \det(\mathbf{L}) \right]$ is simply the product of diagonal elements of $\mathbf{L}$ because it is lower triangular.
+  $$
+  \begin{align}
+  \log \left[ \det(\mathbf{L}) \right]
+  &= \log \left(\prod_{i=1}^\ell L_{ii}\right) = \sum_{i=1}^\ell \log(L_{ii})
+  \end{align}
+  $$
+* Only the 1st term (negative free energy) in ELBO and its gradient require MC estimation.
+* We do not expand the chain rules of the gradient as they are handled by autodiff tools in practice.
 
-The objective function can be approximated by Monte Carlo sampling. Hence, we solve
+MC estimation of the ELBO and its gradient:
 
 $$
 \begin{align}
-\max_{\boldsymbol{\boldsymbol{\mu}}, \mathbf{L}}
-\frac{1}{M} \sum_{k=1}^M \log p(\mathbf{x}, \mathbf{z}^{(k)}) \mid_{\mathbf{z}^{(k)} = \boldsymbol{\boldsymbol{\mu}} + L\boldsymbol{\epsilon}^{(k)}} + \log\vert \mathbf{L} \vert
-\quad \text{ where } \boldsymbol{\epsilon}^{(k)} \sim \mathcal N(\mathbf{0}, \mathbf{I})
+\boldsymbol{\epsilon}^{(k)}
+&\stackrel{\text{iid}}{\sim} \mathcal N(\mathbf{0}, \mathbf{I}), \quad k = 1,\dots,m
+\\
+\mathbf{z}^{(k)}
+&= \boldsymbol{\mu} + \mathbf{L}\boldsymbol{\epsilon}^{(k)}, \quad k = 1,\dots,m
+\\
+\tilde{\mathcal L}(\boldsymbol{\mu}, \mathbf{L},\mathbf{x})
+&=
+\frac{1}{m} \sum_{k=1}^m \log p(\mathbf{x}, \mathbf{z}^{(k)}) + \log \left[ \det(\mathbf{L}) \right]
+\\
+\nabla_{\boldsymbol{\mu}, \mathbf{L}} \tilde{\mathcal L}(\boldsymbol{\mu}, \mathbf{L},\mathbf{x})
+&=
+\frac{1}{m} \sum_{k=1}^m \nabla_{\boldsymbol{\mu}, \mathbf{L}} \log p(\mathbf{x}, \mathbf{z}^{(k)}) + \nabla_{\boldsymbol{\mu}, \mathbf{L}} \log \left[ \det(\mathbf{L}) \right]
 \end{align}
 $$
+
+### Black-Box Variational Inference
+
+Putting everything together, we are able to maximize the ELBO using stochastic gradient descent. The resulting algorithm is called black box variational inference. The name reflects the black box nature that we do not compute the ELBO and its gradient in closed-form, but estimate them using MC sampling.
+
+---
+
+**Algorithm: BBVI with Gaussian variational distributions**  
+**Input**: observation $\mathbf{x} \in\mathbb R^d$, generative model $p(\mathbf{x}, \mathbf{z})$, learning rate $\{ \eta_t \}_{t=1}^{\infty}$  
+**Output**: $\boldsymbol{\mu} \in\mathbb R^\ell, \boldsymbol{\Sigma} \in\mathbb R^{\ell \times \ell}$  
+**Goal**: use $\mathcal N(\mathbf{z}; \boldsymbol{\mu},\boldsymbol{\Sigma})$ to approximate $p(\mathbf{z} \mid \mathbf{x})$
+
+Init $\boldsymbol{\mu} \in \mathbb R^\ell$ and $\mathbf{L} \in \mathbb R^{\ell \times \ell}$  
+While the SGD for $\boldsymbol{\mu}$ and $\mathbf{L}$ is not converged: do  
+$\quad$ Sample a mini-batch: $\boldsymbol{\epsilon}^{(1)}, \dots, \boldsymbol{\epsilon}^{(m)} \sim \mathcal N(0, I_{\ell})$  
+$\quad$ Reparameterization: $\mathbf{z}^{(k)} = \boldsymbol{\mu} + \mathbf{L}\boldsymbol{\epsilon}^{(k)}, \quad k = 1,\dots,m$  
+$\quad$ Estimate the ELBO and its gradient:
+
+$$
+\begin{align*}
+\tilde{\mathcal L}(\boldsymbol{\mu}, \mathbf{L})
+&=
+\frac{1}{m} \sum_{k=1}^m \log p(\mathbf{x}, \mathbf{z}^{(k)}) + \log \left[ \det(\mathbf{L}) \right]
+\\
+\nabla_{\boldsymbol{\mu}, \mathbf{L}} \tilde{\mathcal L}(\boldsymbol{\mu}, \mathbf{L})
+&=
+\frac{1}{m} \sum_{k=1}^m \nabla_{\boldsymbol{\mu}, \mathbf{L}} \log p(\mathbf{x}, \mathbf{z}^{(k)}) + \nabla_{\boldsymbol{\mu}, \mathbf{L}} \log \left[ \det(\mathbf{L}) \right]
+\end{align*}
+$$
+
+$\quad$ Update $\boldsymbol{\mu}$ and $\mathbf{L}$:
+
+$$
+\begin{align*}
+\boldsymbol{\mu} &\leftarrow \boldsymbol{\mu} + \eta_t \nabla_{\boldsymbol{\mu}} \mathcal L(\boldsymbol{\mu}, \mathbf{L}) \\
+\mathbf{L}   &\leftarrow \mathbf{L} + \eta_t \nabla_{\mathbf{L}} \mathcal L(\boldsymbol{\mu}, \mathbf{L}) \\
+\end{align*}
+$$
+
+Set $\boldsymbol{\Sigma} = \mathbf{L}\mathbf{L}^\top$
+
+return $\boldsymbol{\mu}, \boldsymbol{\Sigma}$
+
+---
+
+### Gaussian Prior
+
+Additional assumption: Gaussian prior on $z$.
+
+TODO: reformulate ELBO as regularized reconstruciton loss and apply the closed-form expression of KL divergence of Gaussian distributions.
 
 ## Dataset-Level ELBO
 
@@ -412,7 +527,7 @@ $$
 Remarks:
 
 * The (dataset) ELBO is a functional of $q_1, \dots, q_n$, which are **freely** chosen.
-* We assume that $q_1, \dots, q_n \in \mathcal Q$. i.e. All variational distributions belong to the same distribution class.
+* We assume that $q_1, \dots, q_n \in \mathcal Q$. i.e. All variational distributions belong to the same variational family.
 * Local variational distributions are used in classical variational inference.
 
 The optimal variational distributions are obtained by solving the functional optimization problems
@@ -426,7 +541,7 @@ $$
 Remarks:
 
 * Due to the additive structure of dataset ELBO, each $q_i$ can be optimized independently of each other.
-* In practice, $\mathcal Q$ is a parametric distribution class, e.g. Gaussian. Therefore, we turn this functional optimization problem into a parameter optimization problem.
+* In practice, $\mathcal Q$ is a parametric variational family, e.g. Gaussian. Therefore, we turn this functional optimization problem into a parameter optimization problem.
 
 Drawbacks:
 
@@ -491,8 +606,8 @@ $$
 
 This is again a functional optimization problem. In practice, we avoid dealing directly with a functional optimization problem by
 
-1. using parametric family $\mathcal Q$, e.g. multivariate Gaussian with parameter $(\boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma})$
-1. designing $f$ as a neural net with $\mathbf{x}$ as its input layer, and $(\boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma})$ as its output layer.
+1. using parametric family $\mathcal Q$, e.g. multivariate Gaussian with parameter $(\boldsymbol{\mu}, \boldsymbol{\Sigma})$
+1. designing $f$ as a neural net with $\mathbf{x}$ as its input layer, and $(\boldsymbol{\mu}, \boldsymbol{\Sigma})$ as its output layer.
 
 Learning $f$ boils down to training such a neual net.
 
@@ -506,7 +621,7 @@ Problem formulation:
 
 * Known: generative model $p(\mathbf{x},\mathbf{z}) = p(\mathbf{z}) \, p(\mathbf{x} \mid \mathbf{z})$
 * Given: training data $D = \{ \mathbf{x}_1, \cdots,  \mathbf{x}_n\} \stackrel{\text{iid}}{\sim} p(\mathbf{x}) = \int_z p(\mathbf{x},\mathbf{z}) \:\mathrm dz$.
-* Select: Gaussian variational family $\mathcal Q = \{ \mathcal N(\boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma}) \}$.
+* Select: Gaussian variational family $\mathcal Q = \{ \mathcal N(\boldsymbol{\mu}, \boldsymbol{\Sigma}) \}$.
 * Goal: maximize the dataset ELBO
 
 In the following, we will consider local variational distribution scheme and global variational distribution scheme. The dataset ELBO, previously defined as a functional over variational distributions, will be reformulated as a scalar-valued function of parameter vectors.
@@ -538,7 +653,7 @@ $$
 \end{align}
 $$
 
-Again, we apply reparameterization trick to allow Monte Carlo estimation of the objective
+Again, we apply reparameterization trick to allow MC estimation of the objective
 
 $$
 \begin{align}
@@ -592,7 +707,7 @@ return $\boldsymbol{\mu}_1,\dots,\boldsymbol{\mu}_n, \boldsymbol{\Sigma}_1,\dots
 
 Remarks:
 
-* This approach is essentially performing BBVI for each observation.
+* This approach is essentially performing BBVI iteratively for each observation.
 * The total \# parameters to be learned is $O(n\ell^2)$, which scales linearly with the dataset size $n$. This limits scalability for large datasets.
 * Local variational distributions provide high flexibility, as each variational distribution's mean and covariance are learned independently.
 
@@ -644,38 +759,36 @@ $$
 \\
 &= \mathbb E_{\mathbf{z} \sim q_{\boldsymbol{\phi}}(\cdot \mid \mathbf{x})} \left[ \log p(\mathbf{x},\mathbf{z}) \right] + H(q_{\boldsymbol{\phi}}(\cdot \mid \mathbf{x}))
 \\
-&= \mathbb E_{\boldsymbol{\epsilon} \sim \mathcal N(\mathbf{0}, \mathbf{I})} \left[ \log p(\mathbf{x},\mathbf{z}) \right] + \log\vert \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \vert,
+&= \mathbb E_{\boldsymbol{\epsilon} \sim \mathcal N(\mathbf{0}, \mathbf{I})} \left[ \log p(\mathbf{x},\mathbf{z}) \right] + \log\left[ \det \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \right],
 \quad \mathbf{z} = \boldsymbol{\mu}_{\boldsymbol{\phi}}(\mathbf{x}) + \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \cdot \boldsymbol{\epsilon}
 \end{align}
 $$
 
-The dataset ELBO becomes
+With $\mathbf{z} = \boldsymbol{\mu}_{\boldsymbol{\phi}}(\mathbf{x}) + \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \cdot \boldsymbol{\epsilon}$ for each $\mathbf{x} \in D$, the dataset ELBO is
 
 $$
 \begin{align}
 \mathcal L({\boldsymbol{\phi}}, D)
 &= \sum_{\mathbf{x}\in D} \mathcal L({\boldsymbol{\phi}}, \mathbf{x}) \\
 &= \sum_{\mathbf{x}\in D} \mathbb E_{\mathbf{z} \sim q_{\boldsymbol{\phi}}(\cdot \mid \mathbf{x})} \left[ \log\frac{p(\mathbf{x}, \mathbf{z})}{q_{\boldsymbol{\phi}}(\mathbf{z} \mid \mathbf{x})} \right] \\
-&= \sum_{\mathbf{x}\in D} \mathbb E_{\boldsymbol{\epsilon} \sim \mathcal N(\mathbf{0}, \mathbf{I})} \left[ \log p(\mathbf{x},\mathbf{z})  \right] + \log\vert \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \vert,
-\quad \mathbf{z} = \boldsymbol{\mu}_{\boldsymbol{\phi}}(\mathbf{x}) + \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \boldsymbol{\epsilon}
+&= \sum_{\mathbf{x}\in D} \mathbb E_{\boldsymbol{\epsilon} \sim \mathcal N(\mathbf{0}, \mathbf{I})} \left[ \log p(\mathbf{x},\mathbf{z})  \right] + \log\left[ \det \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \right]
 \\
-&= |D| \cdot \sum_{\mathbf{x}\in D} \frac{1}{|D|} \left[\mathbb E_{\boldsymbol{\epsilon} \sim \mathcal N(\mathbf{0}, \mathbf{I})} \left[ \log p(\mathbf{x},\mathbf{z}) \right] + \log\vert \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \vert \right],
-\quad \mathbf{z} = \boldsymbol{\mu}_{\boldsymbol{\phi}}(\mathbf{x}) + \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \boldsymbol{\epsilon}
-\nonumber \\
-&= |D| \cdot \mathbb E_{\mathbf{x} \sim \mathrm{Unif}(D)} \left[\mathbb E_{\boldsymbol{\epsilon} \sim \mathcal N(\mathbf{0}, \mathbf{I})} \left[ \log p(\mathbf{x},\mathbf{z}) \right] + \log\vert \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \vert \right],
-\quad \mathbf{z} = \boldsymbol{\mu}_{\boldsymbol{\phi}}(\mathbf{x}) + \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \boldsymbol{\epsilon}
+&= |D| \cdot \sum_{\mathbf{x}\in D} \frac{1}{|D|} \left[\mathbb E_{\boldsymbol{\epsilon} \sim \mathcal N(\mathbf{0}, \mathbf{I})} \left[ \log p(\mathbf{x},\mathbf{z}) \right] + \log\left[ \det \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \right] \right]
+\nonumber
+\\
+&= |D| \cdot \mathbb E_{\mathbf{x} \sim \mathrm{Unif}(D)} \left[\mathbb E_{\boldsymbol{\epsilon} \sim \mathcal N(\mathbf{0}, \mathbf{I})} \left[ \log p(\mathbf{x},\mathbf{z}) \right] + \log\left[ \det \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \right] \right]
 \end{align}
 $$
 
-Now, we apply MC estimation for $\mathcal L({\boldsymbol{\phi}}, D)$ and its gradient
+Again, the dataset ELBO and its gradient can be estimated via MC sampling.
 
 $$
 \begin{align}
 \tilde{\mathcal L}({\boldsymbol{\phi}}, D)
-&= \frac{|D|}{|B|} \sum_{\mathbf{x} \in B} \left[\frac{1}{m} \sum_{k=1}^m \log p(\mathbf{x},\mathbf{z}^{(k)}) + \log\vert \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \vert \right]
+&= \frac{|D|}{|B|} \sum_{\mathbf{x} \in B} \left[\frac{1}{m} \sum_{k=1}^m \log p(\mathbf{x},\mathbf{z}^{(k)}) + \log\left[ \det \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \right] \right]
 \\
 \nabla_{\boldsymbol{\phi}} \tilde{\mathcal L}({\boldsymbol{\phi}}, D)
-&= \frac{|D|}{|B|} \sum_{\mathbf{x} \in B} \left[\frac{1}{m} \sum_{k=1}^m \nabla_{\boldsymbol{\phi}} \log p(\mathbf{x},\mathbf{z}^{(k)}) + \nabla_{\boldsymbol{\phi}} \log\vert \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \vert \right]
+&= \frac{|D|}{|B|} \sum_{\mathbf{x} \in B} \left[\frac{1}{m} \sum_{k=1}^m \nabla_{\boldsymbol{\phi}} \log p(\mathbf{x},\mathbf{z}^{(k)}) + \nabla_{\boldsymbol{\phi}} \log\left[ \det \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \right] \right]
 \end{align}
 $$
 
@@ -707,7 +820,7 @@ $\qquad$ Compute the per-sample ELBO:
 $$
 \begin{align*}
 \tilde{\mathcal L}({\boldsymbol{\phi}}, \mathbf{x})
-&= \frac{1}{m} \sum_{k=1}^m \log p(\mathbf{x},\mathbf{z}^{(k)}) + \log\vert \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \vert
+&= \frac{1}{m} \sum_{k=1}^m \log p(\mathbf{x},\mathbf{z}^{(k)}) + \log\left[ \det \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \right]
 \end{align*}
 $$
 
@@ -756,7 +869,7 @@ These types can be mixed depending on the modeling goal. e.g. One might use an a
 
 ### Entropy of Gaussian
 
-For a multivariate Gaussian $p(\mathbf{x}) = \mathcal N(\mathbf{x} ; \boldsymbol{\boldsymbol{\mu}}, \boldsymbol{\Sigma}), \, \mathbf{x} \in \mathbb R^d$, the differential entropy is:
+For a multivariate Gaussian $p(\mathbf{x}) = \mathcal N(\mathbf{x} ; \boldsymbol{\mu}, \boldsymbol{\Sigma}), \, \mathbf{x} \in \mathbb R^d$, the differential entropy is:
 
 $$
 \begin{align}

@@ -26,15 +26,17 @@ Note: we assume $a_{-1} = a_n = - \infty$ at boundaries.
 
 **Example**: For $\mathbf a = [2, 1, 3, 4, 6, 1]$, the peak elements are 2 and 6. The algorithm might return either 0 or 4.
 
+### Existence of Peak Element
+
 Before we develop the algorithm, we first show the existence of peak element.
 
 > **Fact**: There is at least one peak element in $\mathbf a$.
 
 *Proof*: If $n=1$, then $a_0$ is the peak element due to boundary conditions.
 
-For $n > 1$, suppose (for the sake of contradicion) that there is no peak element in $\mathbf a$. Note that $a_0 > a_{-1}$ but $a_0$ is not a peak element. Hence, $a_1 \ge a_0$. Since $a_1 \ne a_0$, we must have $a_1 > a_0$.
+For $n > 1$, suppose (for the sake of contradicion) that there is no peak element in $\mathbf a$. Note that $a_0 > a_{-1}$ but $a_0$ is not a peak element. Hence, $a_1 \ge a_0$. Since $a_1 \ne a_0$, we must have $a_1 > a_0$. Similarly, $a_2 > a_1$.
 
-Using the same logic, we conclude that
+Repeating the same logic, we conclude that
 
 $$
 a_{n-1} > a_{n-2} > \dots > a_1 > a_0
@@ -51,6 +53,32 @@ The above fact can be generalized into
 > Then, there exist at least a peak element $a_p$ with $i \le p \le j$
 
 *Proof*: The logic is the same as before: The sequence can not be monotonic between $i-1$ and $j+1$. Details omitted. $\quad\blacksquare$
+
+### Binary Search
+
+We start by defining indices $\ell=0, r=n-1$. By boundary condition, we have the inequalities
+
+$$
+a_{\ell-1} < a_{\ell} \:\land\: a_{r} > a_{r+1}
+$$
+
+By previous analysis, we know there is at least a peak element between $a_\ell$ and $a_r$. To narrow down the range of peak elements, we consider
+
+$$
+a_m \stackrel{?}{\gtrless} a_{m+1}, \quad m = \left\lfloor \frac{r-\ell}{2}\right\rfloor
+$$
+
+* If $a_m > a_{m+1}$, we have
+  $$
+  a_{\ell-1} < a_{\ell}  \:\land\: a_m > a_{m+1}
+  $$
+  By the claim of existence of peak elements, we narrowed down the range of some peak element to $a_\ell,\dots,a_m$.
+
+* If $a_m < a_{m+1}$, we have
+  $$
+  a_m < a_{m+1}  \:\land\: a_{r} > a_{r+1}
+  $$
+  By the claim of existence of peak elements, we narrowed down the range of some peak element to $a_{m+1},\dots,a_r$
 
 ## Coin Change Problem
 
@@ -125,64 +153,79 @@ Issue with greedy approach: Does not work on $\mathcal C = \{7,5\}, \: A = 24$. 
 
 ### Dynamic Programming
 
-Let $f(\mathcal C, A)$ denote the minimum number of coins to make up $A$ using denominations in $\mathcal C$. We start with amount of 0. Now, we can choose any $c\in\mathcal C$. For each $c$, suppose we know $f(\mathcal C, A-c)$, then we can easily construct $f(\mathcal C, A)$ using the following optimal substructure:
+Let $f_{\mathcal C}(A)$ denote the minimum number of coins to make up $A$ using denominations in $\mathcal C$. We start with amount of 0. Now, we can choose any $c\in\mathcal C$. For each $c$, suppose we know $f_{\mathcal C}(A-c)$, then we can easily construct $f_{\mathcal C}(A)$ using the following optimal substructure:
 
 $$
 \begin{align}
-f(\mathcal C, A) =
-1 + \min_{c \in\mathcal C} f(\mathcal C, A-c)
+f_{\mathcal C}(A) =
+1 + \min_{c \in\mathcal C} f_{\mathcal C}(A-c)
 \end{align}
 $$
 
 Remarks:
 
-* If $f(\mathcal C, A-c)$ is not feasible for all $c\in\mathcal C$, then $f(\mathcal C, A)$ must also be infeasible.
+* If $f_{\mathcal C}(A-c)$ is not feasible for some $c\in\mathcal C$, then we set $f_{\mathcal C}(A-c) = \infty$.
 * DP allows us to use any $c\in\mathcal C$ at any time step. In contrast, greedy algorithm shrinks $\mathcal C$ progressively.
+* The optimal substracture is essentially Bellman optimality equation by considering $\mathcal C$ as the action set, and current accumulated amount as the state. The initial state is 0. Each action results in a cost of 1 (coin) regardless of current state.
 
-#### Implementation
+*Proof*: Suppose we solved $f_{\mathcal C}(A-c)$ for all $c \in \mathcal C$. For any $c\in\mathcal C$, we need one extra coin to make up $A$ from $A-c$. Hence, we choose $c$ which minimizes $f_{\mathcal C}(A-c)$. $\quad\blacksquare$
+
+Now, we develop the DP algorithm. Before we compute $f_{\mathcal C}(A)$, we must compute $f_{\mathcal C}(A-c)$ for all $c\in\mathcal C$ by optimal substructure. Recursively, we need to compute $f_{\mathcal C}(a)$ for even smaller $a$. Hence, we start with computing $f_{\mathcal C}(0)$, and then compute $f_{\mathcal C}(1), \dots, f_{\mathcal C}(A)$. To avoid repeated computation, we use memorization technique to store intermediate results.
+
+---
+
+**Input**: coin denominations $\mathcal C$, target amount $A$.  
+**Output**: $f_{\mathcal C}(a)$.  
+If $A=0$:  
+$\quad$ return 0.  
+// $A$ is at least 1.  
+Let $f_{\mathcal C}(0) = 0, \: f_{\mathcal C}(1) = \dots = f_{\mathcal C}(A) = \infty$.  
+For $a = 1,\dots,A$, do:  
+$\quad$ For each $c \in\mathcal C$, do:  
+$\qquad$ If $a-c \ge 0$:  
+$\qquad\quad$ Update $f_{\mathcal C}(a) \leftarrow \min(f_{\mathcal C}(a), 1+f_{\mathcal C}(a-c))$.  
+Return $f_{\mathcal C}(A)$
+
+---
+
+Implementation in C++: We return -1 instead of $\infty$ when the target amount is infeasible.
 
 ```c++
+#include <vector>
+using std::vector;
+
 class Solution {
 public:
-	int coinChange(vector<int>& coins, int amount) {
-		if(amount < 0) {
-			return -1; // infeasbile
-		}
-		
-		if(amount == 0) {
-			return 0; // trivial
-		}
-		
-		vector<int> result(amount+1, -1);
-		result[0] = 0;
-		
-		for(int a = 1; a <= amount; a++) {
-			bool feasible = false;
-			int count_remain = 1e6;
-			// compute the min number of coins to get a dollars
-			for(const auto& c : coins) {
-				int amount_remain = a - c;
-				if(amount_remain < 0) {
-					continue; // infeasible
-				}
-				if(result[amount_remain] == -1) {
-					continue; // infeasible
-				}
-				
-				// feasible
-				count_remain = min(count_remain, result[amount_remain]);
-				feasible = true;
-			}
-			
-			if(!feasible) {
-				result[a] = -1;
-			}
-			else{
-				result[a] = count_remain + 1;
-			}
-		}
-		
-		return result[amount];
-	}
+    int coinChange(vector<int>& coins, int amount) {
+        if(amount < 0) {
+            return -1; // infeasbile
+        }
+        
+        if(amount == 0) {
+            return 0; // trivial
+        }
+        
+        vector<int> result(amount+1, 1e6);
+        result[0] = 0;
+        
+        for(int a = 1; a <= amount; a++) {
+            // compute the min number of coins to get a dollars
+            for(const auto& c : coins) {
+                int remain_amount = a - c;
+                if(remain_amount < 0) {
+                    continue; // infeasible
+                }
+                if(result[remain_amount] == 1e6) {
+                    continue; // infeasible
+                }
+                
+                // feasible
+                result[a] = min(result[a], 1 + result[remain_amount]);
+            }
+            
+        }
+        
+        return (result[amount] == 1e6) ? -1 : result[amount];
+    }
 };
 ```

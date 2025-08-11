@@ -106,21 +106,52 @@ $$
 \end{align*}
 $$
 
-### Mean-Variance Optimization
+### Mean-Variance Optimization Problem
 
-TODO:
+The mean-variance optimization problem (by Markowitz) is given by
 
-* define the objective mean-variance optimization (Markowitz)
-* Remark: convexity
+$$
+\max_{\mathbf{w} \in \Delta^{n-1}}
+\mathbf{w}^\top \boldsymbol{\mu} - \frac{\lambda}{2} \mathbf{w}^\top \boldsymbol{\Sigma} \ \mathbf{w}
+$$
 
-### Other Objectives
+Remarks:
 
-TODO:
+* The objective is a concave quadratic function. The feasible region is a convex set.
+* $\lambda > 0$ is the ***risk-aversion parameter***. It controls the trade-off between return and risk:
+  * A large $\lambda$ prioritizes minimizing the volatility (risk)
+  * A small $\lambda$ prioritizes maximizing the expected return
 
-* max expected return while fixing the variance
-* min variance while fixing the expected mean
-* max sharpe ratio (non convex)
-* connection between each of problems above and Markowitz's problem (if there is any)
+Other common formulations of the portfolio optimization problem are:
+
+1. Maximizing expected return subject to a variance constraint
+    $$
+    \begin{align}
+    \max_{\mathbf{w} \in \Delta^{n-1}} & \quad \mathbf{w}^\top \boldsymbol{\mu} \\
+    \text{s.t.} & \quad \mathbf{w}^\top \boldsymbol{\Sigma} \, \mathbf{w} \le \sigma_{\max}^2
+    \end{align}
+    $$
+
+2. Minimizing variance subject to an expected return constraint
+    $$
+    \begin{align}
+    \min_{\mathbf{w} \in \Delta^{n-1}} & \quad \mathbf{w}^\top \boldsymbol{\Sigma} \, \mathbf{w} \\
+    \text{s.t.} & \quad \mathbf{w}^\top \boldsymbol{\mu} \ge \mu_{\min}
+    \end{align}
+    $$
+
+The mean–variance problem can be seen as the **Lagrangian formulation** of either of these constrained problems:
+
+- Starting from Problem 1, introduce a Lagrange multiplier $\frac{\lambda}{2}$ for the variance constraint; the constrained maximization becomes:
+    $$
+    \max_{\mathbf{w} \in \Delta^{n-1}}
+    \mathbf{w}^\top \boldsymbol{\mu} - \frac{\lambda}{2} \mathbf{w}^\top \boldsymbol{\Sigma} \, \mathbf{w}
+    $$
+    where $\lambda$ reflects the trade-off between return and variance.
+
+- Starting from Problem 2, introduce a Lagrange multiplier $\gamma$ for the expected return constraint; after rearranging, the same quadratic objective arises, with a different interpretation of the multiplier.
+
+In both cases, the parameter $\lambda$ (or equivalently $\gamma$) governs **risk aversion**: higher values penalize variance more heavily, while lower values place greater emphasis on maximizing return.
 
 ## Two-Asset Diversification
 

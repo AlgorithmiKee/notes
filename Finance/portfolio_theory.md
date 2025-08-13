@@ -5,9 +5,9 @@ date: "2025"
 fontsize: 12pt
 ---
 
-[toc]
-
 # Portfolio Theory
+
+[toc]
 
 ## Asset
 
@@ -143,16 +143,21 @@ $$
 Portfolio theory assumes that investors are rational in the following sense:
 
 - **Profit-seeking**: Given two assets with the same risk, the investor prefers the one with higher expected return.
-- **Risk-averse**: Given two assets with the same expected return, the investor prefers the one with lower variance.
+- **Risk-averse**: Given two assets with the same expected return, the investor prefers the one with lower volatility.
 
-To summarize, a rational investor would like a portfolio located in the top left corner of the mean-variance space.
-
-TODO: plot: A is right above B. C is left of B.
+<img src="./figs/portfolio_comparison.pdf" alt="Statistical Learning" style="zoom:100%;" />
 
 Consider three portfolio A, B, C in the above figure. A rational investor would
 
-* prefer A over B because they have the same variance but A has higher expected return
-* prefer C over B because they the same expected return but C has less variance.
+* prefer A over B because they have the same volatility but A has higher expected return
+* prefer C over B because they the same expected return but C has less volatility.
+
+To summarize, a rational investor would like a portfolio located in the top left corner of the mean-volatility space.
+
+Remarks:
+
+* For visuallizaiton, we often use mean-volatility space since they have the same unit (in %).
+* For mathemtical derivation, we apply mean-variance analysis because variance is algebraically cleaner to work with.
 
 Fundamental questions in portfolio theory:
 
@@ -164,11 +169,75 @@ Fundamental questions in portfolio theory:
 
 TODO:
 
-* simplify $\mu_p$ and $\sigma_2$ without applying Lagrangian
-* feasible region in mean-variance space
-* portfolio with minimum variance
+* Update to $(\mu, \sigma)$ space from $(\mu, \sigma^2)$ space.
 * suboptimal region
 * role of correlation
+
+We now consider portfolio consisting of two assets. For simplicity, we let
+$$
+w_1 = w, \quad w_2 = 1-w
+$$
+By [previous discussion](#formal-setup), we know
+$$
+\begin{align}
+\mu_p &= \mu_1 w + \mu_2 (1-w) \\
+\sigma_p^2 &= \sigma_1^2 w^2 + \sigma_2^2(1-w)^2 + 2\sigma_{12} w(1-w)
+\end{align}
+$$
+As we vary $w$, we obtain a curve (feasible set) in the mean-variance space. Each point on that curve represents a different porfolio. Assume $\mu_1 \ne \mu_2$, we can derive this curve by eliminating parameter $w$.
+$$
+\begin{align*}
+\mu_p = \mu_1 w + \mu_2 (1-w)
+\implies
+w = \frac{\mu_p - \mu_2}{\mu_1 - \mu_2}, \:
+1-w = \frac{\mu_1 - \mu_p}{\mu_1 - \mu_2}
+\end{align*}
+$$
+Plugging into the expression of $\sigma_p^2$, we obtain
+$$
+\sigma_p^2
+= \frac{\sigma_1^2(\mu_p - \mu_2)^2 + \sigma_2^2(\mu_1 - \mu_p)^2 + 2\sigma_{12}(\mu_p - \mu_2)(\mu_1 - \mu_p)}{(\mu_1 - \mu_2)^2}
+$$
+Hence:
+
+* If $\sigma_1^2 + \sigma_2^2 - 2\sigma_{12} \ne 0$, $\sigma_p^2$ is a quadratic function of $\mu_p$. $\implies$ The feasible set in the mean-variance space is a hyperbola.
+* If $\sigma_1^2 + \sigma_2^2 - 2\sigma_{12} = 0$, $\sigma_p^2$ is a linear function of $\mu_p$. $\implies$ The feasible set in the mean-variance space is a straight line.
+
+The condition $\sigma_1^2 + \sigma_2^2 - 2\sigma_{12} = 0$ holds iff $R_1 = R_2 + b$ for some constant $b$, i.e. two assets are essentially the same. $\sigma_1 = \sigma_2$ and $\rho_{12} = 1$.
+
+*Proof*: By AM–GM inequality and Cauchy-Schwarz inequality, we have
+$$
+\begin{align*}
+\sigma_1^2 + \sigma_2^2 - 2\sigma_{12}
+&\ge 2 \sigma_1 \sigma_2 - 2\sigma_{12}
+&& \text{eq.}\iff \sigma_1 = \sigma_2
+\\
+&\ge 0
+&& \text{eq.}\iff \rho_{12} = 1
+\end{align*}
+$$
+The condition $\sigma_1 = \sigma_2$ and $\rho_{12} = 1$ is equivalent to that $R_1$ differ from $R_2$ only by an additive constant. $\:\blacksquare$
+
+TODO: plot of feasible set in mean-variance space.
+
+### Minimum-Risk Portfolio
+
+Which portfolio has the minimum volatility? To answer this question, we let the gradient of the variance equal to zero.
+$$
+\frac{d\sigma_p^2}{dw} = 2\sigma_1^2 w - 2\sigma_2^2(1-w) + 2\sigma_{12} (1-2w) = 0
+$$
+Solving this equation, we get
+$$
+w^* = \frac{\sigma_2^2 - \sigma_{12}}{\sigma_1^2 + \sigma_2^2 - 2\sigma_{12}}
+$$
+The minimum variance is then
+$$
+\sigma_p^2(w^*) = \frac{\sigma_1^2 \sigma_2^2 - \sigma_{12}^2}{\sigma_1^2 + \sigma_2^2 - 2\sigma_{12}}
+$$
+The resulting expected return is
+$$
+\mu_p(w^*) = \frac{\sigma_2^2 \mu_1 + \sigma_1^2 \mu_2 - \sigma_{12}(\mu_1 + \mu_2)}{\sigma_1^2 + \sigma_2^2 - 2\sigma_{12}}
+$$
 
 ## Multi-Asset Diversification
 

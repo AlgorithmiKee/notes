@@ -16,14 +16,14 @@ fontsize: 12pt
 A single **asset** is modeled as a random variable $R$ representing its **rate of return** (typically expressed as a decimal or percentage). We define:
 
 * $\mu = \mathbb{E}[R]$: **expected return** of the asset  
-* $\sigma^2 = \mathbb{V}(R)$: **variance** of the asset's return  
-* $\sigma = \sqrt{\mathbb{V}(R)}$: **volatility** (standard deviation) of the asset's return  
+* $\sigma^2 = \mathbb{V}(R)$: **variance** of the asset'  
+* $\sigma = \sqrt{\mathbb{V}(R)}$: **volatility** (standard deviation) of the asset  
 
-Given an asset, we can take one of three main positions:
+Given an asset, an investor can take three main positions:
 
-* **Long** – Buy the asset in expectation that its price will rise in the future. This is the standard form of investment.  
-* **Short** – Borrow the asset and sell it immediately, expecting its price to fall so it can be repurchased later at a lower price and returned to the lender.  
-* **Leverage** – Use borrowed capital to buy more of the asset than you could otherwise afford, amplifying both potential gains and losses.  
+* **Long**: buy the asset expecting its price to rise. This is the standard form of investment.  
+* **Short**: Borrow the asset and sell it immediately, expecting its price to fall so it can be repurchased later at a lower price and returned to the lender.  
+* **Leverage**: Use borrowed capital to buy more of the asset than he could otherwise afford, amplifying both potential gains and losses.  
 
 ### Multiple Assets
 
@@ -50,7 +50,19 @@ where each $R_i$ represents the return of asset $i$. Analogously, we define
   \sigma_{ij} = \mathrm{Cov}(R_i, R_j)
   $$
 
-For each asset $i$, one can take a long, short, or leveraged position.
+* Correlation coefficient:
+  $$
+  \rho_{ij} = \frac{\sigma_{ij}}{\sigma_i \sigma_j}
+  $$
+
+Remarks:
+
+* For each asset $i$, one can take a long, short, or leveraged position.
+* The correlation coefficient describes how correlated two assets are. By Cauchy-Schwarz inequality, $-1 \le \rho_{ij} \le 1$.
+  * $\rho_{ij} > 0$: two assets are positively correlated. e.g. S&P 500 and Nasdaq indices.
+  * $\rho_{ij} = 0$: two assets are uncorrelated. e.g. Fine art and stocks.
+  * $\rho_{ij} < 0$: two assets are negatively correlated. e.g. Stocks and Bonds.
+  * $\rho_{ij} = \pm 1$: two assets are perfectly pos/neg correlated. Rare in real life.
 
 ## Portfolio
 
@@ -64,7 +76,7 @@ $$
 
 Remarks:
 
-* For now, we do not restict $w_i$ to be in $[0,1]$. This assumption leads to simpler mathematical results and has practical significance.
+* For now, we do not restrict $w_i$ to be in $[0,1]$. This assumption leads to simpler mathematical results and has practical significance.
 * $w_i < 0$ means we short-sell asset $i$. i.e. we borrow that asset and immediately sell it, obtaining extra cash.
 * $w_i > 1$ means we hold asset $i$ with leverage. i.e. we use borrowed capital to buy more of that asset.
 
@@ -111,7 +123,7 @@ $$
 \sigma_p^2 &\triangleq \mathbb{V}[R_p] = \mathbf{w}^\top \boldsymbol{\Sigma} \ \mathbf{w}
 \end{align}
 $$
-*Proof*: Here, we derive the expression of $\mathbb{V}[R_p] = \mathbf{w}^\top \boldsymbol{\Sigma}$.
+*Proof*: Here, we derive the expression of $\mathbb{V}[R_p] = \mathbf{w}^\top \boldsymbol{\Sigma}\ \mathbf{w}$.
 $$
 \begin{align*}
 \mathbb{V}[R_p]
@@ -142,10 +154,10 @@ $$
 
 Portfolio theory assumes that investors are rational in the following sense:
 
-- **Profit-seeking**: Given two assets with the same risk, the investor prefers the one with higher expected return.
-- **Risk-averse**: Given two assets with the same expected return, the investor prefers the one with lower volatility.
+* **Profit-seeking**: Given two assets with the same risk, the investor prefers the one with higher expected return.
+* **Risk-averse**: Given two assets with the same expected return, the investor prefers the one with lower volatility.
 
-<img src="./figs/portfolio_comparison.pdf" alt="Statistical Learning" style="zoom:100%;" />
+<img src="./figs/portfolio_comparison.pdf" alt="Portfolio Comparison" style="zoom:100%;" />
 
 Consider three portfolio A, B, C in the above figure. A rational investor would
 
@@ -156,27 +168,22 @@ To summarize, a rational investor would like a portfolio located in the top left
 
 Remarks:
 
-* For visuallizaiton, we often use mean-volatility space since they have the same unit (in %).
-* For mathemtical derivation, we apply mean-variance analysis because variance is algebraically cleaner to work with.
+* For visualization, we often use mean-volatility space since they have the same unit (in %).
+* For mathematical derivation, we apply mean-variance analysis because variance is algebraically cleaner to work with.
 
 Fundamental questions in portfolio theory:
 
-1. Which region in the mean-variance space is feasible?
+1. Which region in the mean-volatility space is feasible?
 2. Which part of feasible region represents suboptimal portfolio (and thus should be avoided)?
 3. How to specify optimal portfolio?
 
 ## Two-Asset Diversification
 
-TODO:
-
-* Update to $(\mu, \sigma)$ space from $(\mu, \sigma^2)$ space.
-* suboptimal region
-* role of correlation
-
 We now consider portfolio consisting of two assets. For simplicity, we let
 $$
 w_1 = w, \quad w_2 = 1-w
 $$
+
 By [previous discussion](#formal-setup), we know
 $$
 \begin{align}
@@ -184,7 +191,61 @@ $$
 \sigma_p^2 &= \sigma_1^2 w^2 + \sigma_2^2(1-w)^2 + 2\sigma_{12} w(1-w)
 \end{align}
 $$
-As we vary $w$, we obtain a curve (feasible set) in the mean-variance space. Each point on that curve represents a different porfolio. Assume $\mu_1 \ne \mu_2$, we can derive this curve by eliminating parameter $w$.
+
+Hence, the feasible set is a curve parameterized by $w$.
+
+$$
+\begin{align}
+\begin{bmatrix}
+\sigma_p \\
+\mu_p
+\end{bmatrix}
+=
+\begin{bmatrix}
+\sqrt{\sigma_1^2 w^2 + \sigma_2^2(1-w)^2 + 2\sigma_{12} w(1-w)} \\
+\mu_1 w + \mu_2 (1-w)
+\end{bmatrix}
+\end{align}
+$$
+
+Remarks:
+
+* As we change $w$, we move along the curve in the $(\sigma,\mu)$ space. Each $w$ corresponds to a point representing a portfolio. In particular, the feasible set always contains $(\sigma_1, \mu_1)$ and $(\sigma_2, \mu_2)$, meaning that we go all-in asset 1 $(w=1)$ or asset 2 $(w=0)$ respectively.
+* The shape of the curve depends on $\mu_1$, $\mu_2$, $\sigma_1$, $\sigma_2$ and $\sigma_{12}$. In nondegenerate case, the feasible set is a hyperbola.
+
+### Shape of Feasible Set
+
+Now, we will determine the shape of the feasible set in $(\sigma, \mu)$ space. 
+
+#### Assets with equal expected return
+
+If $\mu_1 = \mu_2 = \mu$, the feasible set simplifies to a horizontal line
+
+$$
+\begin{align}
+\begin{bmatrix}
+\sigma_p \\
+\mu_p
+\end{bmatrix}
+=
+\begin{bmatrix}
+\sqrt{\sigma_1^2 w^2 + \sigma_2^2(1-w)^2 + 2\sigma_{12} w(1-w)} \\
+\mu
+\end{bmatrix}
+\end{align}
+$$
+
+One interesting property is that we can make $\sigma_p$ lower than $\min\{\sigma_1, \sigma_2\}$ under certain conditions. e.g. Consider two uncorrelated assets with the same expected return $\mu$ and the same volatility $\sigma$. A portfolio with $w-1 = w_2 = \frac{1}{2}$ gives
+
+$$
+\sigma_p^2 = \frac{1}{2} \sigma^2 < \sigma^2
+$$
+
+Namely, even though two assets have the same expected return and volatility, the portfolio volatility can still be reduced by diversification. The reduction is even greater if these two assets are negatively correlated.
+
+#### Assets with different expected return
+
+Now, assume $\mu_1 \ne \mu_2$. We can eliminate parameter $w$ by
 $$
 \begin{align*}
 \mu_p = \mu_1 w + \mu_2 (1-w)
@@ -193,34 +254,144 @@ w = \frac{\mu_p - \mu_2}{\mu_1 - \mu_2}, \:
 1-w = \frac{\mu_1 - \mu_p}{\mu_1 - \mu_2}
 \end{align*}
 $$
-Plugging into the expression of $\sigma_p^2$, we obtain
-$$
-\sigma_p^2
-= \frac{\sigma_1^2(\mu_p - \mu_2)^2 + \sigma_2^2(\mu_1 - \mu_p)^2 + 2\sigma_{12}(\mu_p - \mu_2)(\mu_1 - \mu_p)}{(\mu_1 - \mu_2)^2}
-$$
-Hence:
-
-* If $\sigma_1^2 + \sigma_2^2 - 2\sigma_{12} \ne 0$, $\sigma_p^2$ is a quadratic function of $\mu_p$. $\implies$ The feasible set in the mean-variance space is a hyperbola.
-* If $\sigma_1^2 + \sigma_2^2 - 2\sigma_{12} = 0$, $\sigma_p^2$ is a linear function of $\mu_p$. $\implies$ The feasible set in the mean-variance space is a straight line.
-
-The condition $\sigma_1^2 + \sigma_2^2 - 2\sigma_{12} = 0$ holds iff $R_1 = R_2 + b$ for some constant $b$, i.e. two assets are essentially the same. $\sigma_1 = \sigma_2$ and $\rho_{12} = 1$.
-
-*Proof*: By AM–GM inequality and Cauchy-Schwarz inequality, we have
+Plugging into the expression of $\sigma_p^2$, we obtain the equation of feasible set:
 $$
 \begin{align*}
-\sigma_1^2 + \sigma_2^2 - 2\sigma_{12}
-&\ge 2 \sigma_1 \sigma_2 - 2\sigma_{12}
-&& \text{eq.}\iff \sigma_1 = \sigma_2
-\\
-&\ge 0
-&& \text{eq.}\iff \rho_{12} = 1
+-A\sigma_p^2 + B\mu_p^2 - 2C \mu_p + D = 0
 \end{align*}
 $$
-The condition $\sigma_1 = \sigma_2$ and $\rho_{12} = 1$ is equivalent to that $R_1$ differ from $R_2$ only by an additive constant. $\:\blacksquare$
 
-TODO: plot of feasible set in mean-variance space.
+where
+
+$$
+\begin{align*}
+A &= (\mu_1 - \mu_2)^2 \\
+B &= \sigma_1^2 + \sigma_2^2 - 2\sigma_{12} \\
+C &= \sigma_1^2 \mu_2 + \sigma_2^2 \mu_1 - \sigma_{12}(\mu_1 + \mu_2) \\
+D &= \sigma_1^2 \mu_2^2 + \sigma_2^2 \mu_1^2 - 2\sigma_{12}\mu_1 \mu_2
+\end{align*}
+$$
+
+First notice that
+
+$$
+B = \sigma_1^2 + \sigma_2^2 - 2\sigma_{12} \ge 0
+$$
+
+with the equality holds iff $\sigma_1 = \sigma_2$ and $\rho_{12} = 1$. i.e. Two assets have the same variance and are perfectly linearly correlated. ($\to$ See [Appendix](#non-negativity-of-variance) for proof)
+
+If $B=0$, it can be verified that $C=0$ and $D=\sigma^2A$ where $\sigma_1 = \sigma_2 = \sigma$. The equation becomes
+
+$$
+\begin{align*}
+-A\sigma_p^2 + \sigma^2A &= 0 \\
+\sigma_p^2 &= \sigma^2 \\
+\sigma_p &= \sigma
+\end{align*}
+$$
+
+The resulting feasible set is a vertical line in $(\sigma, \mu)$ space.
+
+If $B>0$, completing the square gives
+$$
+-A\sigma_p^2 + B\left( \mu_p - \frac{C}{B} \right)^2 + D - \frac{C^2}{B} = 0
+$$
+
+It can be verified that $D - \frac{C^2}{B} \ge 0$ with the equality iff $\rho_{12} = \pm 1$, i.e. Two assets are perfectly correlated (with different variances). Hence,
+
+1. If $D - \frac{C^2}{B} = 0$ or equivalently $\rho_{12} = \pm 1$, the feasible set is intersecting lines.
+1. If $D - \frac{C^2}{B} > 0$ or equivalently $\rho_{12} \ne \pm 1$, the feasible set is hyperbola.
+
+Summary: The shape of feasible region (assuming $\mu_1 \ne \mu_2$ and $w\in\mathbb R$)
+
+| Shape | $\rho_{12} = 1$ | $\rho_{12} = -1$ | $\rho_{12} \ne \pm 1$ |
+| ----- | --------------- | ---------------- | --------------------- |
+| $\sigma_1 = \sigma_2$ | vertical line | V-shaped lines | hyperbola |
+| $\sigma_1 \ne\sigma_2$ | V-shaped lines| V-shaped lines | hyperbola |
+
+**Case 1**: $\rho_{12} = 1$ and $\sigma_1 = \sigma_2 = \sigma$. Vertical line:
+
+$$
+\sigma_p = \sigma
+$$
+
+**Case 2**: $\rho_{12} = 1$ and $\sigma_1 \ne\sigma_2$. V-shaped line:
+
+$$
+\sigma_p = \left\vert\frac{\sigma_1 - \sigma_2}{\mu_1 - \mu_2}\right\vert \left\vert \mu_p - \frac{\sigma_1\mu_2 - \sigma_2\mu_1}{\sigma_1 - \sigma_2}\right\vert
+$$
+
+If we restrict $w\in[0,1]$, then the feasible set becomes a **single** line segment between $(\sigma_1, \mu_1)$ and $(\sigma_2, \mu_2)$.
+
+*Proof*: Consider the turning point
+
+$$
+\begin{align*}
+\tilde\mu
+&\triangleq \frac{\sigma_1\mu_2 - \sigma_2\mu_1}{\sigma_1 - \sigma_2} \\
+&= \frac{\sigma_1}{\sigma_1 - \sigma_2} \mu_2 + \frac{-\sigma_2}{\sigma_1 - \sigma_2} \mu_1 \\
+&= \lambda \mu_2 + (1-\lambda) \mu_1
+\end{align*}
+$$
+
+where $\lambda = \frac{\sigma_1}{\sigma_1 - \sigma_2}$. It is easy to verify that $\lambda<0$ or $\lambda>1$. Hence,
+
+$$
+\begin{align*}
+\tilde\mu < \min\{\mu_1, \mu_2\}
+\quad\lor\quad
+\tilde\mu > \max\{\mu_1, \mu_2\}
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+**Case 3**: $ \rho_{12} = -1$: V-shaped line:
+
+$$
+\sigma_p = \left\vert\frac{\sigma_1 + \sigma_2}{\mu_1 - \mu_2}\right\vert \left\vert \mu_p - \frac{\sigma_1\mu_2 + \sigma_2\mu_1}{\sigma_1 + \sigma_2}\right\vert
+$$
+
+If we restrict $w\in[0,1]$, then the feasible set becomes a **V-shaped** line segments between $(\sigma_1, \mu_1)$ and $(\sigma_2, \mu_2)$.
+
+*Proof*: Consider the turning point
+
+$$
+\begin{align*}
+\tilde\mu
+&\triangleq \frac{\sigma_1\mu_2 + \sigma_2\mu_1}{\sigma_1 + \sigma_2} \\
+&= \frac{\sigma_1}{\sigma_1 + \sigma_2} \mu_2 + \frac{\sigma_2}{\sigma_1 + \sigma_2} \mu_1 \\
+&= \lambda \mu_2 + (1-\lambda) \mu_1
+\end{align*}
+$$
+
+where $\lambda = \frac{\sigma_1}{\sigma_1 + \sigma_2}$. It is easy to verify that $0 < \lambda < 1$. Hence,
+
+$$
+\begin{align*}
+\min\{\mu_1, \mu_2\} < \tilde\mu < \max\{\mu_1, \mu_2\}
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+**Case 4**: $\rho_{12} \ne \pm 1$. Hyperbola:
+
+$$
+A\sigma_p^2 - B\left( \mu_p - \frac{C}{B} \right)^2 = D - \frac{C^2}{B}
+$$
+
+TODO:
+
+* can we simplify this expression to get more insights?
 
 ### Minimum-Risk Portfolio
+
+In this section, we assume
+
+$$
+\mu_1 < \mu_2, \: \sigma_1 < \sigma_2
+$$
+
+This typically refects the reality that assets with higher expected return are generally more risky.
 
 Which portfolio has the minimum volatility? To answer this question, we let the gradient of the variance equal to zero.
 $$
@@ -238,6 +409,15 @@ The resulting expected return is
 $$
 \mu_p(w^*) = \frac{\sigma_2^2 \mu_1 + \sigma_1^2 \mu_2 - \sigma_{12}(\mu_1 + \mu_2)}{\sigma_1^2 + \sigma_2^2 - 2\sigma_{12}}
 $$
+
+Consider the case where $\rho_{12} = 0$. Suppose we start by allocating the entire portfolio to asset 1 (the less risky asset). If we shift a small fraction from asset 1 to asset 2 (the riskier asset), we would both increase $\mu_p$ and reduce $\sigma_p$. This is counterintuitive at first glance:
+
+* adding some of the riskier asset actually **reduces** portfolio volatility
+* going all-in on the less risky asset is worse in both expected return and volatility.
+
+The intuition is that, with zero correlation, the fluctuations of asset 2 tend to occur independently of asset 1. When combined, the uncorrelated return streams partially offset each other’s variation, lowering the portfolio’s overall standard deviation.
+
+We can continue improving the portfolio by adding more fraction of asset 2 until we reached the minimum risk point $(\sigma_p(w^*), \mu_p(w^*))$. All points on the hyperbola below this point are strictly dominated and thus suboptimal.
 
 ## Multi-Asset Diversification
 
@@ -292,3 +472,53 @@ The mean–variance problem can be seen as the **Lagrangian formulation** of eit
 - Starting from Problem 2, introduce a Lagrange multiplier $\gamma$ for the expected return constraint; after rearranging, the same quadratic objective arises, with a different interpretation of the multiplier.
 
 In both cases, the parameter $\lambda$ (or equivalently $\gamma$) governs **risk aversion**: higher values penalize variance more heavily, while lower values place greater emphasis on maximizing return.
+
+## Limits of Diversification
+
+## Appendix
+
+### Non-negativity of Variance
+
+Let $\sigma_X^2$ , $\sigma_Y^2$ be the variance of random variables $X$, $Y$ repectively. Let $\sigma_{XY}$ be the covariance between $X$ and $Y$. Then, it holds that
+
+$$
+\begin{align}
+\sigma_X^2 + \sigma_Y^2 - 2\sigma_{XY}
+&\ge 0
+\end{align}
+$$
+
+where the equality holds iff $Y = X + b$ for some constant $b$.
+
+*Proof*: By AM–GM inequality and Cauchy-Schwarz inequality, we have
+$$
+\begin{align*}
+\sigma_X^2 + \sigma_Y^2 - 2\sigma_{XY}
+&\ge 2 \sigma_X \sigma_Y - 2\sigma_{XY}
+&& \text{eq.}\iff \sigma_X = \sigma_Y
+\\
+&\ge 0
+&& \text{eq.}\iff \rho_{XY} = 1
+\end{align*}
+$$
+
+The 1st condition $\rho_{XY} = 1$ is equivalent to that $Y$ and $X$ are perfectly linearly dependent:
+$$
+Y = aX + b, \quad a > 0, b \in\mathbb R
+$$
+
+The 2nd condition says that $a$ can only be 1. $\:\blacksquare$
+
+*Proof (alt.)*: Using the fact that
+
+$$
+\begin{align}
+\mathrm{Var}(X-Y)
+&= \mathrm{Var}(X) + \mathrm{Var}(Y) - 2\mathrm{Cov}(X,Y) \\
+&= \sigma_X^2 + \sigma_Y^2 - 2\sigma_{XY}
+\\
+&\ge 0
+\end{align}
+$$
+
+The equality holds iff $X-Y = \mathbb E[X-Y]$ almost surely. Namely, the constant $b$ in the previous proof can't simply be an arbitray number. $\:\blacksquare$

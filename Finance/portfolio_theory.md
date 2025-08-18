@@ -235,7 +235,7 @@ $$
 \end{align}
 $$
 
-One interesting property is that we can make $\sigma_p$ lower than $\min\{\sigma_1, \sigma_2\}$ under certain conditions. e.g. Consider two uncorrelated assets with the same expected return $\mu$ and the same volatility $\sigma$. A portfolio with $w-1 = w_2 = \frac{1}{2}$ gives
+One interesting property is that we can make $\sigma_p$ lower than $\min\{\sigma_1, \sigma_2\}$ under certain conditions. e.g. Consider two uncorrelated assets with the same expected return $\mu$ and the same volatility $\sigma$. A portfolio with $w_1 = w_2 = \frac{1}{2}$ gives
 
 $$
 \sigma_p^2 = \frac{1}{2} \sigma^2 < \sigma^2

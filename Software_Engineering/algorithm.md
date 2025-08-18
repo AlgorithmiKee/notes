@@ -6,7 +6,127 @@ date: "2025"
 
 # Algorithms
 
+[toc]
+
+## Max Contained Water
+
+> [Leetcode 11. Container With Most Water](https://leetcode.com/problems/container-with-most-water/description/)  
+> Keywords: Two pointers, Array
+
+Let $\mathbf{a} = [a_0, \dots, a_{n-1}]$ be an array of non-negative integers. We interpret $a_k$ as the height of a vertical line located at position $k$ on the x-axis. For any two indices $i,j$, the container formed by the two lines and the x-axis can hold water up to
+
+* width: $\vert i - j \vert$
+* height: $\min\{ a_i, a_j \}$
+
+The amount of water is quantified by the area of this rectangle.
+
+**Goal**: Return the maximum amount of water a container can store.
+
+**Constraints**:
+
+* $2 \le n \le 10^5$
+* $0 \le a_i \le 10^4, \quad \forall i = 0,\dots,n-1$
+
+### Brute Force
+
+Without loss of generality, assume $i < j$. By definition, the amount of water contained between $i,j$ is the area
+
+$$
+A(i,j) = (j-i) \cdot \min\{ a_i, a_j \},\quad
+0 \le i < j \le n-1
+$$
+
+A brute force approach is to compute $A(i,j)$ for every possible combination of $i$ and $j$, leading to time complexity $O(n^2)$.
+
+### Two Pointer
+
+We start with the rectangle with maximum width:
+
+$$
+A(\ell,r) = (r-\ell) \cdot \min\{ a_\ell, a_r \},\quad
+\ell = 0, \: r = n-1
+$$
+
+As we move the left pointer $\ell$ and right pointer $r$ closer together, we shrink the width of the rectangle but potentially increase the height of the rectangle. The following claim can help us move these pointers efficiently.
+
+> Suppose $a_\ell \le a_r$. Then, for any $k$ with $\ell < k < r$,
+>
+> $$
+>  A(\ell,k) \le A(\ell,r)
+> $$
+
+Remarks:
+
+* If $a_\ell \le a_r$, moving the right pointer leftwards will never increase the area. Hence, once we computed $A(\ell,r)$, there is no need to compute $A(\ell,k)$ for any $k < r$.
+* The only way to potentially improve the area is to move the left pointer rightwards, hoping $a_{\ell+1}$ could be higher.
+
+*Proof*: By assumption that $a_\ell \le a_r$, the height is bottlenecked by the left pointer $\ell$:
+
+$$
+A(\ell,r) = (r-\ell) \cdot a_\ell
+$$
+
+If we move the right pointer $r$ leftwards to $k$, the width obviously shrinks:
+
+$$
+\underbrace{k - \ell}_{\text{new width}} < \underbrace{r - \ell}_{\text{old width}}
+$$
+
+The height can not be improved either because
+
+$$
+\underbrace{\min\{ a_\ell, a_k \}}_{\text{new height}}
+\le a_\ell =
+\underbrace{\min\{ a_\ell, a_r \}}_{\text{old height}}
+$$
+
+Hence, the new area can't not be greater the old one.
+
+$$
+\begin{align*}
+A(\ell,k)
+&= (k - \ell) \cdot \min\{ a_\ell, a_k \} \\
+&\le (r - \ell) \cdot  a_\ell \\
+&= A(\ell,r)
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+> Similarly, if $a_\ell \ge a_r$, then for any $k$ with $\ell < k < r$,
+>
+> $$
+>  A(k,r) \le A(\ell,r)
+> $$
+
+Namely, if $a_\ell \ge a_r$, we can not improve the area by moving the left pointer while keeping the right pointer fixed.
+
+To summarize, we can not improve the area by moving the pointer at $\max\{a_\ell, a_r\}$ while keeping the other pointer fixed. The only way to potentially compensate the reduced width is to move the pointer at $\min\{a_\ell, a_r\}$, hoping to find a taller line.
+
+After moving the poiner, we re-compare $a_\ell$ and $a_r$ and repeat the above procedure as long as $\ell < r$. This approach has the time complexity $O(n)$.
+
+Implementation in C++:
+
+```c++
+int maxArea(vector<int>& height) {
+    int l = 0, r = height.size() - 1;
+    int Amax = 0;
+    while (l < r) {
+        int h = min(height[l], height[r]);
+        Amax = max(Amax, (r - l) * h);
+        if (height[l] <= height[r]) {
+            l++;
+        } else {
+            r--;
+        }
+    }
+    return Amax;
+}
+```
+
 ## Peak Element
+
+> [Leetcode 162. Container With Most Water](https://leetcode.com/problems/find-peak-element/description/)  
+> Keywords: Binary search, Array
 
 Let array $\mathbf a = [a_0, \dots, a_{n-1}], \: n \ge 1$ be such that
 
@@ -81,6 +201,9 @@ $$
   By the claim of existence of peak elements, we narrowed down the range of some peak element to $a_{m+1},\dots,a_r$
 
 ## Coin Change Problem
+
+> [Leetcode 322. Container With Most Water](https://leetcode.com/problems/coin-change/)  
+> Keywords: Dynamic programming.
 
 Given a set $\mathcal C$ of coin denominations and a target amount $A$. What is the minimum number of coins we need to make up that amount?
 

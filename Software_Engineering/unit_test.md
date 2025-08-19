@@ -1,4 +1,12 @@
+---
+title: "Unit Test"
+author: "Ke Zhang"
+date: "2023"
+---
+
 # Unit Test
+
+[toc]
 
 ## Test a single function
 

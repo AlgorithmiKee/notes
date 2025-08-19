@@ -1,4 +1,12 @@
+---
+title: "Gaussian Bayes Classifiers"
+date: "2024"
+author: "Ke Zhang"
+---
+
 # Gaussian Bayes Classifiers
+
+[toc]
 
 In (two-class) logistic regression, we used the discriminative modeling $p(y \vert \mathbf{x})$​ by assuming Bernoulli-distributed label noises. Now, we will use generative approach to solve classification problems.
 
@@ -10,8 +18,6 @@ Some philosophy:
 * **Generative modeling**: estimate $p( \mathbf{x},y)=p(y)p(\mathbf{x} \vert y)$. Once we estimated $p( \mathbf{x},y)$, we can use the Bayes rule to derive $p( y \vert \mathbf{x})$, which is used for prediction. Mostly used in classification. Examples:
   * Species "generates" features like size, weight, color.
   * Integers "generates" images of hand-written digits.
-
-[toc]
 
 Notation:
 

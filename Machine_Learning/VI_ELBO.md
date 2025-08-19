@@ -4,14 +4,14 @@ date: "2025"
 author: "Ke Zhang"
 ---
 
-[toc]
-
 $$
 \DeclareMathOperator*{\argmax}{argmax}
 \DeclareMathOperator*{\argmin}{argmin}
 $$
 
 # Variational Inference and Evidence Lower Bound
+
+[toc]
 
 ## Motivation
 
@@ -462,12 +462,6 @@ return $\boldsymbol{\mu}, \boldsymbol{\Sigma}$
 
 ---
 
-### Gaussian Prior
-
-Additional assumption: Gaussian prior on $z$.
-
-TODO: reformulate ELBO as regularized reconstruciton loss and apply the closed-form expression of KL divergence of Gaussian distributions.
-
 ## Dataset-Level ELBO
 
 [Previously](#the-evidence-lower-bound), we derived the ELBO $\mathcal L(q,\mathbf{x})$ for a single observation $\mathbf{x}$. From now on, let's call it **per-sample** ELBO (or **per-observation** ELBO).
@@ -874,13 +868,13 @@ For a multivariate Gaussian $p(\mathbf{x}) = \mathcal N(\mathbf{x} ; \boldsymbol
 $$
 \begin{align}
 H(p)
-&= -\int p(\mathbf{x}) \log p(\mathbf{x}) \, dx \\
+&= -\mathbb E_{\mathbf{x} \sim p} \left[ \log p(\mathbf{x}) \right] \\
 &= \frac{1}{2} \log \left[ (2\pi e)^d \det(\boldsymbol{\Sigma}) \right] \\
 &= \frac{1}{2} \log \left[ \det(\boldsymbol{\Sigma}) \right] + \frac{d}{2} \log (2\pi e) \\
 \end{align}
 $$
 
-Let $L$ (lower triangular) be the Cholesky factor of the covariance matrix, i.e. $\boldsymbol{\Sigma} = L L^\top$. Then,
+Let $\mathbf{L}$ (lower triangular) be the Cholesky factor of the covariance matrix, i.e. $\boldsymbol{\Sigma} = \mathbf{LL}^\top$. Then,
 
 $$
 \begin{align*}

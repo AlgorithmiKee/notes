@@ -1,4 +1,13 @@
+---
+title: "Bias-Variance Trade-Off"
+author: "Ke Zhang"
+date: "2024"
+fontsize: 12pt
+---
+
 # Bias-Variance Trade-Off
+
+[toc]
 
 ## Motivation
 

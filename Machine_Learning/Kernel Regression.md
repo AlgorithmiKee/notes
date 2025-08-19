@@ -1,3 +1,9 @@
+---
+title: "Kernel Regression"
+date: "2024"
+author: "Ke Zhang"
+---
+
 # Kernel Regression
 
 [toc]

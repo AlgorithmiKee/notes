@@ -1,3 +1,9 @@
+---
+title: "GMM"
+date: "2024"
+author: "Ke Zhang"
+---
+
 # Gaussian Mixture Model
 
 [toc]

@@ -1,4 +1,12 @@
+---
+title: "PCA"
+author: "Ke Zhang"
+date: "2023"
+fontsize: 12pt
+---
 # Principle Components Analysis
+
+[toc]
 
 ## Motivation
 

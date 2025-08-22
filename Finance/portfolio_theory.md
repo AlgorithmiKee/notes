@@ -103,6 +103,7 @@ Let
 * $\boldsymbol{\mu}$ and $\boldsymbol{\Sigma}$ denote the mean and covariance matrix of $\mathbf{R}$.
 
 A portfolio is then represented by a vector $\mathbf{w}$ s.t.
+
 $$
 \begin{align}
 \mathbf{1}^\top \mathbf{w} &= 1
@@ -110,25 +111,29 @@ $$
 $$
 
 The return of the portfolio is defined as
+
 $$
 \begin{align}
 R_p
 &= \mathbf{w}^\top \mathbf{R}
 \end{align}
 $$
+
 The expected return and the variance of the portfolio is then
+
 $$
 \begin{align}
 \mu_p &\triangleq \mathbb E[R_p] = \mathbf{w}^\top \boldsymbol{\mu} \\
 \sigma_p^2 &\triangleq \mathbb{V}[R_p] = \mathbf{w}^\top \boldsymbol{\Sigma} \ \mathbf{w}
 \end{align}
 $$
+
 *Proof*: Here, we derive the expression of $\mathbb{V}[R_p] = \mathbf{w}^\top \boldsymbol{\Sigma}\ \mathbf{w}$.
+
 $$
 \begin{align*}
 \mathbb{V}[R_p]
 &= \mathbb E[R_p^2] - \mathbb E[R_p]^2 \\
-&= \mathbb E[R_p R_p^\top] - \mathbb E[R_p] \mathbb E[R_p]^\top \\
 &= \mathbb E[\mathbf{w}^\top \mathbf{R} \mathbf{R}^\top \mathbf{w}] - \mathbf{w}^\top \boldsymbol{\mu}  \boldsymbol{\mu}^\top \mathbf{w} \\
 &= \mathbf{w}^\top \underbrace{
     \left(\mathbb E[\mathbf{R} \mathbf{R}^\top] - \boldsymbol{\mu}  \boldsymbol{\mu}^\top \right)
@@ -138,6 +143,7 @@ $$
 $$
 
 Equivalent scalar notation:
+
 $$
 \begin{align}
 R_p &= \sum_{i=1}^n w_i R_i \\
@@ -162,9 +168,9 @@ Portfolio theory assumes that investors are rational in the following sense:
 Consider three portfolio A, B, C in the above figure. A rational investor would
 
 * prefer A over B because they have the same volatility but A has higher expected return
-* prefer C over B because they the same expected return but C has less volatility.
+* prefer C over B because they have the same expected return but C has less volatility.
 
-To summarize, a rational investor would like a portfolio located in the top left corner of the mean-volatility space.
+To summarize, a rational investor would like a portfolio located in the top left region of the mean-volatility space.
 
 Remarks:
 
@@ -180,11 +186,13 @@ Fundamental questions in portfolio theory:
 ## Two-Asset Diversification
 
 We now consider portfolio consisting of two assets. For simplicity, we let
+
 $$
 w_1 = w, \quad w_2 = 1-w
 $$
 
-By [previous discussion](#formal-setup), we know
+From [formal setup](#formal-setup), we know
+
 $$
 \begin{align}
 \mu_p &= \mu_1 w + \mu_2 (1-w) \\
@@ -210,14 +218,258 @@ $$
 
 Remarks:
 
-* As we change $w$, we move along the curve in the $(\sigma,\mu)$ space. Each $w$ corresponds to a point representing a portfolio. In particular, the feasible set always contains $(\sigma_1, \mu_1)$ and $(\sigma_2, \mu_2)$, meaning that we go all-in asset 1 $(w=1)$ or asset 2 $(w=0)$ respectively.
-* The shape of the curve depends on $\mu_1$, $\mu_2$, $\sigma_1$, $\sigma_2$ and $\sigma_{12}$. In nondegenerate case, the feasible set is a hyperbola.
+* As $w$ varies, the portfolio moves along the curve in $(\sigma, \mu)$ space. Each $w$ corresponds to a unique portfolio.
+* The feasible set always includes the points $(\sigma_1, \mu_1)$ and $(\sigma_2, \mu_2)$, corresponding to going all-in on asset 1 ($w=1$) or asset 2 ($w=0$), respectively.
+
+### Minimum-Risk Portfolio
+
+Which portfolio achieves the lowest volatility? To answer this question, we let the gradient of the variance equal to zero.
+
+$$
+\begin{align}
+\frac{d\sigma_p^2}{dw} = 2\sigma_1^2 w - 2\sigma_2^2(1-w) + 2\sigma_{12} (1-2w) = 0
+\end{align}
+$$
+
+Solving this equation, we get
+
+$$
+\begin{align}
+w^* = \frac{\sigma_2^2 - \sigma_{12}}{\sigma_1^2 + \sigma_2^2 - 2\sigma_{12}}
+\end{align}
+$$
+
+The minimum variance is then
+
+$$
+\begin{align}
+\sigma_p^2(w^*) = \frac{\sigma_1^2 \sigma_2^2 - \sigma_{12}^2}{\sigma_1^2 + \sigma_2^2 - 2\sigma_{12}}
+\end{align}
+$$
+
+The corresponding expected return is
+$$
+\begin{align}
+\mu_p(w^*) = \frac{\sigma_2^2 \mu_1 + \sigma_1^2 \mu_2 - \sigma_{12}(\mu_1 + \mu_2)}{\sigma_1^2 + \sigma_2^2 - 2\sigma_{12}}
+\end{align}
+$$
+
+It is easy to verify that
+
+$$
+\begin{align}
+\sigma_p^2(w^*) &\le \min\{\sigma_1^2, \sigma_2^2\}, \quad \forall w \in\mathbb R \\
+\mu_p(w^*) &\ge \min\{\mu_1, \mu_2\}, \quad \forall w \in[0,1]
+\end{align}
+$$
+
+Namely, the minimum variance portfolio
+
+* has no higher volatility than the less risky asset
+* gives a return that is no worse than the less rewarding asset.
 
 ### Shape of Feasible Set
 
-Now, we will determine the shape of the feasible set in $(\sigma, \mu)$ space. 
+The shape of the feasible set depends on $\mu_1$, $\mu_2$, $\sigma_1$, $\sigma_2$ and $\rho_{12}$
 
-#### Assets with equal expected return
+1. If $\mu_1 = \mu_2$, the feasible set is a horizontal line that is left-bounded by the minimum variance point and unbounded to the right.
+2. If $\mu_1 \ne \mu_2$, the shape of feasible set is summarized below.
+
+| Shape | $\rho_{12} = 1$ | $\rho_{12} = -1$ | $\rho_{12} \ne \pm 1$ |
+| ----- | --------------- | ---------------- | --------------------- |
+| $\sigma_1 = \sigma_2$ | vertical line | V-shaped lines | Hyperbola |
+| $\sigma_1 \ne\sigma_2$ | V-shaped lines| V-shaped lines | Hyperbola |
+
+Remarks:
+
+* The summary assumes $w \in \mathbb R$, i.e. short-selling and leverage are possible. See [appendix](#proof-shape-of-two-asset-feasible-set) for a proof.
+* If we restrict to long-only portfolios ($w \in [0,1]$), the feasible set becomes a segment of the curve connecting $(\sigma_1, \mu_1)$ and $(\sigma_2, \mu_2)$.
+
+### Suboptimal Portfolios and the Efficient Frontier
+
+Assume
+
+$$
+\mu_1 < \mu_2, \: \sigma_1 < \sigma_2
+$$
+
+This reflects the typical tradeoff that assets with higher expected returns also tend to have higher risk.
+
+Consider the case where $\rho_{12} \ne 1$. Suppose we start by allocating the entire portfolio to asset 1 (the less risky asset). If we shift a small fraction from asset 1 to asset 2 (the riskier asset), the portfolio’s expected return $\mu_p$ increases while volatility $\sigma_p$ actually decreases. Namely,
+
+> **Diversification help reduce volatility**.
+
+This is counterintuitive at first glance:
+
+* Adding a bit of riskier asset **reduces** overall portfolio volatility.
+* Going all-in on the less risky asset is strictly worse (lower return and higher risk).
+
+When assets are not perfectly positively correlated ($\rho_{12} \ne 1$), their return fluctuations tend to offset each other. This diversification effect reduces overall variance. The reduction of variance is even higher if two assets are negatively correlated ($\rho_{12} < 0$).
+
+Therefore, on the hyperbola:
+
+* All points below the minimum variance point are strictly dominated—they offer lower returns for higher risk. The corresponding portfolios are suboptimal.
+* The segment above the minimum variance point is known as the ***efficient frontier***. Portfolios on this frontier cannot be improved in both risk and return simultaneously. Moving upward along the frontier means accepting more risk in exchange for higher expected return.
+
+## Multi-Asset Diversification
+
+Now, consider a portfolio consisting of $n$ assets. Without loss of generality, assume
+
+$$
+\mu_1 \le \dots \le \mu_n, \quad \sigma_1 \le \dots \le \sigma_n
+$$
+
+The feasible set is
+
+$$
+\begin{align}
+\begin{bmatrix}
+  \sigma_p \\ \mu_p
+\end{bmatrix}
+&=
+\begin{bmatrix}
+  \sqrt{\mathbf{w}^\top \boldsymbol{\Sigma} \ \mathbf{w}} \\
+  \mathbf{w}^\top \boldsymbol{\mu}  \\
+\end{bmatrix}
+\quad
+\text{s.t.} \quad \mathbf{1}^\top \mathbf{w} = 1
+\end{align}
+$$
+
+Unless otherwise specified, we allow short-selling and leverage. i.e., we can choose $\mathbf{w}$ freely on the entire hyperplane $\mathbf{1}^\top \mathbf{w} = 1$.
+
+Unlike two-assets model, the feasible set is no longer a curve but an area in $(\sigma, \mu)$ space when the number of assets is larger than 2. In fact, the portfolio variance is unbounded when we allow short selling and leverage.  
+$\to$ See [appendix](#proof-unbounded-variance-of-multi-asset-portfolio) for a proof.
+
+### Mean-Variance Optimization
+
+Can we minimize the portfolio variance for a fixed exptected return $m$? Formally, we would like to solve the optimization problem
+
+$$
+\begin{align}
+\min_{\mathbf{w}} & \quad \mathbf{w}^\top \boldsymbol{\Sigma} \, \mathbf{w} \\
+\text{s.t.} & \quad \boldsymbol{\mu}^\top \mathbf{w} = m, \quad \mathbf{1}^\top \mathbf{w} = 1
+\end{align}
+$$
+
+The corresponding Lagrangian is
+
+$$
+\begin{align}
+L(\mathbf{w}, \alpha, \beta) =
+\mathbf{w}^\top \boldsymbol{\Sigma} \ \mathbf{w} - \alpha(\boldsymbol{\mu}^\top \mathbf{w} - m) - \beta(\mathbf{1}^\top \mathbf{w} - 1)
+\end{align}
+$$
+
+Setting $\nabla_{\mathbf{w}} L = \mathbf{0}$ yields
+
+$$
+\begin{align}
+2 \boldsymbol{\Sigma} \mathbf{w} - \alpha\boldsymbol{\mu} - \beta\mathbf{1} &= \mathbf{0} \\
+\mathbf{w} &= \frac{1}{2} \boldsymbol{\Sigma}^{-1} (\alpha\boldsymbol{\mu} + \beta\mathbf{1})
+\end{align}
+$$
+
+### TODO: (Re)moved
+
+The mean-variance optimization problem (by Markowitz) is given by
+
+$$
+\max_{\mathbf{w} \in \Delta^{n-1}}
+\mathbf{w}^\top \boldsymbol{\mu} - \frac{\lambda}{2} \mathbf{w}^\top \boldsymbol{\Sigma} \ \mathbf{w}
+$$
+
+Remarks:
+
+* The objective is a concave quadratic function. The feasible region is a convex set.
+* $\lambda > 0$ is the ***risk-aversion parameter***. It controls the trade-off between return and risk:
+  * A large $\lambda$ prioritizes minimizing the volatility (risk)
+  * A small $\lambda$ prioritizes maximizing the expected return
+
+Other common formulations of the portfolio optimization problem are:
+
+1. Maximizing expected return subject to a variance constraint
+   $$
+   \begin{align}
+   \max_{\mathbf{w} \in \Delta^{n-1}} & \quad \mathbf{w}^\top \boldsymbol{\mu} \\
+   \text{s.t.} & \quad \mathbf{w}^\top \boldsymbol{\Sigma} \, \mathbf{w} \le \sigma_{\max}^2
+   \end{align}
+   $$
+
+2. Minimizing variance subject to an expected return constraint
+   $$
+   \begin{align}
+   \min_{\mathbf{w} \in \Delta^{n-1}} & \quad \mathbf{w}^\top \boldsymbol{\Sigma} \, \mathbf{w} \\
+   \text{s.t.} & \quad \mathbf{w}^\top \boldsymbol{\mu} \ge \mu_{\min}
+   \end{align}
+   $$
+
+The mean–variance problem can be seen as the **Lagrangian formulation** of either of these constrained problems:
+
+- Starting from Problem 1, introduce a Lagrange multiplier $\frac{\lambda}{2}$ for the variance constraint; the constrained maximization becomes:
+  $$
+  \max_{\mathbf{w} \in \Delta^{n-1}}
+  \mathbf{w}^\top \boldsymbol{\mu} - \frac{\lambda}{2} \mathbf{w}^\top \boldsymbol{\Sigma} \, \mathbf{w}
+  $$
+  where $\lambda$ reflects the trade-off between return and variance.
+
+- Starting from Problem 2, introduce a Lagrange multiplier $\gamma$ for the expected return constraint; after rearranging, the same quadratic objective arises, with a different interpretation of the multiplier.
+
+In both cases, the parameter $\lambda$ (or equivalently $\gamma$) governs **risk aversion**: higher values penalize variance more heavily, while lower values place greater emphasis on maximizing return.
+
+## Limits of Diversification
+
+As the number of assets tends to infty, how far can $\sigma_p$ be reduced?
+
+## Appendix
+
+### Non-negativity of Variance
+
+Let $\sigma_X^2$ , $\sigma_Y^2$ be the variance of random variables $X$, $Y$ repectively. Let $\sigma_{XY}$ be the covariance between $X$ and $Y$. Then, it holds that
+
+$$
+\begin{align}
+\sigma_X^2 + \sigma_Y^2 - 2\sigma_{XY}
+&\ge 0
+\end{align}
+$$
+
+where the equality holds iff $Y = X + b$ for some constant $b$.
+
+*Proof*: By AM–GM inequality and Cauchy-Schwarz inequality, we have
+$$
+\begin{align*}
+\sigma_X^2 + \sigma_Y^2 - 2\sigma_{XY}
+&\ge 2 \sigma_X \sigma_Y - 2\sigma_{XY}
+&& \text{eq.}\iff \sigma_X = \sigma_Y
+\\
+&\ge 0
+&& \text{eq.}\iff \rho_{XY} = 1
+\end{align*}
+$$
+
+The 1st condition $\rho_{XY} = 1$ is equivalent to that $Y$ and $X$ are perfectly linearly dependent:
+$$
+Y = aX + b, \quad a > 0, b \in\mathbb R
+$$
+
+The 2nd condition says that $a$ can only be 1. $\:\blacksquare$
+
+*Proof (alt.)*: Using the fact that
+
+$$
+\begin{align}
+\mathrm{Var}(X-Y)
+&= \mathrm{Var}(X) + \mathrm{Var}(Y) - 2\mathrm{Cov}(X,Y) \\
+&= \sigma_X^2 + \sigma_Y^2 - 2\sigma_{XY}
+\\
+&\ge 0
+\end{align}
+$$
+
+The equality holds iff $X-Y = \mathbb E[X-Y]$ almost surely. Namely, the constant $b$ in the previous proof is uniquely determined, not arbitrary. $\:\blacksquare$
+
+### Proof: Shape of Two-Asset Feasible Set
 
 If $\mu_1 = \mu_2 = \mu$, the feasible set simplifies to a horizontal line
 
@@ -235,17 +487,15 @@ $$
 \end{align}
 $$
 
-One interesting property is that we can make $\sigma_p$ lower than $\min\{\sigma_1, \sigma_2\}$ under certain conditions. e.g. Consider two uncorrelated assets with the same expected return $\mu$ and the same volatility $\sigma$. A portfolio with $w_1 = w_2 = \frac{1}{2}$ gives
+Remarks:
 
-$$
-\sigma_p^2 = \frac{1}{2} \sigma^2 < \sigma^2
-$$
+* The portfolio return is a constant
+* The portfolio variance is still lower bounded by
+  $$
+  \sigma_p^2(w^*) = \frac{\sigma_1^2 \sigma_2^2 - \sigma_{12}^2}{\sigma_1^2 + \sigma_2^2 - 2\sigma_{12}}
+  $$
 
-Namely, even though two assets have the same expected return and volatility, the portfolio volatility can still be reduced by diversification. The reduction is even greater if these two assets are negatively correlated.
-
-#### Assets with different expected return
-
-Now, assume $\mu_1 \ne \mu_2$. We can eliminate parameter $w$ by
+From now on, assume $\mu_1 \ne \mu_2$. We can eliminate parameter $w$ by
 $$
 \begin{align*}
 \mu_p = \mu_1 w + \mu_2 (1-w)
@@ -301,13 +551,6 @@ It can be verified that $D - \frac{C^2}{B} \ge 0$ with the equality iff $\rho_{1
 
 1. If $D - \frac{C^2}{B} = 0$ or equivalently $\rho_{12} = \pm 1$, the feasible set is intersecting lines.
 1. If $D - \frac{C^2}{B} > 0$ or equivalently $\rho_{12} \ne \pm 1$, the feasible set is hyperbola.
-
-Summary: The shape of feasible region (assuming $\mu_1 \ne \mu_2$ and $w\in\mathbb R$)
-
-| Shape | $\rho_{12} = 1$ | $\rho_{12} = -1$ | $\rho_{12} \ne \pm 1$ |
-| ----- | --------------- | ---------------- | --------------------- |
-| $\sigma_1 = \sigma_2$ | vertical line | V-shaped lines | hyperbola |
-| $\sigma_1 \ne\sigma_2$ | V-shaped lines| V-shaped lines | hyperbola |
 
 **Case 1**: $\rho_{12} = 1$ and $\sigma_1 = \sigma_2 = \sigma$. Vertical line:
 
@@ -379,146 +622,57 @@ $$
 A\sigma_p^2 - B\left( \mu_p - \frac{C}{B} \right)^2 = D - \frac{C^2}{B}
 $$
 
-TODO:
-
-* can we simplify this expression to get more insights?
-
-### Minimum-Risk Portfolio
-
-In this section, we assume
+After some algebraic simplification, the hyperbola becomes
 
 $$
-\mu_1 < \mu_2, \: \sigma_1 < \sigma_2
+\sigma_p^2 - \frac{B}{A}\left( \mu_p - \frac{C}{B} \right)^2 = \frac{\sigma_1^2 \sigma_2^2 - \sigma_{12}^2}{B}
 $$
 
-This typically refects the reality that assets with higher expected return are generally more risky.
+### Proof: Unbounded Variance of Multi-Asset Portfolio
 
-Which portfolio has the minimum volatility? To answer this question, we let the gradient of the variance equal to zero.
-$$
-\frac{d\sigma_p^2}{dw} = 2\sigma_1^2 w - 2\sigma_2^2(1-w) + 2\sigma_{12} (1-2w) = 0
-$$
-Solving this equation, we get
-$$
-w^* = \frac{\sigma_2^2 - \sigma_{12}}{\sigma_1^2 + \sigma_2^2 - 2\sigma_{12}}
-$$
-The minimum variance is then
-$$
-\sigma_p^2(w^*) = \frac{\sigma_1^2 \sigma_2^2 - \sigma_{12}^2}{\sigma_1^2 + \sigma_2^2 - 2\sigma_{12}}
-$$
-The resulting expected return is
-$$
-\mu_p(w^*) = \frac{\sigma_2^2 \mu_1 + \sigma_1^2 \mu_2 - \sigma_{12}(\mu_1 + \mu_2)}{\sigma_1^2 + \sigma_2^2 - 2\sigma_{12}}
-$$
+Suppose $\boldsymbol{\mu}$ is not multiple of $\mathbf{1}$. Then:
 
-Consider the case where $\rho_{12} = 0$. Suppose we start by allocating the entire portfolio to asset 1 (the less risky asset). If we shift a small fraction from asset 1 to asset 2 (the riskier asset), we would both increase $\mu_p$ and reduce $\sigma_p$. This is counterintuitive at first glance:
+> For any $m\in\mathbb R$, the variance $\sigma_p^2 = \mathbf{w}^\top \boldsymbol{\Sigma} \ \mathbf{w}$ subject to
+>
+> $$
+> \mathbf{1}^\top \mathbf{w} = 1, \quad \boldsymbol{\mu}^\top \mathbf{w} = m
+> $$
+>
+> is unbounded.
 
-* adding some of the riskier asset actually **reduces** portfolio volatility
-* going all-in on the less risky asset is worse in both expected return and volatility.
-
-The intuition is that, with zero correlation, the fluctuations of asset 2 tend to occur independently of asset 1. When combined, the uncorrelated return streams partially offset each other’s variation, lowering the portfolio’s overall standard deviation.
-
-We can continue improving the portfolio by adding more fraction of asset 2 until we reached the minimum risk point $(\sigma_p(w^*), \mu_p(w^*))$. All points on the hyperbola below this point are strictly dominated and thus suboptimal.
-
-## Multi-Asset Diversification
-
-TODO:
-
-* optimal solution of Markowitz's problem.
-* extrem cases and insights
-
-### Mean-Variance Optimization Problem
-
-The mean-variance optimization problem (by Markowitz) is given by
+*Proof*: Suppose $\mathbf{w}_0$ satisfies the constraints. Consider the subspace
 
 $$
-\max_{\mathbf{w} \in \Delta^{n-1}}
-\mathbf{w}^\top \boldsymbol{\mu} - \frac{\lambda}{2} \mathbf{w}^\top \boldsymbol{\Sigma} \ \mathbf{w}
+U = \left\{
+  \mathbf{x}\in\mathbb R^n \:|\:
+  \mathbf{1}^\top \mathbf{x} = \boldsymbol{\mu}^\top \mathbf{x} = 0
+\right\}
 $$
 
-Remarks:
-
-* The objective is a concave quadratic function. The feasible region is a convex set.
-* $\lambda > 0$ is the ***risk-aversion parameter***. It controls the trade-off between return and risk:
-  * A large $\lambda$ prioritizes minimizing the volatility (risk)
-  * A small $\lambda$ prioritizes maximizing the expected return
-
-Other common formulations of the portfolio optimization problem are:
-
-1. Maximizing expected return subject to a variance constraint
-   $$
-   \begin{align}
-   \max_{\mathbf{w} \in \Delta^{n-1}} & \quad \mathbf{w}^\top \boldsymbol{\mu} \\
-   \text{s.t.} & \quad \mathbf{w}^\top \boldsymbol{\Sigma} \, \mathbf{w} \le \sigma_{\max}^2
-   \end{align}
-   $$
-
-2. Minimizing variance subject to an expected return constraint
-   $$
-   \begin{align}
-   \min_{\mathbf{w} \in \Delta^{n-1}} & \quad \mathbf{w}^\top \boldsymbol{\Sigma} \, \mathbf{w} \\
-   \text{s.t.} & \quad \mathbf{w}^\top \boldsymbol{\mu} \ge \mu_{\min}
-   \end{align}
-   $$
-
-The mean–variance problem can be seen as the **Lagrangian formulation** of either of these constrained problems:
-
-- Starting from Problem 1, introduce a Lagrange multiplier $\frac{\lambda}{2}$ for the variance constraint; the constrained maximization becomes:
-  $$
-  \max_{\mathbf{w} \in \Delta^{n-1}}
-  \mathbf{w}^\top \boldsymbol{\mu} - \frac{\lambda}{2} \mathbf{w}^\top \boldsymbol{\Sigma} \, \mathbf{w}
-  $$
-  where $\lambda$ reflects the trade-off between return and variance.
-
-- Starting from Problem 2, introduce a Lagrange multiplier $\gamma$ for the expected return constraint; after rearranging, the same quadratic objective arises, with a different interpretation of the multiplier.
-
-In both cases, the parameter $\lambda$ (or equivalently $\gamma$) governs **risk aversion**: higher values penalize variance more heavily, while lower values place greater emphasis on maximizing return.
-
-## Limits of Diversification
-
-## Appendix
-
-### Non-negativity of Variance
-
-Let $\sigma_X^2$ , $\sigma_Y^2$ be the variance of random variables $X$, $Y$ repectively. Let $\sigma_{XY}$ be the covariance between $X$ and $Y$. Then, it holds that
+For $\forall t\in\mathbb R$ and $\forall\mathbf{d} \in U \setminus \{\mathbf{0}\}$, it is easy to verify that
 
 $$
-\begin{align}
-\sigma_X^2 + \sigma_Y^2 - 2\sigma_{XY}
-&\ge 0
-\end{align}
+\mathbf{w}_t \triangleq \mathbf{w}_0 + t\mathbf{d}
 $$
 
-where the equality holds iff $Y = X + b$ for some constant $b$.
+also satisfies the contraints.
 
-*Proof*: By AM–GM inequality and Cauchy-Schwarz inequality, we have
+Plugging $\mathbf{w}_t$ into the objective yields
+
 $$
 \begin{align*}
-\sigma_X^2 + \sigma_Y^2 - 2\sigma_{XY}
-&\ge 2 \sigma_X \sigma_Y - 2\sigma_{XY}
-&& \text{eq.}\iff \sigma_X = \sigma_Y
-\\
-&\ge 0
-&& \text{eq.}\iff \rho_{XY} = 1
+\sigma_p^2(\mathbf{w}_t)
+&= \mathbf{w}_t^\top \boldsymbol{\Sigma} \ \mathbf{w}_t \\
+&= \mathbf{w}_0^\top \boldsymbol{\Sigma} \ \mathbf{w}_0 + 2t \mathbf{w}_t^\top \boldsymbol{\Sigma} \ \mathbf{d} + t^2 \mathbf{d}^\top \boldsymbol{\Sigma} \ \mathbf{d}
 \end{align*}
 $$
 
-The 1st condition $\rho_{XY} = 1$ is equivalent to that $Y$ and $X$ are perfectly linearly dependent:
-$$
-Y = aX + b, \quad a > 0, b \in\mathbb R
-$$
+Since $\boldsymbol{\Sigma}$ is p.d. and $\mathbf{d} \ne \mathbf{0}$. $\implies \mathbf{d}^\top \boldsymbol{\Sigma} \ \mathbf{d} > 0$.
 
-The 2nd condition says that $a$ can only be 1. $\:\blacksquare$
-
-*Proof (alt.)*: Using the fact that
+The variance is donimated by the term $t^2 \mathbf{d}^\top \boldsymbol{\Sigma} \ \mathbf{d}$. Letting $t\to\infty$, we conclude
 
 $$
-\begin{align}
-\mathrm{Var}(X-Y)
-&= \mathrm{Var}(X) + \mathrm{Var}(Y) - 2\mathrm{Cov}(X,Y) \\
-&= \sigma_X^2 + \sigma_Y^2 - 2\sigma_{XY}
-\\
-&\ge 0
-\end{align}
+\lim_{t\to\infty} \sigma_p^2(\mathbf{w}_t) =
+\lim_{t\to\infty} t^2 \mathbf{d}^\top \boldsymbol{\Sigma} \ \mathbf{d} = \infty
+\tag*{$\blacksquare$}
 $$
-
-The equality holds iff $X-Y = \mathbb E[X-Y]$ almost surely. Namely, the constant $b$ in the previous proof can't simply be an arbitray number. $\:\blacksquare$

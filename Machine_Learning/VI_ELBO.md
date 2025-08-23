@@ -3,15 +3,14 @@ title: "VI & ELBO"
 date: "2025"
 author: "Ke Zhang"
 ---
+# Variational Inference and Evidence Lower Bound
+
+[toc]
 
 $$
 \DeclareMathOperator*{\argmax}{argmax}
 \DeclareMathOperator*{\argmin}{argmin}
 $$
-
-# Variational Inference and Evidence Lower Bound
-
-[toc]
 
 ## Motivation
 

@@ -4,9 +4,11 @@ author: "Ke Zhang"
 date: "2023"
 ---
 
+# Advanced C++
+
 [toc]
 
-# Typecast
+## Typecast
 
 C++ supports multiple ways of explicit typecast:
 
@@ -26,7 +28,7 @@ C++ supports multiple ways of explicit typecast:
 
    `static_cast` also supports casting between classes if the relevant **casting functions** are defined.
 
-## Casting Functions
+### Casting Functions
 
 A casting function is used to convert from a class type to another type. 
 
@@ -52,9 +54,7 @@ T2 b1 = static_cast<T2>(x);	// [OK] This is the only way to call X::operator T2(
 
 Casting functions are often `const` since developers expect casting operatrions to be non-modifying operations.
 
-
-
-# Type Alias
+## Type Alias
 
 From C, we know the `typedef`
 
@@ -88,15 +88,11 @@ BinaryOperation f = max;	// equivalent: int (*f)(int, int) = max;
 std::cout << f(3, 9);
 ```
 
-
-
 Why introduce `using` as we already have `typedef`?
 
 `using` works with templates while `typedef` does not. 
 
-
-
-# Enumeration
+## Enumeration
 
 * Enumeration $\iff$ self-defined new type e.g. `Color`
 * Enumerator $\iff$ values which an enumeration variable can take `Red`
@@ -109,8 +105,6 @@ Why introduce `using` as we already have `typedef`?
 | Name collision more probable due to unscopeness              | Name collision less probable due to scopeness                |
 | Comparison between enumeration variables of different enum type is allowed (although it makes no sense) | Comparison between enumeration variables of different enum type is NOT allowed |
 | Declared by key word `enum`                                  | Declared by key word `enum class`                            |
-
-
 
 **Example: Unscoped Enumeration**
 
@@ -156,17 +150,17 @@ Here, the enumeration `Color` and `Day`  declared by `enum class` has the global
 
 
 
-# OOP
+## OOP
 
-##  Copy Constructor
+###  Copy Constructor
 
 > The source object must be passed by reference. 
 
 Why? Suppose we pass the source object by value. Once we call the copy constructor, the program will call the copy constructor again to copy the argument, which once again calls the copy constructor... It is a dead loop. 
 
-## Friend Methods
+### Friend Methods
 
-## Operator Overloading
+### Operator Overloading
 
 Example: overloading `+` 
 
@@ -178,9 +172,9 @@ Here, we used [copy- swap idiom](#copy-and-swap-idiom) to improve the robustness
 
 
 
-# Template
+## Template
 
-## Template Specialization
+### Template Specialization
 
 Given multiple functions with identical name, the compiler follows the calling prefernce as below (from most preferred to least preferred)
 
@@ -246,25 +240,103 @@ Both template specialization and non-template overload provides a way to write a
 **Example: Generic type converter**
 
 ```c++
+// TODO
 ```
 
+## Standard Template Library
 
+### Vector
 
-# Standard Template Library
+Stores an array of elements in continuous memory. The size of the array is dynamically adjustable.
 
-## Pointer to Functions
+* Construction:
+  ```c++
+  #include<vector>
+  // a vector of 4, 5, 4, 7
+  std::vector<int> u{4, 5, 4, 7};
+  // a vector of length n filled with 0
+  std::vector<int> v(n, 0);
+  ```
+* Search: `vector` has no memeber function `.find()`. We must use `std::find()`!
+  ```c++
+  // locate the iterator pointing to val
+  // returns v.end() if not found
+  auto it = std::find(v.begin(), v.end(), val)
+  // if found val in v
+  if(it != v.end())
+  ```
+* Sort: `vector` has no memeber function `.sort()`. We must use `std::sort()`!
+  ```c++
+  // sort 
+  std::sort(v.begin(), v.end());
+  ```
+* Iterate: There are multiple ways to iterate through an vector
+  ```c++
+  // classical for-loop based on indexing
+  for(int i = 0; i < v.size(); i++) {
+    cout << v[i] << " ";
+  }
+  
+  // STL style for-loop based on iterator
+  for(auto it = v.begin(); it != v.end(); it++) {
+    cout << *it << " ";
+  }
+  
+  // for-each style
+  for(auto elem : v) {
+    cout << x << " ";
+  }
+  ```
 
+### 2D Array
 
+Here, we focues on 2D array implemented by nesting `std::vector`.
 
-## Vector
+* Construction:
+  ```c++
+  #include<vector>
+  using std::vector;
+  // construct with lists
+  vector<vector<int>> Id3 = {
+    {1, 0, 0}, {0, 1, 0}, {0, 0, 1}
+  };
+  // fill with zeros
+  vector<vector<int>> Zeros(nrows, vector<int>(ncols, 0))
+  ```
 
-## Lists
+### Unordered Map
 
-## Map
+Stores `key` to `value` pairs. Pairs are not ordered. Underlying data structure: hash table.
 
+$O(1)$ for insert, delete, and search.
 
+Illustration: hash table for storing goods and prices.
 
-# Lvalues & Rvalues
+* Construction:
+  ```c++
+  #include<unordered_map>
+  
+  // Stores stock (string) to price (double) pairs
+  std::unordered_map<std::string, double> stock_to_price;
+  ```
+
+* Insert: If the `key` does not exist in the hash table, insert the key-value pair. Otherwise, overwrite the `value` the existing key-value pair.
+  ```c++
+  stock_to_price["TSLA"] = 316.70;
+  stock_to_price["NVDA"] = 165.55;
+  ```
+
+* Search:
+  ```c++
+  // if "APPL" exists in the hash map
+  if(stock_to_price.find("APPL") != stock_to_price.end())
+  ```
+
+### Pointer to Functions
+
+TODO
+
+## Lvalues & Rvalues
 
 <table>
   <tbody>
@@ -304,7 +376,8 @@ Both template specialization and non-template overload provides a way to write a
     </tr>
   </tbody>
 </table>
-# References
+
+## References
 
 Both lvalue reference and rvalue reference has a `const` version. The `const` keyword imposes read-only access to the referenced object, regardless of whether the referenced object is const or not. 
 
@@ -323,7 +396,7 @@ Before we dive in, keep in mind that
 
 as local varibales get destroyed when a function returns, leading to dangling reference. 
 
-## Lvalue reference 
+### Lvalue reference 
 
 **Properties**
 
@@ -366,9 +439,7 @@ int main(){
 |          Can be reset?           |                  ❌                   |     ✅      |
 |             Nesting?             | 🈚️ There is no reference to reference |     🈶 There is certainly pointer to pointer     |
 
-
-
-## Rvalue reference
+### Rvalue reference
 
 **Basic Properties**
 
@@ -385,8 +456,6 @@ int main(){
 int&& r1 = 5;		// r1 itself is an lvalue. Its type is rvalue reference to int
 r1 = 3;					// This is not rest but modiying the rvalue it binds to
 ```
-
-
 
 **Rvalue Reference as Function Parameter**
 
@@ -411,15 +480,11 @@ int main(){
 2. Invalid, since `age` is an lvalue which can't be converted into rvalue. 
 3. Invalid, since `ref` itself is an lvalue even though its type is `int&&`, i.e. rvalue reference to int. 💣
 
-
-
 **Rvalue Reference in OOP**
 
 We can overloade class method depending on whether the argument object is an lvalue or rvalue. This brings especially benifits under the situaion below
 
-
-
-# Move Semantics
+## Move Semantics
 
 <img src="./figs/Move vs Copy.jpg" alt="Move vs Copy" style="zoom:50%;" />
 
@@ -428,8 +493,6 @@ We can overloade class method depending on whether the argument object is an lva
 > Move $\iff$ transfer the ownership of resources 
 
 In general, a resource can be heap memory, file descriptors or thread objects. Copying the resource to the target object is expensive. Move semantics is useful where deep copy is not necessary, since moving only requires a pointer reassignment.
-
-
 
 **Shallow copy vs. Deep copy vs. Move. When to use which?**
 
@@ -471,9 +534,7 @@ class Student{
 };
 ```
 
-
-
-# Smart Pointer
+## Smart Pointer
 
 **Motivation: Why smart pointers?**
 
@@ -508,9 +569,7 @@ Hence, it would be nicer if we can create some new class which automatically han
 
 <img src="./figs/Smart Pointer Mindmap.jpg" alt="Smart Pointer Mindmap" style="zoom:30%;" />
 
-
-
-## A bit history: auto pointer
+### A bit history: auto pointer
 
 A naive implementaiton of wrapped smart pointer is
 
@@ -580,7 +639,7 @@ int main(){
 
 Stealing the resource of a lvalue causes error when we dereference that lvalue again. Thus, we need here a **move constructor** rather than a **copy constructor**. i.e. Only an rvalue smart pointer shall transfer its ownership to another smart poiner. `auto_ptr` tries to implement move semantics by overriding copy constructor, which is why it fails.
 
-## Unique Pointer
+### Unique Pointer
 
 A simplied implementaion of `unique_ptr`  is illustrated as
 
@@ -640,8 +699,6 @@ Note: The actual implementaion of `unique_ptr` is more complex than we illustrat
 * `unique_ptr` has proper move semantics by restricting that only moving from rvalues is allowed.
 * If we insist on moving from an lvalue, we must use `std::move`.
 
-
-
 To define unique pointers, we have two options:
 
 ```c++
@@ -656,8 +713,6 @@ Option 1 is straightforward. Option2 uses the factory function `make_unique`, wh
 - wrap the Song object into `unique_ptr`
 
 > When possible, prefer `make_unique` for the sake of readability.
-
-
 
 **Moving a unique pointer**
 
@@ -675,8 +730,6 @@ unique_ptr<Song> s2 = std::move(s1);
 unique_ptr<Song> s1 = std::make_uniqe<Song>("High Voltage", "AC/DC"); 
 ```
 
-
-
 **Support for Array Types**
 
 Both `unique_ptr` and `make_unique` support array types (both from C++11). When applied to array-type objects, the array-type `delete[]` will be called. 
@@ -687,8 +740,6 @@ auto play_list = std::make_unique<Song[]>(100);				\\ 2)
 ```
 
 Note: In approach 2), the parameter is the number of elements in array-like object, not the constructor arguments.
-
-
 
 **Move into a Function**
 
@@ -701,8 +752,6 @@ bool is_rock(std::unique_ptr<Song> s){
   return s.get_genre() == "rock";
 }
 ```
-
-
 
 **Move out of a Function**
 
@@ -717,8 +766,6 @@ std::unique_ptr<Song> create_song(std::string title, std::string autor){
 }
 ```
 
-
-
 **Unique Pointers and STL**
 
 To track a set of `unique_ptr`, we can pack them into `vector`
@@ -726,8 +773,6 @@ To track a set of `unique_ptr`, we can pack them into `vector`
 ```c++
 std::vector<std::unique_ptr<T>>
 ```
-
-
 
 **PITFALLS**
 
@@ -755,9 +800,7 @@ std::vector<std::unique_ptr<T>>
    std::cout << favt->author;		// undefined behaviour
    ```
 
-   
-
-## Shared Pointer
+### Shared Pointer
 
 Properties:
 
@@ -848,17 +891,13 @@ std::shared<Song> s3 = s1;												// counter=3
 * If multi owners are needed $\implies$ `shared_ptr`
 * Not sure? $\implies$ Prefer `unique_ptr` since it can be transferred to `shared_ptr` later on. Hence, more flexibility.
 
-
-
-## Weak Pointer
+### Weak Pointer
 
 * Weak pointers are "slaves" of shared pointers
 * Weak pointers does not claim the ownership. i.e. It has no effect on control block.
 * Weak pointer can check the validality of the data. (whether it is freed.)
 
-# Lambda
-
-# Miscellaneous
+## Lambda
 
 ## Type deduction
 
@@ -877,25 +916,3 @@ The guidelines are not bibles.
 ### Rule of Zero
 
 ### Copy and Swap Idiom
-
-The overloading of `=` is a bit tricky. The target must free its existing resource before it takes the new resource.
-
-Just as overloading copy assignment operator, we can also define move assignment operator. Here, we applied once again the [copy- swap idiom](#copy-and-swap-idiom). 
-
-```c++
-// TODO: reconsider whether we really need copy-swap idiom in move assignment
-Student& operator=(Student&& s){
-  Student temp(s);
-  swap(temp, *this);
-  return *this;
-}
-```
-
-
-
-
-
-
-
-
-

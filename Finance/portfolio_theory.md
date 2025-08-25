@@ -343,12 +343,12 @@ $\to$ See [appendix](#proof-unbounded-variance-of-multi-asset-portfolio) for a p
 
 ### Mean-Variance Optimization
 
-Can we minimize the portfolio variance for a fixed exptected return $m$? Formally, we would like to solve the optimization problem
+Can we minimize the portfolio variance for a fixed exptected return $\mu_p$? Formally, we would like to solve the optimization problem
 
 $$
 \begin{align}
 \min_{\mathbf{w}} & \quad \mathbf{w}^\top \boldsymbol{\Sigma} \, \mathbf{w} \\
-\text{s.t.} & \quad \boldsymbol{\mu}^\top \mathbf{w} = m, \quad \mathbf{1}^\top \mathbf{w} = 1
+\text{s.t.} & \quad \boldsymbol{\mu}^\top \mathbf{w} = \mu_p, \quad \mathbf{1}^\top \mathbf{w} = 1
 \end{align}
 $$
 
@@ -357,17 +357,102 @@ The corresponding Lagrangian is
 $$
 \begin{align}
 L(\mathbf{w}, \alpha, \beta) =
-\mathbf{w}^\top \boldsymbol{\Sigma} \ \mathbf{w} - \alpha(\boldsymbol{\mu}^\top \mathbf{w} - m) - \beta(\mathbf{1}^\top \mathbf{w} - 1)
+\mathbf{w}^\top \boldsymbol{\Sigma} \ \mathbf{w} - \alpha(\boldsymbol{\mu}^\top \mathbf{w} - \mu_p) - \beta(\mathbf{1}^\top \mathbf{w} - 1)
 \end{align}
 $$
 
-Setting $\nabla_{\mathbf{w}} L = \mathbf{0}$ yields
+By stationarity, we have
 
 $$
 \begin{align}
-2 \boldsymbol{\Sigma} \mathbf{w} - \alpha\boldsymbol{\mu} - \beta\mathbf{1} &= \mathbf{0} \\
+\nabla_{\mathbf{w}} L
+&= 2 \boldsymbol{\Sigma} \mathbf{w} - \alpha\boldsymbol{\mu} - \beta\mathbf{1}
+\triangleq \mathbf{0}
+\\
 \mathbf{w} &= \frac{1}{2} \boldsymbol{\Sigma}^{-1} (\alpha\boldsymbol{\mu} + \beta\mathbf{1})
 \end{align}
+$$
+
+Plugging $\mathbf{w} = \frac{1}{2} \boldsymbol{\Sigma}^{-1} (\alpha\boldsymbol{\mu} + \beta\mathbf{1})$ into the constraints, we obtain a linear equaiton system of $\alpha, \beta$:
+
+$$
+\begin{align}
+\underbrace{
+\begin{bmatrix}
+  \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu} & \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1} \\
+  \mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu} & \mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1}
+\end{bmatrix}
+}_{\mathbf{A}}
+%%%%%%%%%%%%
+\underbrace{
+\begin{bmatrix}
+  \alpha \\ \beta
+\end{bmatrix}
+}_{\boldsymbol{\lambda}} =
+%%%%%%%%%%%%
+2\underbrace{
+\begin{bmatrix}
+  \mu_p \\ 1
+\end{bmatrix}
+}_{\mathbf{b}}
+\end{align}
+$$
+
+Solving this linear system yields
+
+$$
+\begin{align}
+\boldsymbol{\lambda}
+&= 2 \mathbf{A}^{-1} \mathbf{b}
+\end{align}
+$$
+
+Hence, the optimal weight vector is
+
+$$
+\begin{align}
+\mathbf{w}^\star
+&= \frac{1}{2} \boldsymbol{\Sigma}^{-1} (\alpha\boldsymbol{\mu} + \beta\mathbf{1}) \nonumber \\
+&= \frac{1}{2} \boldsymbol{\Sigma}^{-1}
+   \underbrace{
+   \begin{bmatrix}
+      \boldsymbol{\mu} & \mathbf{1}
+   \end{bmatrix}
+   }_{\mathbf{U}}
+   \underbrace{
+   \begin{bmatrix}
+      \alpha \\ \beta
+   \end{bmatrix}
+   }_{\boldsymbol{\lambda}} \nonumber \\
+&= \boldsymbol{\Sigma}^{-1} \mathbf{U} \mathbf{A}^{-1} \mathbf{b}
+\end{align}
+$$
+
+The corresponding minimum variance is
+
+$$
+\begin{align*}
+\sigma_p^2(\mathbf{w}^\star)
+&= \mathbf{w}^{\star\top} \boldsymbol{\Sigma} \, \mathbf{w}^\star \\
+&=  \mathbf{b}^\top \mathbf{A}^{-1} \mathbf{U}^\top \boldsymbol{\Sigma}^{-1} \cdot \boldsymbol{\Sigma} \cdot \boldsymbol{\Sigma}^{-1} \mathbf{U} \mathbf{A}^{-1} \mathbf{b} \\
+&=  \mathbf{b}^\top \mathbf{A}^{-1} \mathbf{U}^\top \boldsymbol{\Sigma}^{-1} \mathbf{U} \mathbf{A}^{-1} \mathbf{b}
+\end{align*}
+$$
+
+Using the fact that $\mathbf{U}^\top \boldsymbol{\Sigma}^{-1} \mathbf{U} = \mathbf{A}$ (easy to verify), the minimum variance becomes
+
+$$
+\begin{align*}
+\sigma_p^2(\mathbf{w}^\star)
+&=  \mathbf{b}^\top \mathbf{A}^{-1} \mathbf{b} \\
+&= \frac{1}{\det \mathbf{A}}
+   \begin{bmatrix} \mu_p & 1 \end{bmatrix}
+   \begin{bmatrix}
+    \mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1} & -\boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1} \\
+    -\mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu} & \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu}
+  \end{bmatrix}
+   \begin{bmatrix} \mu_p \\ 1 \end{bmatrix}
+\end{align*}
 $$
 
 ### TODO: (Re)moved

@@ -316,10 +316,10 @@ Therefore, on the hyperbola:
 Now, consider a portfolio consisting of $n$ assets. Without loss of generality, assume
 
 $$
-\mu_1 \le \dots \le \mu_n, \quad \sigma_1 \le \dots \le \sigma_n
+\mu_1 < \dots < \mu_n, \quad \sigma_1 < \dots < \sigma_n
 $$
 
-The feasible set is
+The feasible set of portfolio returns and volatilities is
 
 $$
 \begin{align}
@@ -336,9 +336,11 @@ $$
 \end{align}
 $$
 
-Unless otherwise specified, we allow short-selling and leverage. i.e., we can choose $\mathbf{w}$ freely on the entire hyperplane $\mathbf{1}^\top \mathbf{w} = 1$.
+Remarks:
 
-Unlike two-assets model, the feasible set is no longer a curve but an area in $(\sigma, \mu)$ space when the number of assets is larger than 2. In fact, the portfolio variance is unbounded when we allow short selling and leverage.  
+* Unless otherwise specified, we allow short-selling and leverage. i.e., $\mathbf{w}$ can take any value on the hyperplane $\mathbf{1}^\top \mathbf{w} = 1$.
+
+* Unlike the two-asset case, the feasible set is no longer a curve but an area in $(\sigma, \mu)$ space when the number of assets is larger than 2. In fact, the portfolio variance is unbounded when we allow short selling and leverage.  
 $\to$ See [appendix](#proof-unbounded-variance-of-multi-asset-portfolio) for a proof.
 
 ### Mean-Variance Optimization
@@ -347,7 +349,7 @@ Can we minimize the portfolio variance for a fixed exptected return $\mu_p$? For
 
 $$
 \begin{align}
-\min_{\mathbf{w}} & \quad \mathbf{w}^\top \boldsymbol{\Sigma} \, \mathbf{w} \\
+\min_{\mathbf{w}} & \quad \frac{1}{2}\, \mathbf{w}^\top \boldsymbol{\Sigma} \, \mathbf{w} \\
 \text{s.t.} & \quad \boldsymbol{\mu}^\top \mathbf{w} = \mu_p, \quad \mathbf{1}^\top \mathbf{w} = 1
 \end{align}
 $$
@@ -357,7 +359,7 @@ The corresponding Lagrangian is
 $$
 \begin{align}
 L(\mathbf{w}, \alpha, \beta) =
-\mathbf{w}^\top \boldsymbol{\Sigma} \ \mathbf{w} - \alpha(\boldsymbol{\mu}^\top \mathbf{w} - \mu_p) - \beta(\mathbf{1}^\top \mathbf{w} - 1)
+\frac{1}{2}\, \mathbf{w}^\top \boldsymbol{\Sigma} \ \mathbf{w} - \alpha(\boldsymbol{\mu}^\top \mathbf{w} - \mu_p) - \beta(\mathbf{1}^\top \mathbf{w} - 1)
 \end{align}
 $$
 
@@ -366,14 +368,14 @@ By stationarity, we have
 $$
 \begin{align}
 \nabla_{\mathbf{w}} L
-&= 2 \boldsymbol{\Sigma} \mathbf{w} - \alpha\boldsymbol{\mu} - \beta\mathbf{1}
-\triangleq \mathbf{0}
+&= \boldsymbol{\Sigma} \mathbf{w} - \alpha\boldsymbol{\mu} - \beta\mathbf{1}
+\equiv \mathbf{0}
 \\
-\mathbf{w} &= \frac{1}{2} \boldsymbol{\Sigma}^{-1} (\alpha\boldsymbol{\mu} + \beta\mathbf{1})
+\mathbf{w} &= \boldsymbol{\Sigma}^{-1} (\alpha\boldsymbol{\mu} + \beta\mathbf{1})
 \end{align}
 $$
 
-Plugging $\mathbf{w} = \frac{1}{2} \boldsymbol{\Sigma}^{-1} (\alpha\boldsymbol{\mu} + \beta\mathbf{1})$ into the constraints, we obtain a linear equaiton system of $\alpha, \beta$:
+Plugging $\mathbf{w} = \boldsymbol{\Sigma}^{-1} (\alpha\boldsymbol{\mu} + \beta\mathbf{1})$ into the constraints yields a linear system in $\alpha, \beta$:
 
 $$
 \begin{align}
@@ -390,7 +392,7 @@ $$
 \end{bmatrix}
 }_{\boldsymbol{\lambda}} =
 %%%%%%%%%%%%
-2\underbrace{
+\underbrace{
 \begin{bmatrix}
   \mu_p \\ 1
 \end{bmatrix}
@@ -398,53 +400,89 @@ $$
 \end{align}
 $$
 
-Solving this linear system yields
+Then, we claim:
+
+1. The matrix $\mathbf{A}$ can be factored as
+    $$
+    \begin{align}
+    \mathbf{A} = \mathbf{B}^\top \boldsymbol{\Sigma}^{-1} \mathbf{B},
+    \quad \text{where } \:
+    \mathbf{B} = \begin{bmatrix} \boldsymbol{\mu} & \mathbf{1} \end{bmatrix} \in\mathbb R^{n \times 2}
+    \end{align}
+    $$
+1. The matrix $\mathbf{A}$ is invertible
+1. This linear system has unique solution
+    $$
+    \begin{align}
+    \boldsymbol{\lambda}
+    &= \mathbf{A}^{-1} \mathbf{b}
+    = (\mathbf{B}^\top \boldsymbol{\Sigma}^{-1} \mathbf{B})^{-1} \mathbf{b}
+    \end{align}
+    $$
+
+*Proof*: Claim 1 is straightforward. Claim 3 follows from Claim 2. It remains to show Claim 2.
+
+For $\mathbf{x}\in\mathbb R^2$, consider
 
 $$
-\begin{align}
-\boldsymbol{\lambda}
-&= 2 \mathbf{A}^{-1} \mathbf{b}
-\end{align}
+\mathbf{x}^\top \mathbf{Ax}
+= \mathbf{x}^\top \mathbf{B}^\top \boldsymbol{\Sigma}^{-1} \mathbf{B} \mathbf{x}
+= (\mathbf{B} \mathbf{x})^\top \boldsymbol{\Sigma}^{-1} (\mathbf{B} \mathbf{x})
+\ge 0
 $$
 
-Hence, the optimal weight vector is
+By assumption, $\mu_1 < \dots < \mu_n \implies \boldsymbol{\mu}$ and $\mathbf{1}$ are linearly independent. $\implies \mathbf{Bx} = \mathbf{0}$ iff $\mathbf{x} = \mathbf{0}$.
+
+Hence, for $\forall \mathbf{x} \ne \mathbf{0}$, $\mathbf{x}^\top \mathbf{Ax} > 0 \iff \mathbf{A}$ is positive definite and thus invertible. $\:\blacksquare$
+
+The optimal weight vector is
 
 $$
 \begin{align}
 \mathbf{w}^\star
-&= \frac{1}{2} \boldsymbol{\Sigma}^{-1} (\alpha\boldsymbol{\mu} + \beta\mathbf{1}) \nonumber \\
-&= \frac{1}{2} \boldsymbol{\Sigma}^{-1}
+&= \boldsymbol{\Sigma}^{-1} (\alpha\boldsymbol{\mu} + \beta\mathbf{1}) \nonumber \\
+&= \boldsymbol{\Sigma}^{-1}
    \underbrace{
    \begin{bmatrix}
       \boldsymbol{\mu} & \mathbf{1}
    \end{bmatrix}
-   }_{\mathbf{U}}
+   }_{\mathbf{B}}
    \underbrace{
    \begin{bmatrix}
       \alpha \\ \beta
    \end{bmatrix}
    }_{\boldsymbol{\lambda}} \nonumber \\
-&= \boldsymbol{\Sigma}^{-1} \mathbf{U} \mathbf{A}^{-1} \mathbf{b}
+&= \boldsymbol{\Sigma}^{-1} \mathbf{B} \mathbf{A}^{-1} \mathbf{b} \\
 \end{align}
 $$
 
 The corresponding minimum variance is
 
 $$
-\begin{align*}
-\sigma_p^2(\mathbf{w}^\star)
-&= \mathbf{w}^{\star\top} \boldsymbol{\Sigma} \, \mathbf{w}^\star \\
-&=  \mathbf{b}^\top \mathbf{A}^{-1} \mathbf{U}^\top \boldsymbol{\Sigma}^{-1} \cdot \boldsymbol{\Sigma} \cdot \boldsymbol{\Sigma}^{-1} \mathbf{U} \mathbf{A}^{-1} \mathbf{b} \\
-&=  \mathbf{b}^\top \mathbf{A}^{-1} \mathbf{U}^\top \boldsymbol{\Sigma}^{-1} \mathbf{U} \mathbf{A}^{-1} \mathbf{b}
-\end{align*}
-$$
-
-Using the fact that $\mathbf{U}^\top \boldsymbol{\Sigma}^{-1} \mathbf{U} = \mathbf{A}$ (easy to verify), the minimum variance becomes
-
-$$
-\begin{align*}
-\sigma_p^2(\mathbf{w}^\star)
+\begin{align}
+\sigma_{\min}^2
+&= \mathbf{w}^{\star\top} \boldsymbol{\Sigma} \, \mathbf{w}^\star \nonumber \\
+&=  \mathbf{b}^\top \mathbf{A}^{-1} \mathbf{B}^\top \boldsymbol{\Sigma}^{-1} \cdot \boldsymbol{\Sigma} \cdot \boldsymbol{\Sigma}^{-1} \mathbf{B} \mathbf{A}^{-1} \mathbf{b} \nonumber \\
+&=  \mathbf{b}^\top \mathbf{A}^{-1} \underbrace{\mathbf{B}^\top \boldsymbol{\Sigma}^{-1} \mathbf{B}}_{\mathbf{A}} \mathbf{A}^{-1} \mathbf{b} \nonumber \\
 &=  \mathbf{b}^\top \mathbf{A}^{-1} \mathbf{b} \\
+\end{align}
+$$
+
+Recall that
+
+$$
+\mathbf{A} =
+\begin{bmatrix}
+  \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu} & \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1} \\
+  \mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu} & \mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1}
+\end{bmatrix}
+$$
+
+Hence,
+
+$$
+\begin{align}
+\sigma_{\min}^2
 &= \frac{1}{\det \mathbf{A}}
    \begin{bmatrix} \mu_p & 1 \end{bmatrix}
    \begin{bmatrix}
@@ -452,10 +490,17 @@ $$
     -\mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu} & \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu}
   \end{bmatrix}
    \begin{bmatrix} \mu_p \\ 1 \end{bmatrix}
-\end{align*}
+\end{align}
 $$
 
-### TODO: (Re)moved
+Remarks:
+
+* For a fixed target expected return $\mu_p$, the portfolio variance lies in $\sigma_p^2 \in [\sigma_{\min}^2, \infty)$ where $\sigma_{\min}^2$ depends quadratically on $\mu_p$.
+* As $\mu_p$ varies, the curve $(\mu_p, \sigma_{\min})$ froms the **efficient frontier**, representing the minimum achievable volatility for a given expected return.
+
+To gain more insights about the shape of the efficient frontier
+
+### TODO: To be (Re)moved
 
 The mean-variance optimization problem (by Markowitz) is given by
 

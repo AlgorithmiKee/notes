@@ -13,11 +13,11 @@ fontsize: 12pt
 
 ### Single Asset
 
-A single **asset** is modeled as a random variable $R$ representing its **rate of return** (typically expressed as a decimal or percentage). We define:
+A single **asset** is modeled as a random variable $r$ representing its **rate of return** (typically expressed as a decimal or percentage). We define:
 
-* $\mu = \mathbb{E}[R]$: **expected return** of the asset  
-* $\sigma^2 = \mathbb{V}(R)$: **variance** of the asset'  
-* $\sigma = \sqrt{\mathbb{V}(R)}$: **volatility** (standard deviation) of the asset  
+* $\mu = \mathbb{E}[r]$: **expected return** of the asset  
+* $\sigma^2 = \mathbb{V}(r)$: **variance** of the asset'  
+* $\sigma = \sqrt{\mathbb{V}(r)}$: **volatility** (standard deviation) of the asset  
 
 Given an asset, an investor can take three main positions:
 
@@ -28,31 +28,41 @@ Given an asset, an investor can take three main positions:
 ### Multiple Assets
 
 Multiple assets are modeled as a random vector
+
 $$
-\mathbf{R} = (R_1, \dots, R_n)^\top
+\begin{align}
+\mathbf{r} = (r_1, \dots, r_n)^\top
+\end{align}
 $$
-where each $R_i$ represents the return of asset $i$. Analogously, we define
+
+where each $r_i$ represents the return of asset $i$. Analogously, we define
 
 * expected return vector:
   $$
-  \boldsymbol{\mu} = (\mu_1, \dots, \mu_n)^\top
+  \begin{align}
+  \boldsymbol{\mu} = \mathbb E[\mathbf{r}] = (\mu_1, \dots, \mu_n)^\top
+  \end{align}
   $$
 
 * covariance matrix:
   $$
-  \boldsymbol{\Sigma} =
+  \begin{align}
+  \boldsymbol{\Sigma} &= \mathbb E[\mathbf{r} \mathbf{r}^\top] =
   \begin{bmatrix}
   \sigma_{11} & \dots & \sigma_{1n} \\
   \vdots & \ddots & \vdots \\
   \sigma_{n1} & \dots & \sigma_{nn} 
-  \end{bmatrix},
-  \quad
-  \sigma_{ij} = \mathrm{Cov}(R_i, R_j)
+  \end{bmatrix}
+  \\
+  \sigma_{ij} &= \mathrm{Cov}(r_i, r_j)
+  \end{align}
   $$
 
 * Correlation coefficient:
   $$
+  \begin{align}
   \rho_{ij} = \frac{\sigma_{ij}}{\sigma_i \sigma_j}
+  \end{align}
   $$
 
 Remarks:
@@ -96,11 +106,11 @@ $$
 
 Let
 
-* $R_i$ denote the return of $i$-th asset.
+* $r_i$ denote the return of $i$-th asset.
 
-* $\mathbf{R}$ denote the random vector consisting of $R_1,\dots,R_n$.
+* $\mathbf{r}$ denote the random vector consisting of $r_1,\dots,r_n$.
 
-* $\boldsymbol{\mu}$ and $\boldsymbol{\Sigma}$ denote the mean and covariance matrix of $\mathbf{R}$.
+* $\boldsymbol{\mu}$ and $\boldsymbol{\Sigma}$ denote the mean and covariance matrix of $\mathbf{r}$.
 
 A portfolio is then represented by a vector $\mathbf{w}$ s.t.
 
@@ -114,8 +124,8 @@ The return of the portfolio is defined as
 
 $$
 \begin{align}
-R_p
-&= \mathbf{w}^\top \mathbf{R}
+r_p
+&= \mathbf{w}^\top \mathbf{r}
 \end{align}
 $$
 
@@ -123,20 +133,20 @@ The expected return and the variance of the portfolio is then
 
 $$
 \begin{align}
-\mu_p &\triangleq \mathbb E[R_p] = \mathbf{w}^\top \boldsymbol{\mu} \\
-\sigma_p^2 &\triangleq \mathbb{V}[R_p] = \mathbf{w}^\top \boldsymbol{\Sigma} \ \mathbf{w}
+\mu_p &\triangleq \mathbb E[r_p] = \mathbf{w}^\top \boldsymbol{\mu} \\
+\sigma_p^2 &\triangleq \mathbb{V}[r_p] = \mathbf{w}^\top \boldsymbol{\Sigma} \ \mathbf{w}
 \end{align}
 $$
 
-*Proof*: Here, we derive the expression of $\mathbb{V}[R_p] = \mathbf{w}^\top \boldsymbol{\Sigma}\ \mathbf{w}$.
+*Proof*: Here, we derive the expression of $\mathbb{V}[r_p] = \mathbf{w}^\top \boldsymbol{\Sigma}\ \mathbf{w}$.
 
 $$
 \begin{align*}
-\mathbb{V}[R_p]
-&= \mathbb E[R_p^2] - \mathbb E[R_p]^2 \\
-&= \mathbb E[\mathbf{w}^\top \mathbf{R} \mathbf{R}^\top \mathbf{w}] - \mathbf{w}^\top \boldsymbol{\mu}  \boldsymbol{\mu}^\top \mathbf{w} \\
+\mathbb{V}[r_p]
+&= \mathbb E[r_p^2] - \mathbb E[r_p]^2 \\
+&= \mathbb E[\mathbf{w}^\top \mathbf{r} \mathbf{r}^\top \mathbf{w}] - \mathbf{w}^\top \boldsymbol{\mu}  \boldsymbol{\mu}^\top \mathbf{w} \\
 &= \mathbf{w}^\top \underbrace{
-    \left(\mathbb E[\mathbf{R} \mathbf{R}^\top] - \boldsymbol{\mu}  \boldsymbol{\mu}^\top \right)
+    \left(\mathbb E[\mathbf{r} \mathbf{r}^\top] - \boldsymbol{\mu}  \boldsymbol{\mu}^\top \right)
     }_{\boldsymbol{\Sigma}} \mathbf{w}
 \tag*{$\blacksquare$}
 \end{align*}
@@ -146,9 +156,9 @@ Equivalent scalar notation:
 
 $$
 \begin{align}
-R_p &= \sum_{i=1}^n w_i R_i \\
-\mu_p &\triangleq \mathbb E[R_p] = \sum_{i=1}^n w_i \mu_i \\
-\sigma_p^2 &\triangleq \mathbb{V}[R_p] = \sum_{i=1}^n \sum_{j=1}^n w_i w_j \sigma_{ij}
+r_p &= \sum_{i=1}^n w_i r_i \\
+\mu_p &\triangleq \mathbb E[r_p] = \sum_{i=1}^n w_i \mu_i \\
+\sigma_p^2 &\triangleq \mathbb{V}[r_p] = \sum_{i=1}^n \sum_{j=1}^n w_i w_j \sigma_{ij}
 \end{align}
 $$
 **Key Observation**: Portfolio variance is **not** simply the weighted sum of individual variances:
@@ -285,7 +295,7 @@ Remarks:
 * The summary assumes $w \in \mathbb R$, i.e. short-selling and leverage are possible. See [appendix](#proof-shape-of-two-asset-feasible-set) for a proof.
 * If we restrict to long-only portfolios ($w \in [0,1]$), the feasible set becomes a segment of the curve connecting $(\sigma_1, \mu_1)$ and $(\sigma_2, \mu_2)$.
 
-### Suboptimal Portfolios and the Efficient Frontier
+### The Efficient Frontier
 
 Assume
 
@@ -340,12 +350,12 @@ Remarks:
 
 * Unless otherwise specified, we allow short-selling and leverage. i.e., $\mathbf{w}$ can take any value on the hyperplane $\mathbf{1}^\top \mathbf{w} = 1$.
 
-* Unlike the two-asset case, the feasible set is no longer a curve but an area in $(\sigma, \mu)$ space when the number of assets is larger than 2. In fact, the portfolio variance is unbounded when we allow short selling and leverage.  
+* Unlike the two-asset case, the feasible set is no longer a curve but an area in $(\sigma, \mu)$ space when $n>2$. In fact, the portfolio variance is unbounded when we allow short selling and leverage.  
 $\to$ See [appendix](#proof-unbounded-variance-of-multi-asset-portfolio) for a proof.
 
 ### Mean-Variance Optimization
 
-Can we minimize the portfolio variance for a fixed exptected return $\mu_p$? Formally, we would like to solve the optimization problem
+Can we minimize the portfolio variance for a fixed exptected return $\mu_p$? Formally, this leads to the optimization problem
 
 $$
 \begin{align}
@@ -363,7 +373,7 @@ L(\mathbf{w}, \alpha, \beta) =
 \end{align}
 $$
 
-By stationarity, we have
+By stationarity,
 
 $$
 \begin{align}
@@ -400,7 +410,7 @@ $$
 \end{align}
 $$
 
-Then, we claim:
+We make following claims:
 
 1. The matrix $\mathbf{A}$ can be factored as
     $$
@@ -465,24 +475,6 @@ $$
 &=  \mathbf{b}^\top \mathbf{A}^{-1} \mathbf{B}^\top \boldsymbol{\Sigma}^{-1} \cdot \boldsymbol{\Sigma} \cdot \boldsymbol{\Sigma}^{-1} \mathbf{B} \mathbf{A}^{-1} \mathbf{b} \nonumber \\
 &=  \mathbf{b}^\top \mathbf{A}^{-1} \underbrace{\mathbf{B}^\top \boldsymbol{\Sigma}^{-1} \mathbf{B}}_{\mathbf{A}} \mathbf{A}^{-1} \mathbf{b} \nonumber \\
 &=  \mathbf{b}^\top \mathbf{A}^{-1} \mathbf{b} \\
-\end{align}
-$$
-
-Recall that
-
-$$
-\mathbf{A} =
-\begin{bmatrix}
-  \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu} & \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1} \\
-  \mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu} & \mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1}
-\end{bmatrix}
-$$
-
-Hence,
-
-$$
-\begin{align}
-\sigma_{\min}^2
 &= \frac{1}{\det \mathbf{A}}
    \begin{bmatrix} \mu_p & 1 \end{bmatrix}
    \begin{bmatrix}
@@ -496,60 +488,145 @@ $$
 Remarks:
 
 * For a fixed target expected return $\mu_p$, the portfolio variance lies in $\sigma_p^2 \in [\sigma_{\min}^2, \infty)$ where $\sigma_{\min}^2$ depends quadratically on $\mu_p$.
-* As $\mu_p$ varies, the curve $(\mu_p, \sigma_{\min})$ froms the **efficient frontier**, representing the minimum achievable volatility for a given expected return.
+* As $\mu_p$ varies, the curve $(\mu_p, \sigma_{\min})$ forms the ***minimum-variance frontier*** (also known as ***Markowitz bullet***), which represents the lowest achievable volatility for each expected return.
 
-To gain more insights about the shape of the efficient frontier
+### Geometry of Minimum-Variance Frontier
 
-### TODO: To be (Re)moved
-
-The mean-variance optimization problem (by Markowitz) is given by
+For clarity, let
 
 $$
-\max_{\mathbf{w} \in \Delta^{n-1}}
+A = \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu}, \quad
+B = \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1}, \quad
+C = \mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1}
+$$
+
+Then
+
+$$
+\begin{align*}
+\mathbf{A}
+&=
+\begin{bmatrix}
+  \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu} & \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1} \\
+  \mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu} & \mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1}
+\end{bmatrix} =
+\begin{bmatrix}
+  A & B \\
+  B & C
+\end{bmatrix}
+\\
+\mathbf{A}^{-1}
+&= \frac{1}{AC - B^2}
+\begin{bmatrix}
+     C & -B \\
+    -B & A
+\end{bmatrix}
+\end{align*}
+$$
+
+Hence,
+
+$$
+\begin{align}
+\sigma_{\min}^2
+&= \frac{1}{AC - B^2}
+   \begin{bmatrix} \mu_p & 1 \end{bmatrix}
+   \begin{bmatrix}
+     C & -B \\
+    -B & A
+  \end{bmatrix}
+   \begin{bmatrix} \mu_p \\ 1 \end{bmatrix} \nonumber \\
+&= \frac{1}{AC - B^2} \left[ C\mu_p^2 - 2B \mu_p + A \right] \nonumber \\
+&= \frac{C}{AC - B^2} \left( \mu_p - \frac{B}{C} \right)^2 + \frac{1}{C}
+\end{align}
+$$
+
+It is easy to verify that $\frac{C}{AC - B^2} > 0$ and $\frac{1}{C} > 0$. Hence, the minimum-variance frontier is hyperbola.
+
+### Global Minimum Variance and Efficient Frontier
+
+From
+
+$$
+\sigma_{\min}^2 = \frac{C}{AC - B^2} \left( \mu_p - \frac{B}{C} \right)^2 + \frac{1}{C}
+$$
+
+we see that $\sigma_{\min}^2$ is minimized at $\mu_p = \frac{B}{C}$, giving the **global minimum variance** (**GMV**).
+
+$$
+\begin{align}
+\sigma_{\text{GMV}}^2
+& = \frac{1}{C} = \frac{1}{\mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1}} \\
+\mu_{\text{GMV}}
+& = \frac{B}{C} = \frac{\boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1}}{\mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1}}
+\end{align}
+$$
+
+The corresponding GMV weights are
+
+$$
+\begin{align}
+\mathbf{w}_{\text{GMV}}
+&= \boldsymbol{\Sigma}^{-1} \mathbf{B} \mathbf{A}^{-1} \mathbf{b} \Big\vert_{\mu_p = \mu_{\text{GMV}}} \nonumber \\
+&= \boldsymbol{\Sigma}^{-1}
+   \begin{bmatrix} \boldsymbol{\mu} & \mathbf{1} \end{bmatrix}
+   \frac{1}{AC-B^2} \begin{bmatrix} C & -B \\ -B & A \end{bmatrix}
+   \begin{bmatrix} \frac{B}{C} \\ 1 \end{bmatrix} \nonumber \\
+&= \boldsymbol{\Sigma}^{-1}
+   \begin{bmatrix} \boldsymbol{\mu} & \mathbf{1} \end{bmatrix}
+   \begin{bmatrix} 0 \\ \frac{1}{C} \end{bmatrix} \nonumber \\
+&= \frac{\boldsymbol{\Sigma}^{-1} \mathbf{1}}{C} \\
+&= \frac{\boldsymbol{\Sigma}^{-1} \mathbf{1}}{\mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1}}
+\end{align}
+$$
+
+Remarks:
+
+* Not to be confused: $\sigma_{\min}^2$ denotes the minimum variance for a given target return $\mu_p$, whereas $\sigma_{\text{GMV}}^2$ is the global minimum across all $\mu_p$.
+* GMV quantities depend only on the covariance matrix $\boldsymbol{\Sigma}$, not on expected returns $\boldsymbol{\mu}$.
+* In $(\sigma,\mu)$ space, the GMV point dominates all portfolios lying below it. Thus, the portion of the minimum variance frontier below GMV corresponds to suboptimal portfolios, while the portion above GMV is the efficient frontier, where no portfolio dominates another.
+
+### Equivalent Mean–Variance Optimization Problem
+
+Instead of fixing a target return $\mu_p$ and minimizing variance, we can equivalently solve
+
+$$
+\begin{align}
+\max_{\mathbf{w}} & \quad
 \mathbf{w}^\top \boldsymbol{\mu} - \frac{\lambda}{2} \mathbf{w}^\top \boldsymbol{\Sigma} \ \mathbf{w}
+\\
+\text{s.t.} & \quad \quad \mathbf{1}^\top \mathbf{w} = 1
+\end{align}
 $$
 
 Remarks:
 
 * The objective is a concave quadratic function. The feasible region is a convex set.
-* $\lambda > 0$ is the ***risk-aversion parameter***. It controls the trade-off between return and risk:
+* The quadratic term penalizes large portfolio weights, discouraging extreme short selling and leverage.
+* $\lambda > 0$ is the ***risk-aversion parameter***. It governs the trade-off between return and risk:
   * A large $\lambda$ prioritizes minimizing the volatility (risk)
   * A small $\lambda$ prioritizes maximizing the expected return
 
-Other common formulations of the portfolio optimization problem are:
+Connection to the old mean-variance optimization problem:
 
-1. Maximizing expected return subject to a variance constraint
-   $$
-   \begin{align}
-   \max_{\mathbf{w} \in \Delta^{n-1}} & \quad \mathbf{w}^\top \boldsymbol{\mu} \\
-   \text{s.t.} & \quad \mathbf{w}^\top \boldsymbol{\Sigma} \, \mathbf{w} \le \sigma_{\max}^2
-   \end{align}
-   $$
+1. The Lagrangian of the new problem shares the same form as the old one.
+1. Solving the new problem with a given $\lambda$ produces the same family of portfolios as solving the old problem with different choices of $\mu_p$.
+1. Varying $\lambda \in (0, \infty)$ traces out the efficient frontier just as varying $\mu_p$ does in the old problem.
 
-2. Minimizing variance subject to an expected return constraint
-   $$
-   \begin{align}
-   \min_{\mathbf{w} \in \Delta^{n-1}} & \quad \mathbf{w}^\top \boldsymbol{\Sigma} \, \mathbf{w} \\
-   \text{s.t.} & \quad \mathbf{w}^\top \boldsymbol{\mu} \ge \mu_{\min}
-   \end{align}
-   $$
+## Summary
 
-The mean–variance problem can be seen as the **Lagrangian formulation** of either of these constrained problems:
+### Pros of Portfolio Theory
 
-- Starting from Problem 1, introduce a Lagrange multiplier $\frac{\lambda}{2}$ for the variance constraint; the constrained maximization becomes:
-  $$
-  \max_{\mathbf{w} \in \Delta^{n-1}}
-  \mathbf{w}^\top \boldsymbol{\mu} - \frac{\lambda}{2} \mathbf{w}^\top \boldsymbol{\Sigma} \, \mathbf{w}
-  $$
-  where $\lambda$ reflects the trade-off between return and variance.
+* Provides a clear mathematical framework for diversification.
+* Introduces the concept of the efficient frontier and the risk–return trade-off.
+* Foundational for modern asset pricing (CAPM, multi-factor models) and widely used in practice as a starting point.
 
-- Starting from Problem 2, introduce a Lagrange multiplier $\gamma$ for the expected return constraint; after rearranging, the same quadratic objective arises, with a different interpretation of the multiplier.
+### Criticism and Limitation
 
-In both cases, the parameter $\lambda$ (or equivalently $\gamma$) governs **risk aversion**: higher values penalize variance more heavily, while lower values place greater emphasis on maximizing return.
-
-## Limits of Diversification
-
-As the number of assets tends to infty, how far can $\sigma_p$ be reduced?
+* **Estimation Error**: The computation of portfolio weights depends on $\boldsymbol{\mu}$ and $\boldsymbol{\Sigma}$, which need to be estimated in practice. Small estimation errors can lead to drastically different weights.
+* **Stationarity Assumption**: Asset correlations are not stable; they often increase during crises, reducing diversification benefits.
+* **Risk ≠ Variance**: Portfolio theory uses variance (or volatility) as the measure of risk. Real investors often care more about downside risk than upside volatility.
+* **Heavy Tails**: Real returns have heavy tails (higher probability of extreme events), so variance underestimates true risk.
 
 ## Appendix
 
@@ -588,13 +665,13 @@ The 2nd condition says that $a$ can only be 1. $\:\blacksquare$
 *Proof (alt.)*: Using the fact that
 
 $$
-\begin{align}
+\begin{align*}
 \mathrm{Var}(X-Y)
 &= \mathrm{Var}(X) + \mathrm{Var}(Y) - 2\mathrm{Cov}(X,Y) \\
 &= \sigma_X^2 + \sigma_Y^2 - 2\sigma_{XY}
 \\
 &\ge 0
-\end{align}
+\end{align*}
 $$
 
 The equality holds iff $X-Y = \mathbb E[X-Y]$ almost surely. Namely, the constant $b$ in the previous proof is uniquely determined, not arbitrary. $\:\blacksquare$

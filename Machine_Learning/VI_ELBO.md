@@ -1,9 +1,9 @@
 ---
-title: "VI & ELBO"
+title: "Variational Inference"
 date: "2025"
 author: "Ke Zhang"
 ---
-# Variational Inference and Evidence Lower Bound
+# Intro to Variational Inference
 
 [toc]
 
@@ -124,7 +124,7 @@ $$
 Remarks:
 
 * This illustrates MC estimation of the **entire** ELBO.
-* Later, we will see different reformulation of the ELBO. When the variational distribution $q$ is Gaussian, certain terms of ELBO can be computed in closed-form (entropy of $q$, KL divergence to Gaussian prior). Therefore, we only need to apply MC to estimate the remaining terms.
+* Later, we will see certain terms of ELBO can be computed in closed-form when using Gaussian variational distributions. Therefore, we only need to apply MC to estimate the remaining terms.
 
 There are three equivalent reformulations of the ELBO $\mathcal L(q,\mathbf{x})$. Each reformulations provides insights from a different perspective.
 
@@ -276,7 +276,150 @@ $$
 \end{align*}
 $$
 
-## Gaussian Variational Distribution
+## Dataset-Level ELBO
+
+[Previously](#the-evidence-lower-bound), we derived the ELBO $\mathcal L(q,\mathbf{x})$ for a single observation $\mathbf{x}$. From now on, let's call it **per-sample** ELBO (or **per-observation** ELBO).
+
+**Question**: What if we have a dataset consisting of multiple iid observations? Can we lower-bound the evidence of the whole dataset?
+
+Problem formulation:
+
+* Known: generative model $p(\mathbf{x},\mathbf{z}) = p(\mathbf{z}) \, p(\mathbf{x} \mid \mathbf{z})$.
+* Given: training data $D = \{ \mathbf{x}_1, \cdots,  \mathbf{x}_n\} \stackrel{\text{iid}}{\sim} p(\mathbf{x}) = \int_z p(\mathbf{x},\mathbf{z}) \:\mathrm dz$.
+* Select: variational family $\mathcal Q$.
+* Goal: derive a lower bound on $\log p(D)$.
+
+We refer to the lower bound on $\log p(D)$ as the **dataset-level ELBO** (or simply **dataset ELBO**). In fact, dataset ELBO does exist since
+
+$$
+\begin{align}
+\log p(D) = \log \prod_{i=1}^n p(\mathbf{x}_i) = \sum_{i=1}^n \log p(\mathbf{x}_i)
+\end{align}
+$$
+
+Each $\log p(\mathbf{x}_i)$ can be lower bounded by its individual per-sample ELBO. Therefore, $\log p(D)$ can also be lower bounded. The remaining question is how to design the variational distribution for each $\mathbf{x}_i$.
+
+### Local Inference Model
+
+A natural extension of per-sample ELBO to dataset ELBO is choosing variational distribution independently for each observation. Formally:
+
+For each $\mathbf{x}_i$, we choose $q_i \in\mathcal Q$ independently to approximate the true posterior $p(\mathbf{z} \mid \mathbf{x}_i)$. This gives per-sample ELBO
+
+$$
+\begin{align}
+\mathcal L(q_i, \mathbf{x}_i)
+&= \sum_{i=1}^n \mathbb E_{\mathbf{z} \sim q_i} \left[ \log\frac{p(\mathbf{x}_i, \mathbf{z})}{q_i(\mathbf{z})} \right]
+\end{align}
+$$
+
+For any combination of variational distributions $q_1, \dots, q_n \in \mathcal Q$, it holds that
+
+$$
+\begin{align*}
+\log p(D)
+= \sum_{i=1}^n \log p(\mathbf{x}_i)
+\ge \underbrace{\sum_{i=1}^n \mathcal L(q_i, \mathbf{x}_i)}_{\mathcal L(q_1, \dots, q_n, D)}
+\end{align*}
+$$
+
+Hence, we obtain the dataset ELBO:
+
+$$
+\begin{align}
+\mathcal L(q_1, \dots, q_n, D)
+\triangleq \sum_{i=1}^n \mathcal L(q_i, \mathbf{x}_i)
+= \sum_{i=1}^n \mathbb E_{\mathbf{z} \sim q_i} \left[ \log\frac{p(\mathbf{x}_i, \mathbf{z})}{q_i(\mathbf{z})} \right]
+\end{align}
+$$
+
+Remarks:
+
+* The (dataset) ELBO is a functional of $q_1, \dots, q_n$, which are **freely** chosen.
+* We assume that $q_1, \dots, q_n \in \mathcal Q$. i.e. All variational distributions belong to the same variational family.
+* Local variational distributions are used in Non-amortized variational inference.
+
+The optimal variational distributions are obtained by solving the functional optimization problems
+
+$$
+\begin{align}
+q_i^* = \argmax_{q_i \in \mathcal Q} \mathcal L(q_i, \mathbf{x}_i), \quad i=1,\dots,n
+\end{align}
+$$
+
+Remarks:
+
+* Due to the additive structure of dataset ELBO, each $q_i$ can be optimized independently of each other.
+* In practice, $\mathcal Q$ is a parametric variational family, e.g. Gaussian. Therefore, we turn this functional optimization problem into a parameter optimization problem.
+
+Drawbacks:
+
+1. **Poor scalability**: The number of optimization problems scales linearly with the size of the dataset. If we have $n$ observations, we have solve $n$ independent optimization problems.
+1. **No generalization**: Given a new observation $\mathbf{x}_*$, we have to solve the optimization problem again. We cannot forge the variational distribution for $\mathbf{x}_*$ from $q_1^*, \dots, q_n^*$.
+
+### Global Inference Model
+
+Instead of learning $q_i$ for each $\mathbf{x}_i$ individually, we learn a **global inference model**, conceptually defined as a mapping $f$
+
+$$
+f: \mathbb R^d \to \mathcal Q, \mathbf{x} \mapsto q(\cdot \mid \mathbf{x})
+$$
+
+where $\cdot$ is the placeholder for $\mathbf{z}$, such that $\forall \mathbf{x} \in \mathbb R^d$
+
+$$
+q(\cdot \mid \mathbf{x}) \approx p(\cdot \mid \mathbf{x})
+$$
+
+Remarks:
+
+* The abstract mapping $f$ maps each data point to a variational distribution. Mathematically, it is a complex point-to-function mapping.
+* ⚠️ To reduce visual clutter, we write $f(\mathbf{x}) = q(\cdot \mid \mathbf{x})$ rather than $f(\mathbf{x}) = q_{f}(\cdot \mid \mathbf{x})$
+* The globalness hightlights the fact that $f$ is shared by all $\mathbf{x}\in\mathbb R^d$.
+* Once we learned such $f$ on training data $D$, not only can we plug in $\mathbf{x}_i$ and use $q(\cdot \mid \mathbf{x}_i) \approx p(\cdot \mid \mathbf{x}_i)$, but also we can plug in any unseen $\mathbf{x}_*$ and get $q(\cdot \mid \mathbf{x}_*) \approx p(\cdot \mid \mathbf{x}_*)$.
+
+For each sample $\mathbf{x}_i$, the per-sample ELBO is
+
+$$
+\begin{align}
+\mathcal L(f(\mathbf{x}_i), \mathbf{x}_i)
+&= \mathcal L(q(\cdot \mid \mathbf{x}_i), \mathbf{x}_i) \\
+&= \mathbb E_{\mathbf{z} \sim q(\cdot \mid \mathbf{x}_i)} \left[ \log\frac{p(\mathbf{x}_i, \mathbf{z})}{q(\mathbf{z} \mid \mathbf{x}_i)} \right]
+\end{align}
+$$
+
+Summing over all samples, we obtain the dataset ELBO
+
+$$
+\begin{align}
+\mathcal L(f, D)
+&\triangleq \sum_{i=1}^n \mathcal L(f(\mathbf{x}_i), \mathbf{x}_i)\\
+&= \sum_{i=1}^n \mathbb E_{\mathbf{z} \sim q(\cdot \mid \mathbf{x}_i)} \left[ \log\frac{p(\mathbf{x}_i, \mathbf{z})}{q(\mathbf{z} \mid \mathbf{x}_i)} \right]
+\end{align}
+$$
+
+Remarks:
+
+* Not to be confused by the notation: $f(\mathbf{x}_i) = q(\cdot \mid \mathbf{x}_i) \in \mathcal Q$, i.e. $f(\mathbf{x}_i)$ is a (probability density) function.
+* Comparing to local variational distribution scheme, there is a key distinction between $q_i(\cdot)$ and $q(\cdot \mid \mathbf{x}_i)$:
+  * Local variational distribution: We choose each $q_i(\cdot) \in \mathcal Q$ freely.
+  * Global variational distribution: Each $q(\cdot \mid \mathbf{x}_i)$ are determined by plugging $\mathbf{x}_i$ into the point-to-function mapping $f$, which shared by all $\mathbf{x}_i \in D$.
+
+To maximize the dataset ELBO, we aim to solve
+
+$$
+\begin{align}
+f^* = \argmax_{f} \mathcal L(f, D)
+\end{align}
+$$
+
+This is again a functional optimization problem. In practice, we avoid dealing directly with a functional optimization problem by
+
+1. using parametric family $\mathcal Q$, e.g. multivariate Gaussian with parameter $(\boldsymbol{\mu}, \boldsymbol{\Sigma})$
+1. designing $f$ as a neural net with $\mathbf{x}$ as its input layer, and $(\boldsymbol{\mu}, \boldsymbol{\Sigma})$ as its output layer.
+
+Learning $f$ boils down to training such a neual net.
+
+## Gaussian Variational Distributions
 
 We use multivariate Gaussian as the variational distribution
 
@@ -315,6 +458,8 @@ Next, we derive the ELBO into a form that can be optimized efficiently by exploi
 1. Closed-form expression for entropy and KL divergence. $\to$ Only part of the ELBO needs to be estimated via MC sampling, reducing the variance.
 1. Allows reparameterization. $\to$ Enables gradient approximation in SGD.
 
+### Closed-Form Entropy and KL Divergence
+
 For a multivariate Gaussian $q(\mathbf{z}) = \mathcal N(\mathbf{z} ; \boldsymbol{\mu}, \boldsymbol{\Sigma}), \, \mathbf{z} \in \mathbb R^\ell$, the differential entropy is:
 
 $$
@@ -340,9 +485,86 @@ $$
 \end{align}
 $$
 
+Here, we only need to apply MC estimation to the 1st term.
+
+Alternatively, if we assume a Gaussian prior on $\mathbf{z}$, we can factor out more closed form terms. For that, we use the closed-form KL divergence of Gaussians:
+
+Let $p(\mathbf{z}) = \mathcal N(\mathbf{z} ; \boldsymbol{\mu}_0, \boldsymbol{\Sigma}_0)$ and $q(\mathbf{z}) = \mathcal N(\mathbf{z} ; \boldsymbol{\mu}, \boldsymbol{\Sigma})$. The KL divergence of $q$ w.r.t. $p$ is
+
+$$
+\begin{align}
+D_\text{KL}(q(\mathbf{z}) \parallel p(\mathbf{z})) = \frac{1}{2}
+\left[
+  \mathrm{tr}\left( \boldsymbol{\Sigma}_0^{-1} \boldsymbol{\Sigma} \right) +
+  (\boldsymbol{\mu} - \boldsymbol{\mu}_0)^\top \boldsymbol{\Sigma}_0^{-1} (\boldsymbol{\mu} - \boldsymbol{\mu}_0) - \ell +
+  \log\frac{\det(\boldsymbol{\Sigma}_0)}{\det(\boldsymbol{\Sigma})}
+\right]
+\end{align}
+$$
+
+By [ELBO reformulation](#elbo-as-regularized-reconstruction), we can express ELBO as
+
+$$
+\begin{align*}
+\mathcal L(\boldsymbol{\mu}, \boldsymbol{\Sigma},\mathbf{x})
+&= \mathbb E_{\mathbf{z} \sim q}  \left[ \log p(\mathbf{x} \mid \mathbf{z}) \right] - \frac{1}{2}
+\left[
+  \mathrm{tr}\left( \boldsymbol{\Sigma}_0^{-1} \boldsymbol{\Sigma} \right) +
+  (\boldsymbol{\mu} - \boldsymbol{\mu}_0)^\top \boldsymbol{\Sigma}_0^{-1} (\boldsymbol{\mu} - \boldsymbol{\mu}_0) - \ell +
+  \log\frac{\det(\boldsymbol{\Sigma}_0)}{\det(\boldsymbol{\Sigma})}
+\right]
+\end{align*}
+$$
+
+Typically, we choose $\boldsymbol{\mu}_0 = \mathbf{0}$. The ELBO thus becomes
+
+$$
+\begin{align}
+\mathcal L(\boldsymbol{\mu}, \boldsymbol{\Sigma},\mathbf{x})
+&= \mathbb E_{\mathbf{z} \sim q}  \left[ \log p(\mathbf{x} \mid \mathbf{z}) \right] - \frac{1}{2}
+\left[
+  \mathrm{tr}\left( \boldsymbol{\Sigma}_0^{-1} \boldsymbol{\Sigma} \right) +
+  \boldsymbol{\mu}^\top \boldsymbol{\Sigma}_0^{-1} \boldsymbol{\mu} - \ell +
+  \log\frac{\det(\boldsymbol{\Sigma}_0)}{\det(\boldsymbol{\Sigma})}
+\right]
+\end{align}
+$$
+
+If we assume in addition that $\boldsymbol{\Sigma}_0 = \mathbf{I}$ (typical assumption in VAEs), the ELBO simplifies further to
+
+$$
+\begin{align}
+\mathcal L(\boldsymbol{\mu}, \boldsymbol{\Sigma},\mathbf{x})
+&= \mathbb E_{\mathbf{z} \sim q}  \left[ \log p(\mathbf{x} \mid \mathbf{z}) \right] - \frac{1}{2}
+\left[
+  \mathrm{tr}\left( \boldsymbol{\Sigma} \right) +
+  \Vert \boldsymbol{\mu} \Vert^2 - \ell -
+  \log \det(\boldsymbol{\Sigma})
+\right]
+\end{align}
+$$
+
+If we further restrict to mean-field Gaussian
+
+$$
+\boldsymbol{\Sigma} = \mathrm{diag}(\underbrace{\sigma_1^2, \dots, \sigma_\ell^2}_{\boldsymbol{\sigma}^2})
+$$
+
+the ELBO simplifies further to
+
+$$
+\begin{align}
+\mathcal L(\boldsymbol{\mu}, \boldsymbol{\sigma}^2,\mathbf{x})
+&= \mathbb E_{\mathbf{z} \sim q}  \left[ \log p(\mathbf{x} \mid \mathbf{z}) \right] - \frac{1}{2} \sum_{i=1}^\ell
+\left(
+  \sigma_i^2 + \mu_i^2 - 1 - \log \sigma_i^2
+\right)
+\end{align}
+$$
+
 ### Reparameterization Trick
 
-The optimal Gaussian variational distribution is obtained by maximizing the ELBO:
+We focus on maximizing the ELBO expressed as entropy minus free energy:
 
 $$
 \begin{align*}
@@ -461,149 +683,6 @@ return $\boldsymbol{\mu}, \boldsymbol{\Sigma}$
 
 ---
 
-## Dataset-Level ELBO
-
-[Previously](#the-evidence-lower-bound), we derived the ELBO $\mathcal L(q,\mathbf{x})$ for a single observation $\mathbf{x}$. From now on, let's call it **per-sample** ELBO (or **per-observation** ELBO).
-
-**Question**: What if we have a dataset consisting of multiple iid observations? Can we lower-bound the evidence of the whole dataset?
-
-Problem formulation:
-
-* Known: generative model $p(\mathbf{x},\mathbf{z}) = p(\mathbf{z}) \, p(\mathbf{x} \mid \mathbf{z})$.
-* Given: training data $D = \{ \mathbf{x}_1, \cdots,  \mathbf{x}_n\} \stackrel{\text{iid}}{\sim} p(\mathbf{x}) = \int_z p(\mathbf{x},\mathbf{z}) \:\mathrm dz$.
-* Select: variational family $\mathcal Q$.
-* Goal: derive a lower bound on $\log p(D)$.
-
-We refer to the lower bound on $\log p(D)$ as the **dataset-level ELBO** (or simply **dataset ELBO**). In fact, dataset ELBO does exist since
-
-$$
-\begin{align}
-\log p(D) = \log \prod_{i=1}^n p(\mathbf{x}_i) = \sum_{i=1}^n \log p(\mathbf{x}_i)
-\end{align}
-$$
-
-Each $\log p(\mathbf{x}_i)$ can be lower bounded by its individual per-sample ELBO. Therefore, $\log p(D)$ can also be lower bounded. The remaining question is how to design the variational distribution for each $\mathbf{x}_i$.
-
-### Local Inference Model
-
-A natural extension of per-sample ELBO to dataset ELBO is choosing variational distribution independently for each observation. Formally:
-
-For each $\mathbf{x}_i$, we choose $q_i \in\mathcal Q$ independently to approximate the true posterior $p(\mathbf{z} \mid \mathbf{x}_i)$. This gives per-sample ELBO
-
-$$
-\begin{align}
-\mathcal L(q_i, \mathbf{x}_i)
-&= \sum_{i=1}^n \mathbb E_{\mathbf{z} \sim q_i} \left[ \log\frac{p(\mathbf{x}_i, \mathbf{z})}{q_i(\mathbf{z})} \right]
-\end{align}
-$$
-
-For any combination of variational distributions $q_1, \dots, q_n \in \mathcal Q$, it holds that
-
-$$
-\begin{align*}
-\log p(D)
-= \sum_{i=1}^n \log p(\mathbf{x}_i)
-\ge \underbrace{\sum_{i=1}^n \mathcal L(q_i, \mathbf{x}_i)}_{\mathcal L(q_1, \dots, q_n, D)}
-\end{align*}
-$$
-
-Hence, we obtain the dataset ELBO:
-
-$$
-\begin{align}
-\mathcal L(q_1, \dots, q_n, D)
-\triangleq \sum_{i=1}^n \mathcal L(q_i, \mathbf{x}_i)
-= \sum_{i=1}^n \mathbb E_{\mathbf{z} \sim q_i} \left[ \log\frac{p(\mathbf{x}_i, \mathbf{z})}{q_i(\mathbf{z})} \right]
-\end{align}
-$$
-
-Remarks:
-
-* The (dataset) ELBO is a functional of $q_1, \dots, q_n$, which are **freely** chosen.
-* We assume that $q_1, \dots, q_n \in \mathcal Q$. i.e. All variational distributions belong to the same variational family.
-* Local variational distributions are used in classical variational inference.
-
-The optimal variational distributions are obtained by solving the functional optimization problems
-
-$$
-\begin{align}
-q_i^* = \argmax_{q_i \in \mathcal Q} \mathcal L(q_i, \mathbf{x}_i), \quad i=1,\dots,n
-\end{align}
-$$
-
-Remarks:
-
-* Due to the additive structure of dataset ELBO, each $q_i$ can be optimized independently of each other.
-* In practice, $\mathcal Q$ is a parametric variational family, e.g. Gaussian. Therefore, we turn this functional optimization problem into a parameter optimization problem.
-
-Drawbacks:
-
-1. **Poor scalability**: The number of optimization problems scales linearly with the size of the dataset. If we have $n$ observations, we have solve $n$ independent optimization problems.
-1. **No generalization**: Given a new observation $\mathbf{x}_*$, we have to solve the optimization problem again. We cannot forge the variational distribution for $\mathbf{x}_*$ from $q_1^*, \dots, q_n^*$.
-
-### Global Inference Model
-
-Instead of learning $q_i$ for each $\mathbf{x}_i$ individually, we learn a **global inference model**, conceptually defined as a mapping $f$
-
-$$
-f: \mathbb R^d \to \mathcal Q, \mathbf{x} \mapsto q(\cdot \mid \mathbf{x})
-$$
-
-where $\cdot$ is the placeholder for $\mathbf{z}$, such that $\forall \mathbf{x} \in \mathbb R^d$
-
-$$
-q(\cdot \mid \mathbf{x}) \approx p(\cdot \mid \mathbf{x})
-$$
-
-Remarks:
-
-* The abstract mapping $f$ maps each data point to a variational distribution. Mathematically, it is a complex point-to-function mapping.
-* ⚠️ To reduce visual clutter, we write $f(\mathbf{x}) = q(\cdot \mid \mathbf{x})$ rather than $f(\mathbf{x}) = q_{f}(\cdot \mid \mathbf{x})$
-* The globalness hightlights the fact that $f$ is shared by all $\mathbf{x}\in\mathbb R^d$.
-* Once we learned such $f$ on training data $D$, not only can we plug in $\mathbf{x}_i$ and use $q(\cdot \mid \mathbf{x}_i) \approx p(\cdot \mid \mathbf{x}_i)$, but also we can plug in any unseen $\mathbf{x}_*$ and get $q(\cdot \mid \mathbf{x}_*) \approx p(\cdot \mid \mathbf{x}_*)$.
-
-For each sample $\mathbf{x}_i$, the per-sample ELBO is
-
-$$
-\begin{align}
-\mathcal L(f(\mathbf{x}_i), \mathbf{x}_i)
-&= \mathcal L(q(\cdot \mid \mathbf{x}_i), \mathbf{x}_i) \\
-&= \mathbb E_{\mathbf{z} \sim q(\cdot \mid \mathbf{x}_i)} \left[ \log\frac{p(\mathbf{x}_i, \mathbf{z})}{q(\mathbf{z} \mid \mathbf{x}_i)} \right]
-\end{align}
-$$
-
-Summing over all samples, we obtain the dataset ELBO
-
-$$
-\begin{align}
-\mathcal L(f, D)
-&\triangleq \sum_{i=1}^n \mathcal L(f(\mathbf{x}_i), \mathbf{x}_i)\\
-&= \sum_{i=1}^n \mathbb E_{\mathbf{z} \sim q(\cdot \mid \mathbf{x}_i)} \left[ \log\frac{p(\mathbf{x}_i, \mathbf{z})}{q(\mathbf{z} \mid \mathbf{x}_i)} \right]
-\end{align}
-$$
-
-Remarks:
-
-* Not to be confused by the notation: $f(\mathbf{x}_i) = q(\cdot \mid \mathbf{x}_i) \in \mathcal Q$, i.e. $f(\mathbf{x}_i)$ is a (probability density) function.
-* Comparing to local variational distribution scheme, there is a key distinction between $q_i(\cdot)$ and $q(\cdot \mid \mathbf{x}_i)$:
-  * Local variational distribution: We choose each $q_i(\cdot) \in \mathcal Q$ freely.
-  * Global variational distribution: Each $q(\cdot \mid \mathbf{x}_i)$ are determined by plugging $\mathbf{x}_i$ into the point-to-function mapping $f$, which shared by all $\mathbf{x}_i \in D$.
-
-To maximize the dataset ELBO, we aim to solve
-
-$$
-\begin{align}
-f^* = \argmax_{f} \mathcal L(f, D)
-\end{align}
-$$
-
-This is again a functional optimization problem. In practice, we avoid dealing directly with a functional optimization problem by
-
-1. using parametric family $\mathcal Q$, e.g. multivariate Gaussian with parameter $(\boldsymbol{\mu}, \boldsymbol{\Sigma})$
-1. designing $f$ as a neural net with $\mathbf{x}$ as its input layer, and $(\boldsymbol{\mu}, \boldsymbol{\Sigma})$ as its output layer.
-
-Learning $f$ boils down to training such a neual net.
-
 ## Variational Inference
 
 Unless otherwise specified, we use a **Gaussian variational distribution** to approximate the true posterior.
@@ -619,11 +698,11 @@ Problem formulation:
 
 In the following, we will consider local variational distribution scheme and global variational distribution scheme. The dataset ELBO, previously defined as a functional over variational distributions, will be reformulated as a scalar-valued function of parameter vectors.
 
-### Classical Variational Inference
+### Non-amortized Variational Inference
 
 For each observation $\mathbf{x}_i$, we use $\mathcal N(\mathbf{z}; \boldsymbol{\mu}_i, \boldsymbol{\Sigma}_i)$ to approximate the true posterior $p(\mathbf{z} \mid \mathbf{x}_i)$.
 
-* Classical: We use local variational distributions, i.e. we choose $\boldsymbol{\mu}_i,\boldsymbol{\Sigma}_i$ independently for each $\mathbf{x}_i$.
+* Non-amortized: We use local variational distributions, i.e. we choose $\boldsymbol{\mu}_i,\boldsymbol{\Sigma}_i$ independently for each $\mathbf{x}_i$.
 
 The dataset ELBO, previously as a functional of $\{q_i\}_{i=1}^n$, now becomes a function of $\{\boldsymbol{\mu}_i, \boldsymbol{\Sigma}_i\}_{i=1}^n$:
 
@@ -666,7 +745,7 @@ The complete algorithm is summarized below:
 
 ---
 
-**Algorithm: classical variational inference with Gaussian variational distributions**  
+**Algorithm: Non-amortized variational inference with Gaussian variational distributions**  
 **Input**: $\mathbf{x}_1, \dots, \mathbf{x}_n \in\mathbb R^d$  
 **Output**: $\boldsymbol{\mu}_1,\dots,\boldsymbol{\mu}_n\in\mathbb R^\ell, \boldsymbol{\Sigma}_1,\dots,\boldsymbol{\Sigma}_n\in\mathbb R^{\ell \times \ell}$  
 **Goal**: use $\mathcal N(\mathbf{z}; \boldsymbol{\mu}_i,\boldsymbol{\Sigma}_i)$ to approximate $p(\mathbf{z} \mid \mathbf{x}_i)$
@@ -763,7 +842,6 @@ $$
 \begin{align}
 \mathcal L({\boldsymbol{\phi}}, D)
 &= \sum_{\mathbf{x}\in D} \mathcal L({\boldsymbol{\phi}}, \mathbf{x}) \\
-&= \sum_{\mathbf{x}\in D} \mathbb E_{\mathbf{z} \sim q_{\boldsymbol{\phi}}(\cdot \mid \mathbf{x})} \left[ \log\frac{p(\mathbf{x}, \mathbf{z})}{q_{\boldsymbol{\phi}}(\mathbf{z} \mid \mathbf{x})} \right] \\
 &= \sum_{\mathbf{x}\in D} \mathbb E_{\boldsymbol{\epsilon} \sim \mathcal N(\mathbf{0}, \mathbf{I})} \left[ \log p(\mathbf{x},\mathbf{z})  \right] + \log\left[ \det \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \right]
 \\
 &= |D| \cdot \sum_{\mathbf{x}\in D} \frac{1}{|D|} \left[\mathbb E_{\boldsymbol{\epsilon} \sim \mathcal N(\mathbf{0}, \mathbf{I})} \left[ \log p(\mathbf{x},\mathbf{z}) \right] + \log\left[ \det \mathbf{L}_{\boldsymbol{\phi}}(\mathbf{x}) \right] \right]
@@ -836,7 +914,7 @@ Return ${\boldsymbol{\phi}}$
 Remarks:
 
 * The \# parameters is now fully determined by the architecture of NN (or the \# scalars in ${\boldsymbol{\phi}}$). No longer scales up with the dataset size.
-* Once, we trained the NN. We can compute $q_{\boldsymbol{\phi}}(\mathbf{z} \mid \mathbf{x}_*)$ for unseen data $\mathbf{x}_*$ by simply performing a forward pass. This allows us effortless generalization for inference. In contrast, classical VI has no generalizaiton ability.
+* Once, we trained the NN. We can compute $q_{\boldsymbol{\phi}}(\mathbf{z} \mid \mathbf{x}_*)$ for unseen data $\mathbf{x}_*$ by simply performing a forward pass. This allows us effortless generalization for inference. In contrast, non-amortized VI has no generalizaiton ability.
 
 ### Summary of Terminologies
 
@@ -844,52 +922,16 @@ Variational Inference (VI): A class of optimization-based methods that approxima
 
 How is the ELBO and its gradient computed?
 
-* Traditional variational inference: ELBO and its gradient are computed analytically in close-form. Requires conjugacy.
+* Traditional variational inference: ELBO and its gradient are computed in close-form. Requires conjugacy.
 * Black-box variational inference: ELBO and its gradient are estimated by MC sampling. Does not require conjugacy.
 
 Additional assumption on the structure of variational distribution?
 
 * Mean-field variatioal inference: The variational distribution can be factorized component-wise, i.e. no correlation among latent dimensions.
 
-How is inference performed across observations?
+Parameter sharing across observations?
 
-* Classical variational inference: optimize a separate variatioanl distribution for each observation.
+* Non-amortized variational inference: optimize a separate variatioanl distribution for each observation.
 * Amortized variational inference: train a global inference model that is shared by all observations.
 
 These types can be mixed depending on the modeling goal. e.g. One might use an amortized mean-field Gaussian variational distribution.
-
-## Appendix
-
-### Entropy of Gaussian
-
-For a multivariate Gaussian $p(\mathbf{x}) = \mathcal N(\mathbf{x} ; \boldsymbol{\mu}, \boldsymbol{\Sigma}), \, \mathbf{x} \in \mathbb R^d$, the differential entropy is:
-
-$$
-\begin{align}
-H(p)
-&= -\mathbb E_{\mathbf{x} \sim p} \left[ \log p(\mathbf{x}) \right] \\
-&= \frac{1}{2} \log \left[ (2\pi e)^d \det(\boldsymbol{\Sigma}) \right] \\
-&= \frac{1}{2} \log \left[ \det(\boldsymbol{\Sigma}) \right] + \frac{d}{2} \log (2\pi e) \\
-\end{align}
-$$
-
-Let $\mathbf{L}$ (lower triangular) be the Cholesky factor of the covariance matrix, i.e. $\boldsymbol{\Sigma} = \mathbf{LL}^\top$. Then,
-
-$$
-\begin{align*}
-\log \left[ \det(\boldsymbol{\Sigma}) \right]
-&= \log \left[ \det(\mathbf{LL}^\top) \right] \\
-&= \log \left[ \det(\mathbf{L}) \cdot \det(\mathbf{L}^\top) \right] \\
-&= \log \left[ \det(\mathbf{L})^2 \right] \\
-&= 2\log \left[ \det(\mathbf{L}) \right] \\
-\end{align*}
-$$
-
-Therefore, We can express $H(p)$ as
-
-$$
-\begin{align}
-H(p)
-&= \log \left[ \det(\mathbf{L}) \right] + \frac{d}{2} \log (2\pi e) \\
-\end{align}
-$$

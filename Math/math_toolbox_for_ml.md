@@ -526,3 +526,37 @@ Remarks:
 
 * The KL divergence is always non negative, even for continuous distributions. (In contrast, the non negativity of differential entropy is not guaranteed)
 * In machine learning, we often compute the model distribution $q$ by minimizing its KL divergence w.r.t. the ground truth distribution $p$.
+
+### Entropy of Multivariate Gaussian
+
+For a multivariate Gaussian $p(x) = \mathcal N(x ; \mu, \Sigma), \, x \in \mathbb R^d$, the differential entropy is:
+
+$$
+\begin{align}
+H(p)
+&= \mathbb E_{x \sim p} \left[ \log \frac{1}{p(x)} \right] \\
+&= \frac{1}{2} \log \left[ (2\pi e)^d \det(\Sigma) \right] \\
+&= \frac{1}{2} \log \left[ \det(\Sigma) \right] + \frac{d}{2} \log (2\pi e) \\
+\end{align}
+$$
+
+Let ${L}$ (lower triangular) be the Cholesky factor of the covariance matrix, i.e. $\Sigma = {LL}^\top$. Then,
+
+$$
+\begin{align*}
+\log \left[ \det(\Sigma) \right]
+&= \log \left[ \det(LL^\top) \right] \\
+&= \log \left[ \det(L) \cdot \det({L}^\top) \right] \\
+&= \log \left[ \det(L)^2 \right] \\
+&= 2\log \left[ \det(L) \right] \\
+\end{align*}
+$$
+
+Therefore, We can express $H(p)$ as
+
+$$
+\begin{align}
+H(p)
+&= \log \left[ \det({L}) \right] + \frac{d}{2} \log (2\pi e) \\
+\end{align}
+$$

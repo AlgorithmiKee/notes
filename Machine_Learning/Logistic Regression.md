@@ -1,11 +1,5 @@
 # Logistic Regression
 
-TODO:
-
-* Highlight equations
-* Use align environment
-* Use mathbf to typeset vectors and matrices
-
 ## Logistic Function
 
 The logistic function $\sigma(\cdot)$ is defined as

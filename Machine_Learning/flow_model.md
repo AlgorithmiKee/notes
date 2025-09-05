@@ -15,7 +15,7 @@ $$
 
 ## Motivation
 
-How do we model a complex distribution $p_\text{data}$?
+How do we model a complex distribution $p_\text{data}$ by transforming a simple distribution?
 
 A variational autoencoder (VAE) models $p_\text{data}$ using deep latent varible models:
 
@@ -30,7 +30,7 @@ A variational autoencoder (VAE) models $p_\text{data}$ using deep latent varible
 
 A flow model is similar in spirit, as it also transforms a simple distribution into a complex one. However, the mechanism is different: flows model the transformation directly as an invertible mapping.
 
-1. start from simple base distribution $z \sim \mathcal N( 0,  I)$.
+1. start from simple base distribution $z \sim \mathcal N(0, I)$.
 
 1. transform via a flow $x = f(z)$.
 
@@ -53,67 +53,21 @@ $$
 
 such that
 
-1. $f$ is **differentiable** and **invertible**
-1. The inverse $f^{-1}$ is also **differentiable**
+1. $f$ is **differentiable** and **invertible**.
+1. The inverse $f^{-1}$ is also **differentiable**.
 
 Remarks:
 
-* The differentiability of the inverse is later required by the change of variable rule.
+* Strictly speaking, it is sufficient that invertibility and differentiability hold almost everywhere with respect to the Lebesgue measure on $\mathbb R^n$ (rather than everywhere). In other words, we allow $f$ to be piecewise differentiable, as long as the set of nondifferentiable points has measure zero.
 * A flow model can be viewed as a deterministic and invertible VAE, such that each $x$ corresponds to a unique $z$. Conditioned on $z$, there is no stochasticity in $x$.
 * Unlike VAEs, a flow model does not compress information into a lower-dimensional latent space since $x$ and $z$ have the **same** dimension.
+* Composition of a collection of flows is again a flow. In this way, we can form a complex flow from simpler one. $\to$ [discrete normalizing flow](#discrete-normalizing-flow)
 
-A collection of flows $f_1,\dots,f_T$ can be composed into a new flow.
-
-$$
-\begin{align}
-f = f_T \circ \dots \circ f_1
-\end{align}
-$$
-
-Since each flow is invertible, the composition is also invertible
-$$
-\begin{align}
-f^{-1} = f_1^{-1} \circ \dots \circ f_T^{-1}
-\end{align}
-$$
-
-Illustration:
-
-$$
-z \triangleq
-x_0    \rightarrow \boxed{\phantom{X} f_1^{\phantom{-1}}} \rightarrow
-x_1    \rightarrow \boxed{\phantom{X} f_2^{\phantom{-1}}} \rightarrow
-x_2    \rightarrow \boxed{\phantom{X} f_3^{\phantom{-1}}} \rightarrow
-\cdots \rightarrow \boxed{\phantom{X} f_T^{\phantom{-1}}} \rightarrow
-x_T \triangleq x
-\\[8pt]
-z \triangleq
-x_0    \leftarrow \boxed{\phantom{X} f_1^{-1}} \leftarrow
-x_1    \leftarrow \boxed{\phantom{X} f_2^{-1}} \leftarrow
-x_2    \leftarrow \boxed{\phantom{X} f_3^{-1}} \leftarrow
-\cdots \leftarrow \boxed{\phantom{X} f_T^{-1}} \leftarrow
-x_T \triangleq x
-$$
-
-For each $t=1,\dots,T$, let $D_{f_t}(u)$ denote the Jacobian of $f_t$ evaluated at $u\in\mathbb R^d$. By the chain rule, the composition is also differentiable with the Jacobian
+Let $D_f$ and $D_{f^{-1}}$ denote the Jacobian of $f$ and $f^{-1}$ respectively. By the inverse differentiation rule, they are related via
 
 $$
 \begin{align}
-D_{f}(z) = D_{f_T}(x_{T-1}) \cdots D_{f_2}(x_{1}) \cdot D_{f_1}(x_{0}),
-\quad x_0 \triangleq z
-\end{align}
-$$
-
-The inverse $f^{-1}$ is also differentiable with the Jacobian
-
-$$
-\begin{align}
-D_{f^{-1}}(x)
-&= [D_{f}(z)]^{-1} \\
-&= [D_{f_1}(x_{0})]^{-1} \cdot [D_{f_2}(x_{1})]^{-1} \cdots [D_{f_T}(x_{T-1})]^{-1} ,
-&& x_0 \triangleq z \\
-&= [D_{f_1^{-1}}(x_{1})]^{-1} \cdot [D_{f_2^{-1}}(x_{2})]^{-1} \cdots [D_{f_T^{-1}}(x_T)]^{-1} ,
-&& x_T \triangleq x
+D_{f^{-1}}(x) = [ D_f(z) ]^{-1}, \quad z = f^{-1}(x)
 \end{align}
 $$
 
@@ -134,26 +88,22 @@ where $D_{f^{-1}}(x)$ is the Jacobian matrix of $f^{-1}$ evaluated at $x$.
 
 Remarks:
 
-* The 2nd equation follows from $\det(A^{-1}) = \det(A)^{-1}$.
 * In 1D case, the formula simplifies to
     $$
     p_X(x)
     = p_Z\left( z \right) \cdot \left\vert f'(z) \right\vert^{-1}, \quad
     z = f^{-1}(x)
     $$
-* If $f$ is sufficiently expressive, it pushes the simple base distribution to a complex one. Conversely, $f^{-1}$ pushes a complex distribution back to a simpler one.
+* Typically, the base distribution is standard Gaussian. If $f$ is sufficiently expressive, it pushes the Gaussian base distribution to a complex one. Conversely, the inverse $f^{-1}$ **normalizes** a complex distribution $p_X$ back to a standard Gaussian. This normalizing property is where the term *normalizing* flow comes from.
     $$
     \begin{align}
     p_X = f_\sharp p_Z, \quad p_Z = [f^{-1}]_\sharp p_X
     \end{align}
     $$
 
-Applying change of variable rule requires
+* Computing the Jacobian determinant typically costs $O(d^3)$ time unless $f$ has special structure. The computation is infeasible in higher dimension.
 
-* Computing the inverse $f^{-1}$.
-* Computing the Jacobian determinant, which typically costs $O(d^3)$ time unless $f$ has special structure. The computation is infeasible in higher dimension.
-
-Therefore, while every flow induces a valid push-forward distribution, a flow is called a ***normalizing flow*** only when its inverse and Jacobian determinant can be evaluated efficiently. Normalizing flows often use flows with diagonal, triangular, or other structured Jacobians.
+While every flow has the normalizing property, the term ***normalizing flow*** is usually reserved for flows whose inverse and Jacobian determinant can be computed efficiently. Popular choices are detailed [here]().
 
 ### The Learning Problem
 
@@ -214,7 +164,7 @@ The first term is independent of $f$, so minimizing the KL divergence is equival
     * Enforcing invertibility in a neural network is nontrivial.
     * Efficient computation of $f^{-1}$ is another challenge.
 
-## Normalizing Flow
+## Training a Flow Model
 
 Suppose $f_\theta$ is a neural network parameterizing a normalizing flow. Let
 
@@ -272,27 +222,138 @@ $$
 \end{align}
 $$
 
-### Efficient Jacobian Determinant
+Remarks:
 
-The central challenge is that computing $\det D_{f_\theta}(z)$ is $O(d^3)$ in general. Normalizing flows impose special structure on $f_\theta$ so that:
+* Note: $z^{(i)}$ depends on $\theta$ through $f_\theta^{-1}$. Hence, $\nabla_\theta z^{(i)}$ could be nonzero. In practice, automatic differentiation handles this dependency.
+* For arbitrary $f_\theta$, the Jacobian $D_{f_\theta}$ is typically full-rank. Computing $\det(D_{f_\theta})$ may be expensive. Even worse, $f_\theta$ might not be invertible.
+
+In practice, we choose flow architectures that allow efficient computation of $f_\theta^{-1}$ and $\det(D_{f_\theta})$, so that both the likelihood and its gradient can be evaluated efficiently.
+
+## Practical Flow Architectures
+
+We need to impose special structure on $f_\theta$ so that:
 
 * $f_\theta$ is invertible with easy-to-compute inverse
-* **$\det(D_{f_\theta})$ **(or its log) is cheap to compute
+* $\det(D_{f_\theta})$ (or its log) is cheap to compute
 
-Popular design patterns:
+Popular architectures:
 
 1. **Volume-Preserving Flows**: $\det D_{f_\theta}(z) = 1$, so the Jacobian determinant is trivial.
 2. **Triangular / Affine Coupling Layers**: Impose block triangular structure on $D_{f_\theta}(z)$.
 3. **Autoregressive Flows**: Impose lower triangular structure on $D_{f_\theta}(z)$.
 4. **Continuous Normalizing Flows**: Avoid explicit determinants but requires solving ODEs numerically.
 
-## Discrete Normalizing Flow
+## Stacked Normalizing Flows
 
 From a complex flow model by composing
 
 * Volume-Preserving Flows
 * Triangular / Affine Coupling Layers
 * Autoregressive Flows
+
+so that we can ensure invertibility and efficient computation of Jacobian determinant in each layer.
+
+### Composition of Flows
+
+A collection of flows $f_1,\dots,f_T$ can be composed into a new flow.
+
+$$
+\begin{align}
+f = f_T \circ \dots \circ f_1
+\end{align}
+$$
+
+Illustration:
+
+$$
+Z \triangleq
+X_0    \rightarrow \boxed{f_1} \rightarrow
+X_1    \rightarrow \boxed{f_2} \rightarrow
+X_2    \rightarrow \boxed{f_3} \rightarrow
+\cdots \rightarrow \boxed{f_T} \rightarrow
+X_T \triangleq X
+$$
+
+The intermediate variables form a discrete-time stochastic process following a discrete-time dynamic system.
+$$
+\begin{align}
+X_t = f_t(X_{t-1}), \quad t = 1,\dots,T
+\end{align}
+$$
+
+Remarks:
+
+* The dynamic system is characterized by $f_1,\dots,f_T$, which are **deterministic** functions.
+* This is like a Markov chain with the deterministic state transition. i.e. Conditioned on $x_{t}$, there is no stochasticity in $x_{t+1}, x_{t+2}, \dots, x_T$.
+
+Since each flow is invertible, the composition is also invertible
+$$
+\begin{align}
+f^{-1} = f_1^{-1} \circ \dots \circ f_T^{-1}
+\end{align}
+$$
+
+Illustration: inverse of composite flow
+
+$$
+Z \triangleq
+X_0    \leftarrow \boxed{f_1^{-1}} \leftarrow
+X_1    \leftarrow \boxed{f_2^{-1}} \leftarrow
+X_2    \leftarrow \boxed{f_3^{-1}} \leftarrow
+\cdots \leftarrow \boxed{f_T^{-1}} \leftarrow
+X_T \triangleq X
+$$
+
+For each $t=1,\dots,T$, let $D_{f_t}(u)$ denote the Jacobian of $f_t$ evaluated at $u\in\mathbb R^d$. By the chain rule, the composition is also differentiable with the Jacobian
+
+$$
+\begin{align}
+D_{f}(z) = D_{f_T}(x_{T-1}) \cdots D_{f_2}(x_{1}) \cdot D_{f_1}(x_{0}),
+\quad x_0 \triangleq z
+\end{align}
+$$
+
+The inverse $f^{-1}$ is also differentiable with the Jacobian
+
+$$
+\begin{align}
+D_{f^{-1}}(x)
+&= [D_{f}(z)]^{-1} \\
+&= [D_{f_1}(x_{0})]^{-1} \cdot [D_{f_2}(x_{1})]^{-1} \cdots [D_{f_T}(x_{T-1})]^{-1} ,
+&& x_0 \triangleq z \\
+&= D_{f_1^{-1}}(x_{1}) \cdot D_{f_2^{-1}}(x_{2}) \cdots D_{f_T^{-1}}(x_T) ,
+&& x_T \triangleq x
+\end{align}
+$$
+
+The composition flow $f = f_T \circ \dots \circ f_1$ pushes the base distribution $p_0$ to
+
+$$
+\begin{align}
+p_T(x_T)
+&= p_0\left( x_0 \right) \cdot \Big\vert \det( D_{f}(x_0)) \Big\vert^{-1}, \quad
+x_0 = f^{-1}(x_T)
+\\
+&= p_0\left( x_0 \right) \cdot \Big\vert \det( D_{f_T}(x_{T-1}) \cdots D_{f_2}(x_{1}) \cdot D_{f_1}(x_{0})) \Big\vert^{-1}
+\nonumber \\
+&= p_0\left( x_0 \right) \cdot \left\vert \prod_{t=1}^T \det( D_{f_t}(x_{t-1})) \right\vert^{-1}
+\nonumber \\
+&= p_0\left( x_0 \right) \cdot \prod_{t=1}^T \Big\vert \det( D_{f_t}(x_{t-1})) \Big\vert^{-1}
+\end{align}
+$$
+
+In training, we often take the log
+
+$$
+\begin{align}
+\log p_T(x_T)
+&= \log p_0\left( x_0 \right) - \sum_{t=1}^T \log \Big\vert \det( D_{f_t}(x_{t-1})) \Big\vert
+\end{align}
+$$
+
+### Training of Composition Flow
+
+Let $f_t$ be parameterized by $\theta_t$. Let $\theta = \{\theta_1, \dots, \theta_T\}$ denote the entire network parameters from all flow layers. We hope $p_T \approx p_\text{data}$.
 
 ## Continuous Normalizing Flow
 

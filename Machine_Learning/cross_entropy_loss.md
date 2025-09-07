@@ -1,120 +1,160 @@
 ---
-title: "Cross Entropy Loss"
+title: "KL Divergence"
 author: "Ke Zhang"
 date: "2025"
 fontsize: 12pt
 ---
 
-[toc]
+# KL Divergence
 
-# Cross Entropy Loss
+## Probabilistic Learning
 
-These notes provide a high-level overview of probabilistic learning from the perspective of cross entropy.
+Problem formulation:
 
-**Notations:**
+* Unknown true distribution $p_\star$
+* Design a probabilistic model: $p_\theta$
+* Train the probabilistic model so that $p_\theta \approx p_\star$
 
-* $\mathcal X$: the data space. Common choices include $\mathcal X = \mathbb R^d$ or a finite discrete set.
-* $\mathcal P(\mathcal X)$: the set of all probability distributions on $\mathcal X$.
-  * If $\mathcal X = \mathbb R^d$, then $\mathcal P(\mathcal X)$ includes all PDFs $p: \mathcal X \to \mathbb R_{\ge 0}$ such that $\int p(x) \, dx = 1$.
-  * If $\mathcal X$ is finite and discrete, then $\mathcal P(\mathcal X)$ consists of all PMFs $p: \mathcal X \to [0,1]$ with $\sum_x p(x) = 1$.
-* $\theta \in \mathbb R^p$: parameter vector. For example, for a univariate Gaussian, $\theta = (\mu, \sigma^2) \in \mathbb R^2$.
-* $\mathcal P_\theta(\mathcal X)$: a parameterized family of distributions on $\mathcal X$.
-  * Clearly, $\mathcal P_\theta(\mathcal X) \subseteq \mathcal P(\mathcal X)$.
-  * Example: If $\mathcal X=\mathbb R$, then $\mathcal P_\theta(\mathbb R)$ could be the set of all univariate Gaussians parameterized by $\theta = (\mu, \sigma^2)$. In this case, the exponential distribution is not in $\mathcal P_\theta(\mathbb R)$.
+How to measure the *distance* between two distributions? A popular choice is KL divergence. For two distributions $p$ and $q$, the KL divergence is defined as
 
-## Learning a Marginal Distribution
+> $$
+> \begin{align}
+> D_\text{KL}(p \| q)
+> &= \mathbb E_{x \sim p} \left[ \log \frac{p(x)}{q(x)} \right]
+> \end{align}
+> $$
 
-Suppose $X \in \mathcal X$ is drawn from an unknown true distribution $p^* \in \mathcal P(\mathcal X)$. Probabilistic learning can be seen as the process of finding a model distribution $p_\theta \in \mathcal P_\theta(\mathcal X)$ that is as close to $p^*$ as possible.
+KL divergence is not symmetric. In probabilistic learning, we distinguish
 
-We say the model is **well-specified** if $p^* \in \mathcal P_\theta(\mathcal X)$, and **misspecified** otherwise.  
-For example, the voltage of a DC signal subject to thermal noise may follow a Gaussian distribution. If we model it with another Gaussian, the model is well-specified.
+* **forward** KL divergence
 
-To quantify the difference between $p_\theta$ and $p^*$, we often use **cross entropy loss**:
+    > $$
+    > \begin{align}
+    > D_\text{KL}(p_\star \| p_\theta)
+    > &= \mathbb E_{x \sim p_\star} \left[ \log \frac{p_\star(x)}{p_\theta(x)} \right]
+    > \end{align}
+    > $$
 
+* **reverse** KL divergence
+
+    > $$
+    > \begin{align}
+    > D_\text{KL}(p_\theta \| p_\star)
+    > &= \mathbb E_{x \sim p_\theta} \left[ \log \frac{p_\theta(x)}{p_\star(x)} \right]
+    > \end{align}
+    > $$
+    >
+
+The learning problem can be formulated as minimizing either the forward or the reverse KL divergence. Each choice leads to different learning behaviors and practical consequences.
+
+## Forward KL-Divergence
+
+By def.,
 $$
 \begin{align}
-H(p^*, p_\theta) = \mathbb E_{x \sim p^*} [-\log p_\theta(x)]
+D_\text{KL}(p_\star \| p_\theta)
+&= \mathbb E_{x \sim p_\star} [ \log p_\star(x) ] + \mathbb E_{x \sim p_\star} [ -\log p_\theta(x) ]\\
 \end{align}
 $$
-
-Learning then becomes an optimization problem:
-
-$$
-\begin{align}
-\min_{p_\theta \in \mathcal P_\theta(\mathcal X)} H(p^*, p_\theta)
-\end{align}
-$$
-
-Or equivalently, in terms of parameters:
-
-$$
-\begin{align}
-\min_{\theta \in \mathbb R^p} \mathbb E_{x \sim p^*} [-\log p_\theta(x)]
-\end{align}
-$$
-
-To optimize the cross entropy, we often need its gradient. Since $p^*$ does not depend on $\theta$, we can move the gradient into the expectation:
-
-$$
-\begin{align}
-\nabla_\theta H(p^*, p_\theta) = \mathbb E_{x \sim p^*} [-\nabla_\theta \log p_\theta(x)]
-\end{align}
-$$
-
-**Two practical concerns:**
-
-1. The true distribution $p^*$ is unknown.
-2. The model may be misspecified: $p^*$ might not lie within $\mathcal P_\theta(\mathcal X)$.
-
-The first issue can be addressed using **Monte Carlo estimation**.  
-→ See section [MC Estimation of Cross Entropy](#mc-estimation-of-cross-entropy)
-
-The second issue (misspecification) is more nuanced:  
-If the model is **severely misspecified**, minimizing cross entropy may still yield the best approximation within the model family, but the performance is limited the expressiveness of $\mathcal P_\theta$. A richer family $\mathcal P_\theta$ allows better approximation of $p^*$. However, a richer $\mathcal P_\theta$ is also more prone to overfitting.
-
-
-### Theoretical Lower Bound of Cross Entropy
-
-From information theory, we have:
-
-$$
-\begin{align}
-H(p^*, p_\theta)
-&= H(p^*) + D_\text{KL}(p^* \parallel p_\theta) \\
-&\ge H(p^*)
-\end{align}
-$$
-
 Remarks:
 
-* The inequality becomes equality iff $p_\theta = p^*$ almost everywhere.
-* $H(p^*)$ represents the inherent uncertainty in the tue data-generating distribution. It is the theoretical minimum achievable cross entropy.
-* Minimizing cross entropy $H(p^*, p_\theta)$ is equivalent to minimizing KL divergence $D_\text{KL}(p^* \parallel p_\theta)$.
+* The expectation is taken over the true data distribution.
+* The 1st term is independent of parameter $\theta$ and can be ignored during optimization.
+* Minimizing the 2nd term encourages $p_\theta$ to place probability mass wherever $p_\star$ has support. (support seeking) This often makes $p_\theta$ more “spread out,” covering all modes of $p_\star$ rather than collapsing on a single one.
 
-### MC Estimation of Cross Entropy
-
-Both the cross entropy and its gradient can be approximated as:
-
+Hence, the following optimization problems are equivalent 
 $$
 \begin{align}
-x_i &\stackrel{\text{iid}}{\sim} p^*, \quad i=1,\dots,N \\
-H(p^*, p_\theta) &\approx -\frac{1}{N} \sum_{i=1}^N \log p_\theta(x_i) \\
-\nabla_\theta H(p^*, p_\theta) &\approx -\frac{1}{N} \sum_{i=1}^N \nabla_\theta \log p_\theta(x_i)
+&\min_\theta D_\text{KL}(p_\star \| p_\theta)
+&& \blacktriangleright \, \text{min. forward KL divergence} \\
+\iff &\min_\theta \mathbb E_{x \sim p_\star} [ - \log p_\theta(x) ]
+&& \blacktriangleright \, \text{min. cross-entropy loss} \\
+\iff &\max_\theta \mathbb E_{x \sim p_\star} [ \log p_\theta(x) ]
+&& \blacktriangleright \,\text{max. expected log-liklihood} \\
 \end{align}
 $$
+In practice, we do not know $p_\star$. However, if we can sample from it, the expected log-likelihood can be approximed by empirical mean.
+$$
+\mathbb E_{x \sim p_\star} [ \log p_\theta(x) ]
+\approx \frac{1}{n} \sum_{i=1}^n \log p_\theta(x_i), \quad
+x_1,\dots,x_n \stackrel{\text{iid}}{\sim} p_\star
+$$
 
+> Minimizing the forward KL is then asymptotically equivalent to maximum likelihood estimation.
+> $$
+> \min_\theta D_\text{KL}(p_\star \| p_\theta)
+> \xLeftrightarrow{\, n \to \infty \,}
+> \max_\theta \sum_{i=1}^n \log p_\theta(x_i), \quad
+> x_1,\dots,x_n \stackrel{\text{iid}}{\sim} p_\star
+> $$
+
+This answers the question: Why is $\log$ introduced to MLE?
+
+* The classical explanation of MLE introduces the $\log$ for algebraic convenience.
+* From an information-theoretic view, the $\log$ ensures that MLE corresponds to minimizing forward KL.
+
+## Reverse KL Divergence
+
+By def.
+$$
+\begin{align}
+D_\text{KL}(p_\theta \| p_\star)
+&= \mathbb E_{x \sim p_\theta} [ \log p_\theta(x) ] - \mathbb E_{x \sim p_\theta} [ \log p_\star(x) ] \nonumber \\
+&= - H(p_\theta) - \mathbb E_{x \sim p_\theta} [ \log p_\star(x) ] 
+\end{align}
+$$
+Hence, minimizing the reverse KL is equivalent to
+$$
+\begin{align}
+\max_\theta \mathbb E_{x \sim p_\theta} [\log p_\star(x)] + H(p_\theta)
+\end{align}
+$$
 Remarks:
 
-* Both approximations are unbiased estimators.
-* The term $\log p_\theta(x_i)$ is the log-likelihood of observation $x_i$ under model $p_\theta$.
-* Therefore, the cross entropy is approximated by the negative log-likelihood (NLL) over the dataset $x_1, \dots, x_N$.
+* The expectation is taken over the modeled distribution.
+* The 1st term encourages $p_\theta$ to place all mass at the mode of $p_\star$. (mode seeking)
+* The 2nd term encourages $p_\theta$ to spread out. (regularization)
 
-> **Minimizing cross entropy** is asymptotically equivalent to **maximizing the log-likelihood**.
+Here, the expectation is over $p_\theta$ (model distribution). We can sample from $p_\theta$, but evaluating $\log p_\star(x)$ requires knowing $p_\star$. In practice, we have additional assumption making the optimzaition viable.
 
-Hence, the optimal parameter $\hat{\theta}$ satisfies:
+Suppose $p_\star$ is known up to a normalization constant, which is the common scenario in Bayesian inference.
+$$
+p_\star(x) = \frac{\tilde p(x)}{\aleph}
+$$
+Remarks:
 
+* $\tilde p$ is the unnormalized density, which integrates to unknown normalization constant $\aleph$. In latent variable model, it represents the *evidence*.
+* In practice, we can not compute $\aleph$ as high dimensional integration is intractable.
+* In ML literatures, the normalizaiton constant is often written as $Z$, which is confusing as $Z$ also denotes latent variables.
+
+Then, miminizng the reverse KL is equivalent to
 $$
 \begin{align}
-\sum_{i=1}^N \left. \nabla_\theta \log p_\theta(x_i) \right|_{\theta = \hat{\theta}} = 0
+\max_\theta \mathbb E_{x \sim p_\theta} [\log \tilde p(x)] + H(p_\theta) - \log\aleph
 \end{align}
 $$
+In Bayesian inference, the first term is called ***evidence lower bound*** (***ELBO***). Hence:
+
+> Minimizing the reverse KL is equivalent to maximizing the evidence lower bound.
+> $$
+> \begin{align}
+> D_\text{KL}(p_\theta \| p_\star)
+> \iff
+> \max_\theta \mathbb E_{x \sim p_\theta} [\log \tilde p(x)] + H(p_\theta)
+> \end{align}
+> $$
+
+Since the expectation depends on $\theta$, gradient approximations are required:
+
+* score function method
+* reparameterization trick
+
+$\to$ See separate notes <u>gradient approximation</u>.
+
+## Summary
+
+| **Forward KL Minimization**                 | **Reverse KL Minimization**                  |
+| ------------------------------------------- | -------------------------------------------- |
+| Support seeking                             | Mode seeking                                 |
+| Unknown $p_\star$ but we can sample from it | Known $p_\star$ up to a normalization factor |
+| equivalent to: MLE                          | equivalent to: max. ELBO                     |

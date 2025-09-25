@@ -170,32 +170,127 @@ Example: overloading of `=` (Copy Swap)
 
 Here, we used [copy- swap idiom](#copy-and-swap-idiom) to improve the robustness.
 
-
-
 ## Template
+
+### Template Instantiation
+
+Class and function templates are not classes or functions in the strict sense. Instead, they are blueprints that tell the compiler how to generate classes or functions when the template is used. We distinguish between:
+
+* **explicit** template instantiation: explicitly specify the template parameter when using the template
+* **implicit** template instantiation: Let the compiler deduce the type when using the template.
+
+```c++
+#include <iostream>
+
+template<typename T>
+class Node {
+public:
+    Node(T value) : _value(value) {}
+
+private:
+    T _value;
+};
+
+int main() {
+    // Explicit instantiation
+    Node<int> n1(42);
+
+    // Explicit instantiation
+    Node<double> n2(3.14);
+
+    // Implicit instantiation based on initialization
+    Node n3(std::string("Hello"));  // Compiler deduces T as std::string
+
+    return 0;
+}
+```
 
 ### Template Specialization
 
-Given multiple functions with identical name, the compiler follows the calling prefernce as below (from most preferred to least preferred)
+Template specialization allows a custom implementation for specific template parameters. In other words: “For this type, don’t use the generic template—use my special definition.” We distinguish:
 
-1. Non-template overloaded function, whose parameter types are matched to the argument types
-2. Template specialization
-3. Template function instantiation
+* **Full** specialization: All template parameters are specified in the custom implementation. Often used in numeric libraries where certain types deserve specialized algorithms.
+* **Partial** specialization (ONLY for class templates): Only some template parameters are specified; the rest remain generic.
 
-**A Toy Example**:
+**Example: full template specialization**.
+
+```c++
+#include <iostream>
+#include <cstring>
+
+// Generic template
+template <typename T>
+bool isEqual(const T a, const T b) {
+    return a == b;
+}
+
+// Special case: compare C-strings by content, not pointer value
+template <>
+bool isEqual(const char* a, const char* b) {
+    return std::strcmp(a, b) == 0;
+}
+
+int main() {
+    // instantiate generic function template. EXPECTED: True
+    std::cout << isEqual(3, 3) << "\n";
+
+    // calls template specialization.         EXPECTED: True
+    std::cout << isEqual("hi", "hi") << "\n";
+}
+```
+
+**Example: partial template specialization**.
+
+```c++
+#include <iostream>
+
+// Generic template
+template <typename T1, typename T2>
+struct Pair {
+    static void print() { std::cout << "Generic pair\n"; }
+};
+
+// Partial specialization: same types
+template <typename T>
+struct Pair<T, T> {
+    static void print() { std::cout << "Pair of same type\n"; }
+};
+
+// Partial specialization: second is char*
+template <typename T>
+struct Pair<T, char*> {
+    static void print() { std::cout << "Pair<T,char*>\n"; }
+};
+
+int main() {
+    Pair<double, char>::print(); // Generic
+    Pair<int, int>::print();     // Pair of same type
+    Pair<float, char*>::print(); // Pair<T,int>
+}
+```
+
+#### Calling preference
+
+When multiple functions with the same name are available, the compiler chooses in this order of preference (from most to least preferred):
+
+1. A non-template overload whose parameter types match exactly.
+2. A fully specialized template function.
+3. An instantiation of a generic template function.
+
+**Example: calling preference**.
 
 ```c++
 #include<iostream>
 #include <typeinfo>
 using namespace std;
 
-// template (generic pointer type)
+// Generic template (pointer version)
 template<class T>
 void print(T* p){
     cout << "template T*=" << typeid(p).name() << ", "<< *p << endl;
 }
 
-// template (generic type)
+// Generic template
 template<class T>
 void print(T x){
     cout << "template T=" << typeid(x).name() << ", "<< x << endl;
@@ -234,14 +329,6 @@ int main(){
 	* calls an instantiation of the template function for `T = double`
 4. `print(&myInt)`
 	* calls an instantiation of the template function for `T = int` since the argument is of type `int*`
-
-Both template specialization and non-template overload provides a way to write a type-specific implementation of the function. This is particularly useful as illustrated in the next example:
-
-**Example: Generic type converter**
-
-```c++
-// TODO
-```
 
 ## Standard Template Library
 

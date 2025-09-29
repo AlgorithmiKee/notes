@@ -339,23 +339,16 @@ Stores an array of elements in continuous memory. The size of the array is dynam
 * Construction:
   ```c++
   #include<vector>
+  // empty vector
+  std::vector<int> u;
   // a vector of 4, 5, 4, 7
-  std::vector<int> u{4, 5, 4, 7};
+  std::vector<int> v{4, 5, 4, 7};
   // a vector of length n filled with 0
-  std::vector<int> v(n, 0);
+  std::vector<int> w(n, 0);
   ```
-* Search: `vector` has no memeber function `.find()`. We must use `std::find()`!
+* Get the number of elements:
   ```c++
-  // locate the iterator pointing to val
-  // returns v.end() if not found
-  auto it = std::find(v.begin(), v.end(), val)
-  // if found val in v
-  if(it != v.end())
-  ```
-* Sort: `vector` has no memeber function `.sort()`. We must use `std::sort()`!
-  ```c++
-  // sort 
-  std::sort(v.begin(), v.end());
+  auto len = v.size();
   ```
 * Iterate: There are multiple ways to iterate through an vector
   ```c++
@@ -374,6 +367,26 @@ Stores an array of elements in continuous memory. The size of the array is dynam
     cout << x << " ";
   }
   ```
+* Insert and remove element
+  ```c++
+  v.push_back(value); // insert elm. at the end
+  v.pop_back(value);  // delete elm. at the end
+  v.insert(v.begin() + k, val); // insert val at index k
+  v.erase(v.begin() + k);       // remove elm. at index k
+  ```
+* Search: `std::vector` has no memeber function `.find()`. We must use `std::find()`!
+  ```c++
+  // locate the iterator pointing to val
+  // returns v.end() if not found
+  auto it = std::find(v.begin(), v.end(), val)
+  // if found val in v
+  if(it != v.end())
+  ```
+* Sort: `std::vector` has no memeber function `.sort()`. We must use `std::sort()`!
+  ```c++
+  // sort 
+  std::sort(v.begin(), v.end());
+  ```
 
 ### 2D Array
 
@@ -389,6 +402,11 @@ Here, we focues on 2D array implemented by nesting `std::vector`.
   };
   // fill with zeros
   vector<vector<int>> Zeros(nrows, vector<int>(ncols, 0))
+  ```
+* Get the number of rows and columns:
+  ```c++
+  auto nrow = v.size();
+  auto ncol = v[0].size();
   ```
 
 ### Unordered Map

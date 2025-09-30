@@ -374,16 +374,18 @@ Stores an array of elements in continuous memory. The size of the array is dynam
   v.insert(v.begin() + k, val); // insert val at index k
   v.erase(v.begin() + k);       // remove elm. at index k
   ```
-* Search: `std::vector` has no memeber function `.find()`. We must use `std::find()`!
+* Search: `std::vector` has no memeber function `.find()`. We must use `std::find()` from STL algorithm library!
   ```c++
+  #include <algorithm>
   // locate the iterator pointing to val
   // returns v.end() if not found
   auto it = std::find(v.begin(), v.end(), val)
   // if found val in v
   if(it != v.end())
   ```
-* Sort: `std::vector` has no memeber function `.sort()`. We must use `std::sort()`!
+* Sort: `std::vector` has no memeber function `.sort()`. We must use `std::sort()` from STL algorithm library!
   ```c++
+  #include <algorithm>  
   // sort 
   std::sort(v.begin(), v.end());
   ```

@@ -92,8 +92,9 @@ $$
 
 Remarks:
 
+* Intuitively, we are not committing to any particular line, but considering all possible lines. The importance of each line is quantified by the posterior distribution $p(\mathbf{w} \mid D)$.
 * The integral on the RHS averages the conditional density $p(y_* \mid \mathbf x_*, \mathbf w)$ w.r.t. the posterior $p(\mathbf w \mid D)$. In general, this integral is intractable. However, if everything is Gaussian, we indeed have closed-form solution.
-* The plug-in predictive can be seen as a special case where we place all probability mass on a single $\hat{\mathbf{w}}$.
+* The plug-in predictive can be seen as a special case where we place all probability mass on a single point estimate $\hat{\mathbf{w}}$.
     $$
     \begin{align}
     p(y_* \mid \mathbf x_*, \hat{\mathbf{w}})
@@ -195,29 +196,29 @@ $$
 The likelihood is thus
 
 $$
-\begin{align}
+\begin{align*}
 p(D \mid \mathbf{w}) 
 &= p(\mathbf{x}_{1:n}, y_{1:n} \mid \mathbf{w}) \\
 &= p(y_{1:n} \mid \mathbf{x}_{1:n}, \mathbf{w}) \cdot p(\mathbf{x}_{1:n}) \\
 &\propto p(y_{1:n} \mid \mathbf{x}_{1:n}, \mathbf{w}) \\
 &= \mathcal N(\mathbf{y} \mid \mathbf{X} \mathbf{w}, \sigma^2\mathbf{I})
-\end{align}
+\end{align*}
 $$
 
 The posterior is
 
 $$
-\begin{align}
+\begin{align*}
 p(\mathbf{w} \mid D)
 &\propto p(D \mid \mathbf{w}) \cdot p(\mathbf{w}) \\
 &\propto \mathcal N(\mathbf{y} \mid \mathbf{X} \mathbf{w}, \sigma^2\mathbf{I}) \cdot \mathcal N(\mathbf{w} \mid \mathbf{w}_0, \mathbf{P}_0) \\
-\end{align}
+\end{align*}
 $$
 
 Taking the log, we see that the log posterior is a quadratic function of $\mathbf{w}$:
 
 $$
-\begin{align}
+\begin{align*}
 \ln p(\mathbf{w} \mid D)
 &= -\frac{1}{2\sigma^2} \big\Vert\mathbf{y} - \mathbf{X}\mathbf{w} \big\Vert^2
    -\frac{1}{2} (\mathbf{w} - \mathbf{w}_0)^\top \mathbf{P}_0^{-1} (\mathbf{w} - \mathbf{w}_0) + \text{const.}
@@ -237,7 +238,7 @@ $$
        2 \mathbf{w} \left( \sigma^{-2}\mathbf{X}^\top \mathbf{y} + \mathbf{P}_0^{-1} \mathbf{w}_0 \right)
     \right] + \text{const.}
 \\
-\end{align}
+\end{align*}
 $$
 
 Hence, the posterior is also Gaussian (by normalization property of multivariate Gaussian )
@@ -260,12 +261,35 @@ The posterior mean and posterior variance can be read-off in the log posterior:
 > \end{align}
 > $$
 
-The posterior mean $\mathbf{w}_n$ can be reformulated as a sum of the prior mean $\mathbf{w}_0$ and a correction term.
+Remarks:
+
+* $\mathbf{X}^\top \mathbf{X}$ is the unnormalized empirical auto-correlation matrix:
+  $$
+  \mathbf{X}^\top \mathbf{X} = \sum_{i=1}^n \mathbf{x}_i \mathbf{x}_i^\top \in \mathbb R^{d \times d}
+  $$
+* $\mathbf{X}^\top \mathbf{y}$ is the unnormalized empirical cross-correlation matrix:
+  $$
+  \mathbf{X}^\top \mathbf{y} = \sum_{i=1}^n \mathbf{x}_i y_i \in \mathbb R^{d}
+  $$
+
+The posterior mean $\mathbf{w}_n$ can be reformulated as the prior mean $\mathbf{w}_0$ plus a correction term, or as a weighted sum of  $\mathbf{w}_0$ and $\mathbf{y}$.
 
 > $$
 > \begin{align}
 > \mathbf{w}_n
 > &= \mathbf{w}_0 + \sigma^{-2} \mathbf{P}_n \mathbf{X}^\top \left( \mathbf{y} - \mathbf{X} \mathbf{w}_0 \right)
+> \\
+> &= \mathbf{w}_0 + \mathbf{K}_n \left( \mathbf{y} - \mathbf{X} \mathbf{w}_0 \right)
+> \\
+> &= \left( \mathbf{I} - \mathbf{K}_n\mathbf{X} \right) \mathbf{w}_0 + \mathbf{K}_n \mathbf{y}
+> \end{align}
+> $$
+
+where $\mathbf{K}_n$ is the ***gain*** matrix, defined as:
+
+> $$
+> \begin{align}
+> \mathbf{K}_n \triangleq \sigma^{-2} \mathbf{P}_n \mathbf{X}^\top \in\mathbb R^{d \times n}
 > \end{align}
 > $$
 
@@ -273,18 +297,40 @@ Remarks:
 
 * $\mathbf{X} \mathbf{w}_0$ contains label predictions using the prior mean $\mathbf{w}_0$ on $\mathbf{x}_{1:n}$ before we observe $y_{1:n}$.
 * $\mathbf{y} - \mathbf{X} \mathbf{w}_0$ is called ***residual***. It reflects the difference between the observed labels and predicted labels based on prior mean. It is similar to the ***innovation*** in Kalman filter.
-* $\sigma^{-2} \mathbf{P}_n \mathbf{X}^\top$ is called ***gain***. It reflects how strong we respond to the residual, similar to ***Kalman gain***.
+* The gain matrix $\mathbf{K}_n$ reflects how strong we respond to the residual, similar to ***Kalman gain***.
 * Computing $\mathbf{X}^\top \mathbf{X}$ requires $O(nd^2)$. Computing $\mathbf{P}_n$ requires inverting a $d\times d$ matrix and thus $O(d^3)$. Hence, the overall complexity is $O(nd^2 + d^3)$.
 
-Let $\mathbf{K}_n \triangleq \sigma^{-2} \mathbf{P}_n \mathbf{X}^\top \in\mathbb R^{d \times n}$, we can express $\mathbf{w}_n$ as a weighted average of $\mathbf{w}_0$ and $\mathbf{y}$.
+*Proof*: Recall the definition of $\mathbf{P}_n$:
 
-> $$
-> \begin{align}
-> \mathbf{w}_n
-> &= \left( \mathbf{I} - \mathbf{K}_n\mathbf{X} \right) \mathbf{w}_0 + \mathbf{K}_n \mathbf{y}
-> \end{align}
-> $$
+$$
+\begin{align*}
+\mathbf{P}_n
+&= \left( \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \mathbf{P}_0^{-1} \right)^{-1}
+\\
+\mathbf{P}_n^{-1}
+&= \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \mathbf{P}_0^{-1}
+\\
+\mathbf{I}
+&= \underbrace{\sigma^{-2} \mathbf{P}_n \mathbf{X}^\top}_{\mathbf{K}_n} \mathbf{X} + \mathbf{P}_n \mathbf{P}_0^{-1}
+\\
+\mathbf{P}_n \mathbf{P}_0^{-1}
+&= \mathbf{I} - \mathbf{K}_n \mathbf{X}
+\end{align*}
+$$
 
+By definition of $\mathbf{w}_n$:
+
+$$
+\begin{align*}
+\mathbf{w}_n
+&= \sigma^{-2} \mathbf{P}_n \mathbf{X}^\top \mathbf{y} + \mathbf{P}_n \mathbf{P}_0^{-1} \mathbf{w}_0 \\
+&= \mathbf{K}_n \mathbf{y} + (\mathbf{I} - \mathbf{K}_n \mathbf{X}) \mathbf{w}_0 \\
+&= \mathbf{w}_0 + \mathbf{K}_n \left( \mathbf{y} - \mathbf{X} \mathbf{w}_0 \right)
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+**Special Case 1: Single Observation**:  
 If the data set contains only one sample $D = \{ \mathbf x_1, y_1 \}$ (i.e. $n=1$), then $\mathbf{w}_n$ and $\mathbf{P}_n$ simplify to
 
 $$
@@ -299,7 +345,8 @@ $$
 \end{align*}
 $$
 
-In standard MAP estimation, we assume $\mathbf{w}_0 = \mathbf{0}$ and $\mathbf{P}_0 = \sigma^2_\text{p}\mathbf{I}$, i.e.
+**Special Case 2: Spherical Gaussian Prior**:  
+In standard MAP estimation, we assume $\mathbf{w}_0 = \mathbf{0}$ and $\mathbf{P}_0 = \sigma^2_0 \mathbf{I}$, i.e.
 
 $$
 \begin{align}
@@ -307,23 +354,23 @@ p(\mathbf{w}) = \mathcal N(\mathbf{w} \mid \mathbf{0}, \sigma_{0}^{2}\mathbf{I})
 \end{align}
 $$
 
-The posterior mean and posterior variance simplify to
+It is easy to verify that the posterior mean and posterior variance simplify to
 
 $$
 \begin{align}
 \mathbf{P}_n
 &= \left( \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \sigma_{0}^{-2} \mathbf{I} \right)^{-1}
-\\[6pt]
+\\
 \mathbf{w}_n
 &= \left( \mathbf{X}^\top \mathbf{X} + \lambda\mathbf{I} \right)^{-1} \mathbf{X}^\top \mathbf{y},
-\qquad \lambda \triangleq \sigma^{2} / \sigma_{0}^{2}
+\qquad \lambda \triangleq \frac{\sigma^{2}}{\sigma_{0}^{2}}
 \end{align}
 $$
 
 Remarks:
 
-* $\mathbf{w}_n$ is exactly the MAP estimate aka solution of Ridge regression.
-* In Bayesian inference, we also compute $\mathbf{P}_n$, which quantifies the uncertainty of $\mathbf{w}_n$.
+* The posterior mean $\mathbf{w}_n$ is exactly the MAP estimate aka solution of Ridge regression.
+* In Bayesian inference, we also compute the parameter uncertainry, quantified by the posterior variance $\mathbf{P}_n$.
 
 ### The Posterior Predictive Distribution
 
@@ -373,8 +420,8 @@ Remarks:
 
 * The mean $\mathbf{w}_n^\top \mathbf{x}_*$ coincides with the label prediction by plugging the MAP estimate $\hat{\mathbf{w}}_\text{MAP} = \mathbf{w}_n$ into $\mathbf{w}^\top \mathbf{x}_*$.
 * The variance $\mathbf{x}_*^\top \mathbf{P}_n \mathbf{x}_* + \sigma^2$ quantifies the uncertainty about $y_*$, which consists of two parts:
-  * ***Predictive variance*** $\mathbf{x}_*^\top \mathbf{P}_n \mathbf{x}_*$, which arises due to lack of data.
-  * ***Irreducible noise*** $\sigma^2$.
+  * ***Epistemic uncertainty*** $\mathbf{x}_*^\top \mathbf{P}_n \mathbf{x}_*$, which arises due to lack of data. It depends on the parameter uncertainty and the location of the test data point. In point estimate of parameter, this term is implicity ignored.
+  * ***Irreducible noise*** $\sigma^2$, which quantifies the inherent uncertainty due to label noise.
 
 ## Online Bayesian Linear Regression
 

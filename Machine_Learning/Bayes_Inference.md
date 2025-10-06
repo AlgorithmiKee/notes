@@ -5,7 +5,7 @@ date: "2025"
 fontsize: 12pt
 ---
 
-# Intro to Bayesian Inference
+# Bayesian Inference
 
 [toc]
 
@@ -19,7 +19,9 @@ Preliminary knowledge required:
 * conditional, marginal, joint probabilities
 * parameter estimation (MLE and MAP)
 
-## Recap: Point Estimate by MAP
+## Bayesian Inference for Unsupervised Model
+
+### From Point Estimate to Inference
 
 Problem set-up of MAP:
 
@@ -48,8 +50,6 @@ Remark:
 
 * For simplicity, we often call $p(\mathbf x_* \mid \hat{\boldsymbol{\theta}}_\text{MAP})$ ***plug-in predictive***.
 * The term "plug-in" hightlights the fact that we plug a single point estimate $\hat{\boldsymbol{\theta}}_\text{MAP}$ into $p(\mathbf x_* \mid \boldsymbol{\theta})$
-
-## Bayesian Inference
 
 Key idea of ***Bayesian inference***:
 
@@ -186,11 +186,9 @@ $$
 \end{align*}
 $$
 
-## Examples of Bayesian Inference
-
 In general, the posterior and the posterior predictive requires numerical approximation since they have no closed-form solution. Here, we show two exceptions where the prior and the posterior belong to the same parameteric family.
 
-### Learning a Bernoulli Distribution with Beta Prior
+### Example: Learning a Bernoulli Distribution with Beta Prior
 
 Consider a Bernoulli distribution with unknown success rate $\theta\in[0,1]$.
 
@@ -261,7 +259,7 @@ p(x_*=0 \mid D)
 \end{align*}
 $$
 
-### Learning a Gaussian Distribution with Gaussian Prior
+### Example: Learning a Gaussian Distribution with Gaussian Prior
 
 Suppose we have iid observations $D=\{\mathbf x_1, \dots, \mathbf x_n\}$ drawn from a multivariate Gaussian with known covariance matirx $\boldsymbol\Sigma$ but unknown mean vector $\boldsymbol\mu$.
 
@@ -694,6 +692,77 @@ $$
 &= \mu_{t-1} + \frac{\sigma^{2}_{t-1}}{\sigma^{2}_{t-1} + \sigma^{2}} \left( x_t - \mu_{t-1} \right)
 \end{align}
 $$
+
+## Bayesian Inference for Conditional Model
+
+Problem setup:
+
+* Parameterized conditional distribution: $p(y \mid \mathbf{x}, \mathbf{w})$ where $\mathbf{w}$ is the parameter.
+* Training data: $D = \{(\mathbf{x}_1, y_1), \dots, (\mathbf{x}_n, y_n) \}$.
+* Prior distribution of parameter: $p(\mathbf{w})$
+
+In MAP, we seek a point estimate of $\mathbf{w}$ which maximizes the posterior distribution:
+
+$$
+\begin{align}
+\hat{\mathbf{w}}_\text{MAP}
+&= \argmax_{\mathbf{w}} p(\mathbf{w} \mid D) \\
+&= \argmax_{\mathbf{w}} p(D \mid \mathbf{w}) \cdot p(\mathbf{w})\\
+\end{align}
+$$
+
+where the likelihood is
+
+$$
+p(D \mid \mathbf{w}) = \prod_{i=1}^n p(y_i \mid \mathbf{x}_i, \mathbf{w})
+$$
+
+To predict the label on a new data point $\mathbf{x}_*$, we use the ***(conditional) plug-in predictive distribution***:
+
+$$
+p(y_*  \mid \mathbf{x}_*, \hat{\mathbf{w}}_\text{MAP})
+$$
+
+In Bayesian inference, we use the full distribution of the model parameter $\mathbf{w}$ rather than a single point esitmate.
+
+Before observing the training data, we have the ***(conditional) prior predictive distribution***:
+
+$$
+\begin{align}
+p(y_* \mid \mathbf{x}_*)
+&= \mathbb E_{\mathbf{w} \sim p(\mathbf{w})} [p(y_* \mid \mathbf{x}_*, \mathbf{w})] \\
+&= \int p(y_* \mid \mathbf{x}_*, \mathbf{w}) \cdot p(\mathbf{w}) \:\mathrm d\mathbf{w} \\
+\end{align}
+$$
+
+After making the observation, we have ***(conditional) posterior predictive distribution***:
+
+$$
+\begin{align}
+p(y_* \mid \mathbf{x}_*, D)
+&= \mathbb E_{\mathbf{w} \sim p(\mathbf{w} \mid D)} [p(y_* \mid \mathbf{x}_*, \mathbf{w})] \\
+&= \int p(y_* \mid \mathbf{x}_*, \mathbf{w}) \cdot p(\mathbf{w} \mid D) \:\mathrm d\mathbf{w} \\
+\end{align}
+$$
+
+The plug-in predictive distribution is a special case of the Bayesian posterior predictive where the posterior is replaced by a delta distribution centered at its mode:
+
+$$
+p(\mathbf{w} \mid D) \doteq \delta(\mathbf{w} - \hat{\mathbf{w}}_\text{MAP})
+\implies
+p(y_* \mid \mathbf{x}_*, D) = p(y_*  \mid \mathbf{x}_*, \hat{\mathbf{w}}_\text{MAP})
+$$
+
+In other words, MAP is a **degenerate** Bayesian approximation that ignores parameter uncertainty.
+
+Example: Bayesian inference on linear conditional model
+
+$$
+p(y \mid \mathbf{x}, \mathbf{w}) = \mathcal N(y \mid \mathbf{w}^\top \mathbf{x}, \sigma^2)
+$$
+
+Assuming a Gaussian prior on model parameter, the posterior distribution and the posterior predictive distribution are also Gaussian and can be computed in closed-form. Details: $\to$ see notes *Bayesian Linear Regression*.
+
 
 ## Appendix
 

@@ -413,6 +413,15 @@ Remarks:
     \end{align*}
     $$
 
+* Many ML literatures write $J_2(\mathbf{w})$ as log of $p(\mathbf{y} \mid \mathbf{X}, \mathbf{w})$. Personally, I am not fan of this notation as $\mathbf{X}$ also denotes design matrix, which packs data points row by row.
+    $$
+    \begin{align}
+    p(\mathbf{y} \mid \mathbf{X}, \mathbf{w})
+    &\triangleq p(y_1, \dots, y_n \mid\mathbf x_1, \dots, \mathbf x_n, \mathbf{w}) \\
+    &= \prod_{i=1}^n p(y_i \mid \mathbf x_i, \mathbf{w})
+    \end{align}
+    $$
+
 Hence, $\boldsymbol{\pi}$ and $\mathbf{w}$ can be estimated separately
 
 > $$

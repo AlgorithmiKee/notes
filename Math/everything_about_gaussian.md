@@ -18,7 +18,7 @@ author: "Ke Zhang"
     > \right]
     > $$
 1. **Mean**: $\mu\in\mathbb{R}^{d}$.
-1. **Variance**: $\Sigma\in\mathbb{R}^{d\times d}$​
+1. **Variance**: $\Sigma\in\mathbb{R}^{d\times d}$​. Its inverse is called **precision matrix**.
 1. For two **Gaussian** random variables, **uncorrelatedness** $\iff$ **independence**.
 
 Special cases:
@@ -102,35 +102,40 @@ $$
 
 The Gaussian distribution is invariant under affine transformation, summation, marginallisation, and conditioning. i.e. "Once Gaussian, (almost) always Gaussian".
 
-* **Affine transformation**: Affine tranformation of a Gaussian is again Gaussian.
+* **Affine transformation** of a Gaussian rand. vec. is again a Gaussian rand. vec.
     > $$
     > X \sim \mathcal{N}(\mu, \Sigma)
     > \implies AX+b \sim \mathcal{N}(A\mu + b, A\Sigma A^\top)
     > $$
-* **Summation**: Sum of two independent Gaussians is again Gaussian.
+* **Sum** of two independent Gaussian rand. vec. is again a Gaussian rand. vec.
     > $$
     > \begin{rcases}
-    >   X \sim \mathcal{N}(\mu_X, \Sigma_X)\\Y \sim \mathcal{N}(\mu_Y, \Sigma_Y)\\
+    >   X \sim \mathcal{N}(\mu_X, \Sigma_X)\\
+    >   Y \sim \mathcal{N}(\mu_Y, \Sigma_Y)\\
     >   X,\, Y \:\text{ indepd.} \\
     > \end{rcases}
     > \implies X + Y \sim \mathcal{N}(\mu_X + \mu_Y, \Sigma_X + \Sigma_Y)
     > $$
 
-* Even if $X$ and $Y$ are correlated, the sum $X+Y$ is still Gaussian. However, the variance of $X+Y$ is no longer the sum of $\Sigma_X$ and $\Sigma_Y$!
-* Product of two Gaussians is **not** always Gaussian!
+* In general, if $X,Y$ are **jointly Gaussian**, their sum is always Gaussian. However, the additivity of covariance matrices no longer holds if $X,Y$ are correlated.
 
-Let a Gaussian random vector $X$ be partitioned into two sub random vectors $X_A$ and $X_B$.
+* Sum of two Gaussian **densities** is **NOT** a Gaussian density! Counter example: GMM.
+
+### Jointly Gaussian Random Vectors
+
+Let a Gaussian rand. vec. $X$ be partitioned into two sub rand. vec.s $X_A$ and $X_B$ (not necessarily of the same length). In other words, two Gaussian rand. vec.s $X_A$ and $X_B$ are jointly Gaussian.
+
 $$
 X = \begin{bmatrix} X_A \\ X_B \end{bmatrix}
 \sim \mathcal{N}
-\left( 
+\left(
 \begin{bmatrix}
-	\mu_A \\ 
-	\mu_B 
-\end{bmatrix}, 
+  \mu_A \\
+  \mu_B 
+\end{bmatrix},
 \begin{bmatrix}
-  \Sigma_{AA} & \Sigma_{AB} \\ 
-  \Sigma_{BA} & \Sigma_{BB} \\ 
+  \Sigma_{AA} & \Sigma_{AB} \\
+  \Sigma_{BA} & \Sigma_{BB} \\
 \end{bmatrix}
 \right)
 $$
@@ -141,13 +146,47 @@ Then,
     > $$
     > X_A \sim \mathcal{N}(\mu_A, \Sigma_{AA})
     > $$
-    
-* **Conditioning**: Conditioned on $x_B$, the random vector $X_A$ is also Gaussian
+
+* **Conditioning**: Conditioned on $x_B$, the rand. vec. $X_A$ is also Gaussian
     > $$
     > \begin{align*}
     > X_A \vert x_B &\sim\mathcal{N} \left( \mu_{A\vert B},\: \Sigma_{A\vert B} \right) \\
     > \mu_{A\vert B} &= \mu_A + \Sigma_{AB}\Sigma_{BB}^{-1}(x_B - \mu_B) \\
     > \Sigma_{A\vert B} &= \Sigma_{AA} - \Sigma_{AB} \Sigma_{BB}^{-1} \Sigma_{BA}
+    > \end{align*}
+    > $$
+
+If $X_A$ and $X_B$ have the same length, then any **linear combination** $\alpha X_A + \beta X_B$ is Gaussian ($\alpha, \beta \in\mathbb R$). In particular:
+
+* The sum $X_A + X_B$ is also Gaussian (invariance under affine transform):
+    > $$
+    > X_A + X_B \sim \mathcal{N}(\mu_A + \mu_B, \Sigma_{AA} + \Sigma_{BB} + \Sigma_{AB} + \Sigma_{BA})
+    > $$
+* Special case: $X_A$ and $X_B$ are in addition independent, i.e. $\Sigma_{AB} = \Sigma_{BA} = 0$
+    > $$
+    > X_A + X_B \sim \mathcal{N}(\mu_A + \mu_B, \Sigma_{AA} + \Sigma_{BB})
+    > $$
+
+### Product
+
+We differentiate product of two Gaussian densities and product of two Gaussain random variables!
+
+* Product of two Gaussian rand. vec. is generally **NOT** a Gaussian rand. vec.!
+* Product of two Gaussians densities is **almost** a Gaussian density up to a normalization constant.
+    > $$
+    > \begin{align*}
+    > \mathcal N(x \mid \mu_1, \Sigma_1) \cdot \mathcal N(x \mid \mu_2, \Sigma_2)
+    > &= \mathcal N(x \mid \mu_*, \Sigma_*) \cdot \mathcal N(\mu_1 \mid \mu_2, \Sigma_1 + \Sigma_2) \\
+    > &\propto \mathcal N(x \mid \mu_*, \Sigma_*)
+    > \end{align*}
+    > $$
+  where
+    > $$
+    > \begin{align*}
+    > \Sigma_*
+    > &= \left( \Sigma_1^{-1} + \Sigma_2^{-1} \right)^{-1} \\
+    > \mu_*
+    > &= \Sigma_* \left( \Sigma_1^{-1} \mu_1 + \Sigma_2^{-1} \mu_2 \right)
     > \end{align*}
     > $$
 

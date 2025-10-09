@@ -23,7 +23,7 @@ $$
 * Additional assumption: $\varepsilon_i$ and $\mathbf{x}_i$ are statistically independent
 * Goal: Predict the label for a new data point $\mathbf{x}_*$ using the **full** posterior distribution $p(\mathbf w \mid D)$
 
-### Recap: Point Estimates
+### Recap: MAP
 
 * Discriminative model parameterized by $\mathbf{w}$:
 
@@ -35,33 +35,15 @@ p(y_i \mid \mathbf{x}_i, \mathbf{w})
 \end{align}
 $$
 
-* Log likelihood:
-
-$$
-\begin{align}
-\ln p(D \mid \mathbf w)
-&= \ln \prod_{i=1}^n p(\mathbf{x}_i, y_i \mid\mathbf{w}) + \text{const} \\
-&= -\frac{1}{2\sigma^2} (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 + \text{const} 
-\end{align}
-$$
-
-* MLE $\iff$ least square
-
-$$
-\begin{align}
-\hat{\mathbf w}_\text{MLE}
-&= \argmin_{\mathbf w} \sum_{i=1}^n (y_i - \mathbf{w}^\top \mathbf{x}_i)^2
-\end{align}
-$$
-
-* Log posterior with Gaussian prior $\mathbf{w} \sim \mathcal N(\mathbf{0}, \sigma^2_\text{p}\mathbf{I})$
+* Log posterior with Gaussian prior $\mathbf{w} \sim \mathcal N(\mathbf{0}, \sigma^2_0\mathbf{I})$
 
 $$
 \begin{align}
 \ln p(\mathbf w \mid D)
-&= \ln \prod_{i=1}^n p(\mathbf{x}_i, y_i \mid\mathbf{w}) + \ln p(\mathbf{w}) + \text{const} \\
-&= -\frac{1}{2\sigma^2} (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 -
-    \frac{1}{2\sigma^2_\text{p}} \Vert\boldsymbol{\theta}\Vert^2 +
+&= \ln p(D \mid \mathbf{w}) + \ln p(\mathbf{w}) + \text{const} \\
+&= \ln \prod_{i=1}^n p(y_i \mid \mathbf{x}_i, \mathbf{w}) + \ln p(\mathbf{w}) + \text{const} \\
+&= -\frac{1}{2\sigma^2} \sum_{i=1}^n (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 -
+    \frac{1}{2\sigma^2_0} \Vert\mathbf{w}\Vert^2 +
     \text{const} 
 \end{align}
 $$
@@ -72,15 +54,24 @@ $$
 \begin{align}
 \hat{\mathbf w}_\text{MAP}
 &= \argmin_{\mathbf w} \sum_{i=1}^n (y_i - \mathbf{w}^\top \mathbf{x}_i)^2 +
-   \frac{\sigma^2}{\sigma^2_\text{p}} \Vert\boldsymbol{\theta}\Vert^2
+   \frac{\sigma^2}{\sigma^2_0} \Vert\mathbf{w}\Vert^2
 \end{align}
 $$
 
-## Offline Bayesian Linear Regression
+* Plug-in predictive distribution on test data point
 
-Both MLE and MAP use training dataset $D$ to compute a point estimate $\hat{\mathbf{w}}$, leading to plug-in predictive distribution $p(y_* \mid \mathbf{x}_*, \hat{\mathbf{w}})$.
+$$
+\begin{align}
+p(y_* \mid \mathbf{x}_*, \hat{\mathbf w}_\text{MAP})
+&= \mathcal{N}(y_* \mid \hat{\mathbf w}_\text{MAP}^\top \mathbf{x}_*, \sigma^2) \\
+\end{align}
+$$
 
-Bayesian inference uses the full posterior $p(\mathbf w \mid D)$ to account for the contribution of every  $\mathbf w\in\mathbb R^d$, leading to posterior predictive distribution $p(y_* \mid \mathbf x_*, D)$.
+**Key observation**: MAP only computes the mode of the posterior $p(\mathbf{w} \mid D)$, disregarding the uncertainty around the mode. Consequently, the plug-in predictive distribution accounts only for the inherent label noise $\sigma^2$ and ignores the uncertainty in $\mathbf{w}$.
+
+## Weight Space View
+
+Bayesian inference uses the full posterior $p(\mathbf w \mid D)$ to account for the contribution of all possible $\mathbf w\in\mathbb R^d$, leading to posterior predictive distribution $p(y_* \mid \mathbf x_*, D)$.
 
 $$
 \begin{align}
@@ -106,21 +97,21 @@ In the following, we assume a Gaussian prior on $\mathbf{w} \in\mathbb R^d$, i.e
 
 $$
 \begin{align}
-p(\mathbf{w}) = \mathcal N(\mathbf{w} \mid \mathbf{w}_0, \mathbf{P}_0)
+p(\mathbf{w}) = \mathcal N(\mathbf{w} \mid \mathbf{w}_0, \boldsymbol{\Sigma}_0)
 \end{align}
 $$
 
 Remarks:
 
 * $\mathbf{w}_0$ represents our initial estimate of weight vector $\mathbf{w}$.
-* $\mathbf{P}_0$ quantifies the uncertainty about $\mathbf{w}$ before we observe any data.
-* In standard MAP estimation, the prior is chosen s.t. $\mathbf{w}_0 = \mathbf{0}$ and $\mathbf{P}_0 = \sigma^2_\text{p}\mathbf{I}$. Here, we use a slightly more general Gaussian prior.
+* $\boldsymbol{\Sigma}_0$ quantifies the uncertainty about $\mathbf{w}$ before we observe any data.
+* In standard MAP estimation, the prior is chosen s.t. $\mathbf{w}_0 = \mathbf{0}$ and $\boldsymbol{\Sigma}_0 = \sigma^2_0\mathbf{I}$. Here, we do not restrict the prior to be spherical.
 
 We will show later that the posterior is Gaussian
 
 $$
 \begin{align}
-p(\mathbf{w} \mid D) = \mathcal N(\mathbf{w} \mid \mathbf{w}_n, \mathbf{P}_n)
+p(\mathbf{w} \mid D) = \mathcal N(\mathbf{w} \mid \mathbf{w}_n, \boldsymbol{\Sigma}_n)
 \end{align}
 $$
 
@@ -128,7 +119,7 @@ Remarks:
 
 * We use the subscript $n$ to highlight the size of our data set $D$.
 * $\mathbf{w}_n$ is the MAP estimate of weight vector $\mathbf{w}$ after we observe $D$.
-* $\mathbf{P}_n$ quantifies the uncertainty about $\mathbf{w}$ after we observe $D$.
+* $\boldsymbol{\Sigma}_n$ quantifies the uncertainty about $\mathbf{w}$ after we observe $D$.
 
 Recall the Bayesian rule
 
@@ -140,7 +131,7 @@ p(\mathbf{w} \mid D)
 \end{align}
 $$
 
-Due to Gaussian-ness, we only need to compute $\mathbf{w}_n$ and $\mathbf{P}_n$ to obtain the full posterior rather than evaluating the high-dimensional integral in the denominator.
+Due to Gaussian-ness, we only need to compute $\mathbf{w}_n$ and $\boldsymbol{\Sigma}_n$ to obtain the full posterior rather than evaluating the high-dimensional integral in the denominator.
 
 ### The Full Posterior
 
@@ -211,7 +202,7 @@ $$
 \begin{align*}
 p(\mathbf{w} \mid D)
 &\propto p(D \mid \mathbf{w}) \cdot p(\mathbf{w}) \\
-&\propto \mathcal N(\mathbf{y} \mid \mathbf{X} \mathbf{w}, \sigma^2\mathbf{I}) \cdot \mathcal N(\mathbf{w} \mid \mathbf{w}_0, \mathbf{P}_0) \\
+&\propto \mathcal N(\mathbf{y} \mid \mathbf{X} \mathbf{w}, \sigma^2\mathbf{I}) \cdot \mathcal N(\mathbf{w} \mid \mathbf{w}_0, \boldsymbol{\Sigma}_0) \\
 \end{align*}
 $$
 
@@ -221,21 +212,21 @@ $$
 \begin{align*}
 \ln p(\mathbf{w} \mid D)
 &= -\frac{1}{2\sigma^2} \big\Vert\mathbf{y} - \mathbf{X}\mathbf{w} \big\Vert^2
-   -\frac{1}{2} (\mathbf{w} - \mathbf{w}_0)^\top \mathbf{P}_0^{-1} (\mathbf{w} - \mathbf{w}_0) + \text{const.}
+   -\frac{1}{2} (\mathbf{w} - \mathbf{w}_0)^\top \boldsymbol{\Sigma}_0^{-1} (\mathbf{w} - \mathbf{w}_0) + \text{const.}
 \\
 &= -\frac{1}{2} \left[
       \sigma^{-2}(\mathbf{y} - \mathbf{X}\mathbf{w})^\top (\mathbf{y} - \mathbf{X}\mathbf{w})
-      +(\mathbf{w} - \mathbf{w}_0)^\top \mathbf{P}_0^{-1} (\mathbf{w} - \mathbf{w}_0)
+      +(\mathbf{w} - \mathbf{w}_0)^\top \boldsymbol{\Sigma}_0^{-1} (\mathbf{w} - \mathbf{w}_0)
     \right] + \text{const.}
 \\
 &= -\frac{1}{2} \left[
       \sigma^{-2} \left( \mathbf{w}^\top \mathbf{X}^\top \mathbf{X} \mathbf{w} - 2 \mathbf{w}^\top \mathbf{X}^\top \mathbf{y} \right)
-      + \mathbf{w}^\top \mathbf{P}_0^{-1} \mathbf{w} - 2 \mathbf{w}^\top \mathbf{P}_0^{-1} \mathbf{w}_0
+      + \mathbf{w}^\top \boldsymbol{\Sigma}_0^{-1} \mathbf{w} - 2 \mathbf{w}^\top \boldsymbol{\Sigma}_0^{-1} \mathbf{w}_0
     \right] + \text{const.}
 \\
 &= -\frac{1}{2} \left[
-       \mathbf{w}^\top \left( \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \mathbf{P}_0^{-1} \right) \mathbf{w} -
-       2 \mathbf{w} \left( \sigma^{-2}\mathbf{X}^\top \mathbf{y} + \mathbf{P}_0^{-1} \mathbf{w}_0 \right)
+       \mathbf{w}^\top \left( \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \boldsymbol{\Sigma}_0^{-1} \right) \mathbf{w} -
+       2 \mathbf{w} \left( \sigma^{-2}\mathbf{X}^\top \mathbf{y} + \boldsymbol{\Sigma}_0^{-1} \mathbf{w}_0 \right)
     \right] + \text{const.}
 \\
 \end{align*}
@@ -245,7 +236,7 @@ Hence, the posterior is also Gaussian (by normalization property of multivariate
 
 > $$
 > \begin{align}
-> p(\mathbf{w} \mid D) = \mathcal N(\mathbf{w} \mid \mathbf{w}_n, \mathbf{P}_n)
+> p(\mathbf{w} \mid D) = \mathcal N(\mathbf{w} \mid \mathbf{w}_n, \boldsymbol{\Sigma}_n)
 > \end{align}
 > $$
 
@@ -253,11 +244,11 @@ The posterior mean and posterior variance can be read-off in the log posterior:
 
 > $$
 > \begin{align}
-> \mathbf{P}_n
-> &= \left( \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \mathbf{P}_0^{-1} \right)^{-1}
+> \boldsymbol{\Sigma}_n
+> &= \left( \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \boldsymbol{\Sigma}_0^{-1} \right)^{-1}
 > \\[6pt]
 > \mathbf{w}_n
-> &= \mathbf{P}_n \left( \sigma^{-2} \mathbf{X}^\top \mathbf{y} + \mathbf{P}_0^{-1} \mathbf{w}_0 \right)
+> &= \boldsymbol{\Sigma}_n \left( \sigma^{-2} \mathbf{X}^\top \mathbf{y} + \boldsymbol{\Sigma}_0^{-1} \mathbf{w}_0 \right)
 > \end{align}
 > $$
 
@@ -277,7 +268,7 @@ The posterior mean $\mathbf{w}_n$ can be reformulated as the prior mean $\mathbf
 > $$
 > \begin{align}
 > \mathbf{w}_n
-> &= \mathbf{w}_0 + \sigma^{-2} \mathbf{P}_n \mathbf{X}^\top \left( \mathbf{y} - \mathbf{X} \mathbf{w}_0 \right)
+> &= \mathbf{w}_0 + \sigma^{-2} \boldsymbol{\Sigma}_n \mathbf{X}^\top \left( \mathbf{y} - \mathbf{X} \mathbf{w}_0 \right)
 > \\
 > &= \mathbf{w}_0 + \mathbf{K}_n \left( \mathbf{y} - \mathbf{X} \mathbf{w}_0 \right)
 > \\
@@ -289,7 +280,7 @@ where $\mathbf{K}_n$ is the ***gain*** matrix, defined as:
 
 > $$
 > \begin{align}
-> \mathbf{K}_n \triangleq \sigma^{-2} \mathbf{P}_n \mathbf{X}^\top \in\mathbb R^{d \times n}
+> \mathbf{K}_n \triangleq \sigma^{-2} \boldsymbol{\Sigma}_n \mathbf{X}^\top \in\mathbb R^{d \times n}
 > \end{align}
 > $$
 
@@ -297,23 +288,23 @@ Remarks:
 
 * $\mathbf{X} \mathbf{w}_0$ contains label predictions using the prior mean $\mathbf{w}_0$ on $\mathbf{x}_{1:n}$ before we observe $y_{1:n}$.
 * $\mathbf{y} - \mathbf{X} \mathbf{w}_0$ is called ***residual***. It reflects the difference between the observed labels and predicted labels based on prior mean. It is similar to the ***innovation*** in Kalman filter.
-* The gain matrix $\mathbf{K}_n$ reflects how strong we respond to the residual, similar to ***Kalman gain***.
-* Computing $\mathbf{X}^\top \mathbf{X}$ requires $O(nd^2)$. Computing $\mathbf{P}_n$ requires inverting a $d\times d$ matrix and thus $O(d^3)$. Hence, the overall complexity is $O(nd^2 + d^3)$.
+* The gain matrix $\mathbf{K}_n$ quantifies how strongly we respond to the residual, similar to ***Kalman gain***.
+* Computing $\mathbf{X}^\top \mathbf{X}$ requires $O(nd^2)$. Computing $\boldsymbol{\Sigma}_n$ requires inverting a $d\times d$ matrix and thus $O(d^3)$. Hence, the overall complexity is $O(nd^2 + d^3)$.
 
-*Proof*: Recall the definition of $\mathbf{P}_n$:
+*Proof*: Recall the definition of $\boldsymbol{\Sigma}_n$:
 
 $$
 \begin{align*}
-\mathbf{P}_n
-&= \left( \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \mathbf{P}_0^{-1} \right)^{-1}
+\boldsymbol{\Sigma}_n
+&= \left( \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \boldsymbol{\Sigma}_0^{-1} \right)^{-1}
 \\
-\mathbf{P}_n^{-1}
-&= \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \mathbf{P}_0^{-1}
+\boldsymbol{\Sigma}_n^{-1}
+&= \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \boldsymbol{\Sigma}_0^{-1}
 \\
 \mathbf{I}
-&= \underbrace{\sigma^{-2} \mathbf{P}_n \mathbf{X}^\top}_{\mathbf{K}_n} \mathbf{X} + \mathbf{P}_n \mathbf{P}_0^{-1}
+&= \underbrace{\sigma^{-2} \boldsymbol{\Sigma}_n \mathbf{X}^\top}_{\mathbf{K}_n} \mathbf{X} + \boldsymbol{\Sigma}_n \boldsymbol{\Sigma}_0^{-1}
 \\
-\mathbf{P}_n \mathbf{P}_0^{-1}
+\boldsymbol{\Sigma}_n \boldsymbol{\Sigma}_0^{-1}
 &= \mathbf{I} - \mathbf{K}_n \mathbf{X}
 \end{align*}
 $$
@@ -323,54 +314,12 @@ By definition of $\mathbf{w}_n$:
 $$
 \begin{align*}
 \mathbf{w}_n
-&= \sigma^{-2} \mathbf{P}_n \mathbf{X}^\top \mathbf{y} + \mathbf{P}_n \mathbf{P}_0^{-1} \mathbf{w}_0 \\
+&= \sigma^{-2} \boldsymbol{\Sigma}_n \mathbf{X}^\top \mathbf{y} + \boldsymbol{\Sigma}_n \boldsymbol{\Sigma}_0^{-1} \mathbf{w}_0 \\
 &= \mathbf{K}_n \mathbf{y} + (\mathbf{I} - \mathbf{K}_n \mathbf{X}) \mathbf{w}_0 \\
 &= \mathbf{w}_0 + \mathbf{K}_n \left( \mathbf{y} - \mathbf{X} \mathbf{w}_0 \right)
 \tag*{$\blacksquare$}
 \end{align*}
 $$
-
-**Special Case 1: Single Observation**:  
-If the data set contains only one sample $D = \{ \mathbf x_1, y_1 \}$ (i.e. $n=1$), then $\mathbf{w}_n$ and $\mathbf{P}_n$ simplify to
-
-$$
-\begin{align*}
-\mathbf{P}_1
-&= \left( \sigma^{-2} \mathbf{x}_1 \mathbf{x}_1^\top + \mathbf{P}_0^{-1} \right)^{-1}
-\\[6pt]
-\mathbf{w}_1
-&= \mathbf{P}_1 \left( \sigma^{-2} \mathbf{x}_1 y_1 + \mathbf{P}_0^{-1} \mathbf{w}_0 \right)
-\\
-&= \mathbf{w}_0 + \sigma^{-2} \mathbf{P}_1 \mathbf{x}_1 \left( y_1 - \mathbf{w}_0^\top \mathbf{x}_1 \right)
-\end{align*}
-$$
-
-**Special Case 2: Spherical Gaussian Prior**:  
-In standard MAP estimation, we assume $\mathbf{w}_0 = \mathbf{0}$ and $\mathbf{P}_0 = \sigma^2_0 \mathbf{I}$, i.e.
-
-$$
-\begin{align}
-p(\mathbf{w}) = \mathcal N(\mathbf{w} \mid \mathbf{0}, \sigma_{0}^{2}\mathbf{I})
-\end{align}
-$$
-
-It is easy to verify that the posterior mean and posterior variance simplify to
-
-$$
-\begin{align}
-\mathbf{P}_n
-&= \left( \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \sigma_{0}^{-2} \mathbf{I} \right)^{-1}
-\\
-\mathbf{w}_n
-&= \left( \mathbf{X}^\top \mathbf{X} + \lambda\mathbf{I} \right)^{-1} \mathbf{X}^\top \mathbf{y},
-\qquad \lambda \triangleq \frac{\sigma^{2}}{\sigma_{0}^{2}}
-\end{align}
-$$
-
-Remarks:
-
-* The posterior mean $\mathbf{w}_n$ is exactly the MAP estimate aka solution of Ridge regression.
-* In Bayesian inference, we also compute the parameter uncertainry, quantified by the posterior variance $\mathbf{P}_n$.
 
 ### The Posterior Predictive Distribution
 
@@ -401,7 +350,7 @@ $$
 &= \mathbb V[\mathbf{w}^\top \mathbf{x}_* + \varepsilon \mid \mathbf{x}_*, D] \\
 &= \mathbb V[\mathbf{w}^\top \mathbf{x}_* \mid \mathbf{x}_*, D] + \mathbb V[\varepsilon \mid \mathbf{x}_*, D] \\
 &= \mathbf{x}_*^\top \mathbb V[\mathbf{w} \mid D] \mathbf{x}_* + \mathbb V[\varepsilon] \\
-&= \mathbf{x}_*^\top \mathbf{P}_n \mathbf{x}_* + \sigma^2
+&= \mathbf{x}_*^\top \boldsymbol{\Sigma}_n \mathbf{x}_* + \sigma^2
 \end{align*}
 $$
 
@@ -411,17 +360,266 @@ Therefore, the posterior predictive is
 > \begin{align}
 > y_* \mid \mathbf{x}_*, D \sim \mathcal N(
 >     \mathbf{w}_n^\top \mathbf{x}_*, \:
->     \mathbf{x}_*^\top \mathbf{P}_n \mathbf{x}_* + \sigma^2
+>     \mathbf{x}_*^\top \boldsymbol{\Sigma}_n \mathbf{x}_* + \sigma^2
 > )
 > \end{align}
 > $$
 
 Remarks:
 
-* The mean $\mathbf{w}_n^\top \mathbf{x}_*$ coincides with the label prediction by plugging the MAP estimate $\hat{\mathbf{w}}_\text{MAP} = \mathbf{w}_n$ into $\mathbf{w}^\top \mathbf{x}_*$.
-* The variance $\mathbf{x}_*^\top \mathbf{P}_n \mathbf{x}_* + \sigma^2$ quantifies the uncertainty about $y_*$, which consists of two parts:
-  * ***Epistemic uncertainty*** $\mathbf{x}_*^\top \mathbf{P}_n \mathbf{x}_*$, which arises due to lack of data. It depends on the parameter uncertainty and the location of the test data point. In point estimate of parameter, this term is implicity ignored.
+* The predictive mean $\mathbf{w}_n^\top \mathbf{x}_*$ coincides with the label predicted by plugging the MAP estimate $\hat{\mathbf{w}}_\text{MAP} = \mathbf{w}_n$ into $\mathbf{w}^\top \mathbf{x}_*$.
+* The variance $\mathbf{x}_*^\top \boldsymbol{\Sigma}_n \mathbf{x}_* + \sigma^2$ quantifies the uncertainty about $y_*$, which consists of two parts:
+  * ***Epistemic uncertainty*** $\mathbf{x}_*^\top \boldsymbol{\Sigma}_n \mathbf{x}_*$, which arises arises from limited training data and parameter uncertainty. It also depends on the location of the test data point relative to the training dataset. In point estimate of parameter, this term is implicity ignored.
   * ***Irreducible noise*** $\sigma^2$, which quantifies the inherent uncertainty due to label noise.
+
+### Important Special Cases
+
+**Special Case 1: Single Observation**  
+If the data set contains only one sample $D = \{ \mathbf x_1, y_1 \}$ (i.e. $n=1$), then the parameter posterior simplifies to
+
+$$
+\begin{align*}
+\mathbf{w} \mid D
+&\sim \mathcal N(\mathbf{w}_1, \boldsymbol{\Sigma}_1)
+\end{align*}
+$$
+
+where
+
+$$
+\begin{align*}
+\boldsymbol{\Sigma}_1
+&= \left( \sigma^{-2} \mathbf{x}_1 \mathbf{x}_1^\top + \boldsymbol{\Sigma}_0^{-1} \right)^{-1}
+\\
+\mathbf{w}_1
+&= \boldsymbol{\Sigma}_1 \left( \sigma^{-2} \mathbf{x}_1 y_1 + \boldsymbol{\Sigma}_0^{-1} \mathbf{w}_0 \right)
+\\
+&= \mathbf{w}_0 + \sigma^{-2} \boldsymbol{\Sigma}_1 \mathbf{x}_1 \left( y_1 - \mathbf{w}_0^\top \mathbf{x}_1 \right)
+\end{align*}
+$$
+
+The posterior predictive distribution simplifies to
+
+$$
+\begin{align*}
+y_* \mid x_*, D
+&\sim \mathcal N(\mu_*, \sigma_*^2)
+\end{align*}
+$$
+
+where $\mu_*, \sigma_*^2 = \text{TODO}$
+
+This result is useful for deriving [online Bayesian linear regression](#online-bayesian-linear-regression).
+
+**Special Case 2: Spherical Gaussian Prior**  
+In standard MAP estimation, we assume $\mathbf{w}_0 = \mathbf{0}$ and $\boldsymbol{\Sigma}_0 = \sigma^2_0 \mathbf{I}$, i.e.
+
+$$
+\begin{align}
+p(\mathbf{w}) = \mathcal N(\mathbf{w} \mid \mathbf{0}, \sigma_{0}^{2}\mathbf{I})
+\end{align}
+$$
+
+The parameter posterior becomes
+
+$$
+\begin{align*}
+\mathbf{w} \mid D
+&\sim \mathcal N(\mathbf{w}_n, \boldsymbol{\Sigma}_n)
+\end{align*}
+$$
+
+where
+
+$$
+\begin{align}
+\boldsymbol{\Sigma}_n
+&= \left( \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \sigma_{0}^{-2} \mathbf{I} \right)^{-1}
+\\
+\mathbf{w}_n
+&= \left( \mathbf{X}^\top \mathbf{X} + \lambda\mathbf{I} \right)^{-1} \mathbf{X}^\top \mathbf{y},
+\qquad \lambda \triangleq \frac{\sigma^{2}}{\sigma_{0}^{2}}
+\end{align}
+$$
+
+Remarks:
+
+* The posterior mean $\mathbf{w}_n$ is exactly the MAP estimate aka solution of Ridge regression.
+* In Bayesian inference, we also compute the parameter uncertainty, quantified by the posterior variance $\boldsymbol{\Sigma}_n$.
+
+The posterior predictive distribution simplifies to
+
+$$
+\begin{align*}
+y_* \mid x_*, D
+&\sim \mathcal N(\mu_*, \sigma_*^2)
+\end{align*}
+$$
+
+where $\mu_*, \sigma_*^2 = \text{TODO}$
+
+## Function Space View
+
+So far we derived the posterior predictive distribution by first computing the posterior distribution of the weights. The intuition is to average the plug-in predictive distribution w.r.t the posterior distribution of the weights. But our ultimate goal is the posterior predictive distribution. Can we derive it directly without using the "additional layer"? The direct modeling of function values leads to the function space view of Bayesian linear regression.
+
+For each training data point $\mathbf{x}_i \in D$, we let the short-hand notation
+
+$$
+\begin{align}
+f_i \triangleq \mathbf{w}^\top \mathbf{x}_i
+\end{align}
+$$
+
+to denote a linear function evaluated at $\mathbf{x}_i$.
+
+Moreover, we define
+
+$$
+\begin{align}
+\mathbf{f} \triangleq
+\begin{bmatrix}
+  f_1 \\ \vdots \\ f_n
+\end{bmatrix}
+\in\mathbb R^n,
+\quad
+\mathbf{X} \triangleq
+\begin{bmatrix}
+  \mathbf{x}_1^\top \\ \vdots \\ \mathbf{x}_n^\top
+\end{bmatrix}
+\in\mathbb R^{n \times d}
+\end{align}
+$$
+
+It is easy to verify that
+
+$$
+\begin{align}
+\mathbf{f} = \mathbf{X}\mathbf{w}
+\end{align}
+$$
+
+We assume a Gaussian prior on weights as before
+
+$$
+p(\mathbf{w}) = \mathcal N(\mathbf{w} \mid \mathbf{w}_0, \boldsymbol{\Sigma}_0)
+$$
+
+Given $\mathbf{x}_{1:n}$, the function evaluation $\mathbf{f}$ is a linear transform of $\mathbf{w}$ and thus Gaussian. Hence,
+
+$$
+\begin{align}
+p(\mathbf{f} \mid \mathbf{x}_{1:n})
+&= \mathcal N(\mathbf{w} \mid \mathbf{X}\mathbf{w}_0, \, \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top)
+\end{align}
+$$
+
+Likewise, for the test data point $\mathbf{x}_*$, we define
+
+$$
+f_* \triangleq \mathbf{w}^\top \mathbf{x}_*
+$$
+
+Again, by closedness of Gaussian under linear transform, we have the **prior preditive distribution** for $f_*$
+
+$$
+\begin{align}
+p(f_* \mid \mathbf{x}_*)
+&= \mathcal N(f_* \mid \mathbf{w}^\top \mathbf{x}_*, \mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{x}_*)
+\end{align}
+$$
+
+The core idea of function space view is to consider the joint distribution of $\mathbf{f}, f_*$. Note that
+
+$$
+\begin{align}
+\underbrace{\begin{bmatrix} \mathbf{f} \\ f_* \end{bmatrix}}_{\tilde{\mathbf{f}}}
+&= \underbrace{
+  \begin{bmatrix} \mathbf{X} \\ \mathbf{x}_*^\top \end{bmatrix}
+}_{\tilde{\mathbf{X}}} \mathbf{w}
+\end{align}
+$$
+
+Hence, we obtain the joint distribution of the function values
+
+$$
+\begin{align}
+\tilde{\mathbf{f}} \mid  \mathbf{x}_{1:n}, \mathbf{x}_*
+&\sim \mathcal N\left(
+  \tilde{\mathbf{X}} \mathbf{w}_0,
+  \:
+  \tilde{\mathbf{X}} \boldsymbol{\Sigma}_0 \tilde{\mathbf{X}}^\top
+\right)
+\nonumber
+\\
+\begin{bmatrix} \mathbf{f} \\ f_* \end{bmatrix} \mid  \mathbf{x}_{1:n}, \mathbf{x}_*
+&\sim \mathcal N\left(
+  \begin{bmatrix} \mathbf{X} \mathbf{w}_0 \\ \mathbf{x}_*^\top \mathbf{w}_0 \end{bmatrix},
+  \:
+  \begin{bmatrix}
+  \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top & \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{x}_* \\
+  \mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{X}^\top & \mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{x}_*
+  \end{bmatrix}
+\right)
+\\
+\end{align}
+$$
+
+To add the label noise, consider
+
+$$
+\begin{bmatrix} \mathbf{y} \\ y_* \end{bmatrix} =
+\begin{bmatrix} \mathbf{f} \\ f_* \end{bmatrix} +
+\begin{bmatrix} \boldsymbol{\varepsilon} \\ \varepsilon_* \end{bmatrix},
+\quad
+\begin{bmatrix} \boldsymbol{\varepsilon} \\ \varepsilon_* \end{bmatrix}
+\sim \mathcal N(\mathbf{0}, \sigma^2 \mathbf{I}_{n+1})
+$$
+
+Hence, we obtain the joint distribution of the noisy labels
+
+$$
+\begin{align}
+\begin{bmatrix} \mathbf{y} \\ y_* \end{bmatrix} \mid  \mathbf{x}_{1:n}, \mathbf{x}_*
+&\sim \mathcal N\left(
+  \begin{bmatrix} \mathbf{X} \mathbf{w}_0 \\ \mathbf{x}_*^\top \mathbf{w}_0 \end{bmatrix},
+  \:
+  \begin{bmatrix}
+  \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n & \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{x}_* \\
+  \mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{X}^\top & \mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{x}_* + \sigma^2
+  \end{bmatrix}
+\right)
+\\
+\end{align}
+$$
+
+The **posterior predictive distribution** $p(y_* \mid \mathbf{x}_*, y_{1:n}, \mathbf{x}_{1:n})$ can be computed by marginalizing the above joint distribution over $\mathbf{y}$. By Gaussian conditioning theorem, we know the posterior predictive distribution is Gaussian:
+
+$$
+\begin{align}
+y_* \mid \mathbf{x}_*, y_{1:n}, \mathbf{x}_{1:n}
+&\sim \mathcal N(\mu_*, \sigma_*^2)
+\end{align}
+$$
+
+where the posterior predictive mean and the posterior predictive varince are
+
+$$
+\begin{align}
+\mu_*
+&= \mathbf{w}_0^\top \mathbf{x}_* +
+  \mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{X}^\top
+  \left( \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n \right)^{-1}
+  (\mathbf{y} -  \mathbf{X} \mathbf{w}_0)
+\\
+\sigma_*^2
+&= \mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{x}_* + \sigma^2 - 
+  \mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{X}^\top
+  \left( \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n \right)^{-1}
+  \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{x}_*
+\end{align}
+$$
+
+TODO: show that the above result is equivalent to weight space view
 
 ## Online Bayesian Linear Regression
 
@@ -441,21 +639,19 @@ $$
 Before we see any data, we put a prior on $\mathbf{w}$ like before:
 
 $$
-\begin{align}
-p(\mathbf{w}) = \mathcal N(\mathbf{w} \mid \mathbf{w}_0, \mathbf{P}_0)
-\end{align}
+p(\mathbf{w}) = \mathcal N(\mathbf{w} \mid \mathbf{w}_0, \boldsymbol{\Sigma}_0)
 $$
 
 Remarks:
 
 * Here, we simply write $p(\mathbf{w})$ instead of $p(\mathbf{w} \mid D_{1:0})$ or $p(\mathbf{w} \mid \varnothing)$ to denote the prior before we see any data.
-* In practice, we typically choose $\mathbf{w}_0 = \mathbf{0}$ and $\mathbf{P}_0 = \sigma_0^2 \mathbf{I}$ as in standard MAP estimation.
+* In practice, we typically choose $\mathbf{w}_0 = \mathbf{0}$ and $\boldsymbol{\Sigma}_0 = \sigma_0^2 \mathbf{I}$ as in standard MAP estimation.
 
 For each $t=1,2,\dots$, we use the old posterior as the current prior:
 
 $$
 \begin{align}
-p(\mathbf{w} \mid D_{t-1})  = \mathcal N(\mathbf{w} \mid \mathbf{w}_{t-1}, \mathbf{P}_{t-1})
+p(\mathbf{w} \mid D_{t-1})  = \mathcal N(\mathbf{w} \mid \mathbf{w}_{t-1}, \boldsymbol{\Sigma}_{t-1})
 \end{align}
 $$
 
@@ -464,7 +660,7 @@ Remarks:
 * By $y_t = \mathbf{w}^\top \mathbf{x}_t + \varepsilon_t$, the prior predictive distribution is
   > $$
   > \begin{align}
-  > p(y_t \mid \mathbf{x}_t, D_{t-1}) = \mathcal N(y_t \mid \mathbf{w}_{t-1}^\top \mathbf{x}_{t},\: \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t} + \sigma^2)
+  > p(y_t \mid \mathbf{x}_t, D_{t-1}) = \mathcal N(y_t \mid \mathbf{w}_{t-1}^\top \mathbf{x}_{t},\: \mathbf{x}_{t}^\top \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t} + \sigma^2)
   > \end{align}
   > $$
 * Namely, we can predict $y_t$ by multiplying the prior mean $\mathbf{w}_{t-1}$ (i.e. old MAP estimate of $\mathbf{w}$) with current input $\mathbf{x}_t$.
@@ -474,7 +670,7 @@ After observing $y_t$, we update this prior to the posterior:
 
 $$
 \begin{align}
-p(\mathbf{w} \mid D_{t})  = \mathcal N(\mathbf{w} \mid \mathbf{w}_{t}, \mathbf{P}_{t})
+p(\mathbf{w} \mid D_{t})  = \mathcal N(\mathbf{w} \mid \mathbf{w}_{t}, \boldsymbol{\Sigma}_{t})
 \end{align}
 $$
 
@@ -482,33 +678,33 @@ where the posterior mean and covariance are updated as
 
 > $$
 > \begin{align}
-> \mathbf{P}_{t}
-> &= \left( \mathbf{P}_{t-1}^{-1} + \sigma^{-2} \mathbf{x}_{t} \mathbf{x}_{t}^\top \right)^{-1}
+> \boldsymbol{\Sigma}_{t}
+> &= \left( \boldsymbol{\Sigma}_{t-1}^{-1} + \sigma^{-2} \mathbf{x}_{t} \mathbf{x}_{t}^\top \right)^{-1}
 > \\[6pt]
 > \mathbf{w}_{t}
-> &= \mathbf{P}_{t} \left(  \mathbf{P}_{t-1}^{-1} \mathbf{w}_{t-1} + \sigma^{-2} \mathbf{x}_{t} y_{t} \right)
+> &= \boldsymbol{\Sigma}_{t} \left(  \boldsymbol{\Sigma}_{t-1}^{-1} \mathbf{w}_{t-1} + \sigma^{-2} \mathbf{x}_{t} y_{t} \right)
 > \\
-> &= \mathbf{w}_{t-1} + \sigma^{-2} \mathbf{P}_{t} \mathbf{x}_{t} \left( y_{t} - \mathbf{w}_{t-1}^\top \mathbf{x}_{t} \right)
+> &= \mathbf{w}_{t-1} + \sigma^{-2} \boldsymbol{\Sigma}_{t} \mathbf{x}_{t} \left( y_{t} - \mathbf{w}_{t-1}^\top \mathbf{x}_{t} \right)
 > \end{align}
 > $$
 
 Remarks:
 
-* Updating $\mathbf{P}_t \in\mathbb R^{d\times d}$ requires matrix inversion at each step, which costs $O(d^3)$. We will address this issue in the next section.
+* Updating $\boldsymbol{\Sigma}_t \in\mathbb R^{d\times d}$ requires matrix inversion at each step, which costs $O(d^3)$. We will address this issue in the next section.
 * $y_{t} - \mathbf{w}_{t-1}^\top \mathbf{x}_{t} \in\mathbb R$ is the residual. It is the difference between observed label $y_{t}$ and the prediction $\mathbf{w}_{t-1}^\top \mathbf{x}_{t}$ based on the prior mean.
-* The update to $\mathbf{w}_t$ corrects $\mathbf{w}_{t-1}$ in the direction of the gain $\mathbf{k}_t = \sigma^{-2} \mathbf{P}_{t} \mathbf{x}_{t} \in\mathbb R^{d}$. A larger residual or lower observation noise (i.e. smaller $\sigma$) results in a larger correction.
+* The update to $\mathbf{w}_t$ corrects $\mathbf{w}_{t-1}$ in the direction of the gain $\mathbf{k}_t = \sigma^{-2} \boldsymbol{\Sigma}_{t} \mathbf{x}_{t} \in\mathbb R^{d}$. A larger residual or lower observation noise (i.e. smaller $\sigma$) results in a larger correction.
 
 *Proof*: The update rule follows directly from the offline Bayesian linear regression
 
 $$
 \begin{align*}
-\mathbf{P}_n
-&= \left( \mathbf{P}_0^{-1} + \sigma^{-2} \mathbf{X}^\top \mathbf{X} \right)^{-1}
+\boldsymbol{\Sigma}_n
+&= \left( \boldsymbol{\Sigma}_0^{-1} + \sigma^{-2} \mathbf{X}^\top \mathbf{X} \right)^{-1}
 \\[6pt]
 \mathbf{w}_n
-&= \mathbf{P}_n \left( \mathbf{P}_0^{-1} \mathbf{w}_0 + \sigma^{-2} \mathbf{X}^\top \mathbf{y} \right)
+&= \boldsymbol{\Sigma}_n \left( \boldsymbol{\Sigma}_0^{-1} \mathbf{w}_0 + \sigma^{-2} \mathbf{X}^\top \mathbf{y} \right)
 \\
-&= \mathbf{w}_0 + \sigma^{-2} \mathbf{P}_n \mathbf{X}^\top \left( \mathbf{y} - \mathbf{X} \mathbf{w}_0 \right)
+&= \mathbf{w}_0 + \sigma^{-2} \boldsymbol{\Sigma}_n \mathbf{X}^\top \left( \mathbf{y} - \mathbf{X} \mathbf{w}_0 \right)
 \end{align*}
 $$
 
@@ -518,42 +714,42 @@ $$
 \begin{align*}
 &\text{prior: }
 \cancel{\mathbf{w}_0} \to \mathbf{w}_{t-1}, \quad
-\cancel{\mathbf{P}_0} \to \mathbf{P}_{t-1}
+\cancel{\boldsymbol{\Sigma}_0} \to \boldsymbol{\Sigma}_{t-1}
 \\
 &\text{data: }
 D=\{\mathbf x_t, y_t\} \implies n=1, \: \mathbf X = \mathbf x_t^\top, \: \mathbf{y} = y_t
 \\
 &\text{posterior: }
 \cancel{\mathbf{w}_n} \to \mathbf{w}_t, \quad
-\cancel{\mathbf{P}_n} \to \mathbf{P}_t
+\cancel{\boldsymbol{\Sigma}_n} \to \boldsymbol{\Sigma}_t
 \tag*{$\blacksquare$}
 \end{align*}
 $$
 
 ### Avoiding Matrix Inversion
 
-Can we compute $\mathbf{P}_t \in\mathbb R^{d\times d}$ without matrix inversion which requires $O(d^3)$ at every time step?
+Can we compute $\boldsymbol{\Sigma}_t \in\mathbb R^{d\times d}$ without matrix inversion which requires $O(d^3)$ at every time step?
 
 Applying the **matrix inversion lemma** (see Appendix) to
 
 $$
-\mathbf{P}_{t} = \left( \mathbf{P}_{t-1}^{-1} + \sigma^{-2} \mathbf{x}_{t} \mathbf{x}_{t}^\top \right)^{-1},
+\boldsymbol{\Sigma}_{t} = \left( \boldsymbol{\Sigma}_{t-1}^{-1} + \sigma^{-2} \mathbf{x}_{t} \mathbf{x}_{t}^\top \right)^{-1},
 $$
 
 we obtain
 
 $$
 \begin{align}
-\mathbf{P}_{t}
-&= \mathbf{P}_{t-1} - \frac{\mathbf{P}_{t-1} \mathbf{x}_{t} \mathbf{x}_{t}^\top \mathbf{P}_{t-1}}{\sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}}
+\boldsymbol{\Sigma}_{t}
+&= \boldsymbol{\Sigma}_{t-1} - \frac{\boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t} \mathbf{x}_{t}^\top \boldsymbol{\Sigma}_{t-1}}{\sigma^2 + \mathbf{x}_{t}^\top \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}}
 \\
-&= \mathbf{P}_{t-1} - \frac{(\mathbf{P}_{t-1} \mathbf{x}_{t}) (\mathbf{P}_{t-1} \mathbf{x}_{t})^\top}{\sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}}
+&= \boldsymbol{\Sigma}_{t-1} - \frac{(\boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}) (\boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t})^\top}{\sigma^2 + \mathbf{x}_{t}^\top \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}}
 \end{align}
 $$
 
 Remarks:
 
-* The 2nd equality follows from the symmetry of the covariance matrix $\mathbf{P}_{t-1}$.
+* The 2nd equality follows from the symmetry of the covariance matrix $\boldsymbol{\Sigma}_{t-1}$.
 * This update rule only requires computing matrix-vector multiplication, outer product, and scalar division. Hence, the computational complexity is reduced to $O(d^2)$.
 
 ### Gain Vector
@@ -562,59 +758,59 @@ Recall the gain vector is defined as
 
 $$
 \begin{align}
-\mathbf{k}_t = \sigma^{-2} \mathbf{P}_{t} \mathbf{x}_{t} \in\mathbb R^{d}
+\mathbf{k}_t = \sigma^{-2} \boldsymbol{\Sigma}_{t} \mathbf{x}_{t} \in\mathbb R^{d}
 \end{align}
 $$
 
-Using the inversion-free update rule for $\mathbf{P}_t$, we can express the gain as
+Using the inversion-free update rule for $\boldsymbol{\Sigma}_t$, we can express the gain as
 
 > $$
 > \begin{align}
-> \mathbf{k}_t = \frac{\mathbf{P}_{t-1} \mathbf{x}_{t}}{\sigma^{2} + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}}
+> \mathbf{k}_t = \frac{\boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}}{\sigma^{2} + \mathbf{x}_{t}^\top \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}}
 > \end{align}
 > $$
 
 Remarks:
 
-* The denominator $\sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}$ is the variance of the predictive distribution $p(y_t \mid \mathbf{x}_t, D_{t-1})$ before we observe $y_t$.
-* Comparing both expressions of $\mathbf{k}_t$, we see that the correction direction $\mathbf{P}_{t} \mathbf{x}_{t}$ is the same as $\mathbf{P}_{t-1} \mathbf{x}_{t}$.
+* The denominator $\sigma^2 + \mathbf{x}_{t}^\top \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}$ is the variance of the predictive distribution $p(y_t \mid \mathbf{x}_t, D_{t-1})$ before we observe $y_t$.
+* Comparing both expressions of $\mathbf{k}_t$, we see that the correction direction $\boldsymbol{\Sigma}_{t} \mathbf{x}_{t}$ is the same as $\boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}$.
 
 *Proof*: The 2nd expression follows from some simple algebra:
 $$
 \begin{align*}
 \mathbf{k}_t
-&= \sigma^{-2} \left( \mathbf{P}_{t-1} - \frac{\mathbf{P}_{t-1} \mathbf{x}_{t} \, \mathbf{x}_{t}^\top \mathbf{P}_{t-1}}{\sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}} \right) \mathbf{x}_{t}
+&= \sigma^{-2} \left( \boldsymbol{\Sigma}_{t-1} - \frac{\boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t} \, \mathbf{x}_{t}^\top \boldsymbol{\Sigma}_{t-1}}{\sigma^2 + \mathbf{x}_{t}^\top \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}} \right) \mathbf{x}_{t}
 \\
-&= \sigma^{-2} \left( \mathbf{P}_{t-1} \mathbf{x}_{t} - \frac{\mathbf{P}_{t-1} \mathbf{x}_{t} \cdot \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}}{\sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}} \right)
+&= \sigma^{-2} \left( \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t} - \frac{\boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t} \cdot \mathbf{x}_{t}^\top \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}}{\sigma^2 + \mathbf{x}_{t}^\top \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}} \right)
 \\
-&= \sigma^{-2} \left( 1 - \frac{\mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}}{\sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}} \right) \mathbf{P}_{t-1} \mathbf{x}_{t}
+&= \sigma^{-2} \left( 1 - \frac{\mathbf{x}_{t}^\top \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}}{\sigma^2 + \mathbf{x}_{t}^\top \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}} \right) \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}
 \\
-&= \frac{1}{\sigma^{2} + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}} \mathbf{P}_{t-1} \mathbf{x}_{t}
+&= \frac{1}{\sigma^{2} + \mathbf{x}_{t}^\top \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}} \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}
 \tag*{$\blacksquare$}
 \end{align*}
 $$
 
-Note that the update to $\mathbf{P}_{t}$ requires computing the outer product of $\mathbf{P}_{t-1} \mathbf{x}_{t}$, which is just a scalar mulitple of the gain $\mathbf{k}_t$. Hence, we can express $\mathbf{P}_{t}$ explicitly in terms of $\mathbf{k}_t$.
+Note that the update to $\boldsymbol{\Sigma}_{t}$ requires computing the outer product of $\boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}$, which is just a scalar mulitple of the gain $\mathbf{k}_t$. Hence, we can express $\boldsymbol{\Sigma}_{t}$ explicitly in terms of $\mathbf{k}_t$.
 
 > $$
 > \begin{align}
-> \mathbf{P}_{t}
-> &= \mathbf{P}_{t-1} - \left( \sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t} \right) \mathbf{k}_t \mathbf{k}_t^\top
+> \boldsymbol{\Sigma}_{t}
+> &= \boldsymbol{\Sigma}_{t-1} - \left( \sigma^2 + \mathbf{x}_{t}^\top \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t} \right) \mathbf{k}_t \mathbf{k}_t^\top
 > \end{align}
 > $$
 
-* The correction term is positive semidefinite becuase it is the outer product $ \mathbf{k}_t \mathbf{k}_t^\top$ scaled by the prior predictive variance $\sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}$ (a non negative number). See Appendix for the semi positive definitenss of outer product.
-* Thus, $\mathbf{P}_{t}$ is computed by substracting a positive semidefinite matrix from $\mathbf{P}_{t-1}$. Intuitively, this means the uncertainty in $\mathbf{w}$ shrinks over time as more data is assimilated.
+* The correction term is positive semidefinite becuase it is the outer product $ \mathbf{k}_t \mathbf{k}_t^\top$ scaled by the prior predictive variance $\sigma^2 + \mathbf{x}_{t}^\top \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}$ (a non negative number). See Appendix for the semi positive definitenss of outer product.
+* Thus, $\boldsymbol{\Sigma}_{t}$ is computed by substracting a positive semidefinite matrix from $\boldsymbol{\Sigma}_{t-1}$. Intuitively, this means the uncertainty in $\mathbf{w}$ shrinks over time as more data is assimilated.
 
 ### The Complete Algorithm
 
-> Init: $\mathbf{w}_0 \in\mathbb R^{d}, \mathbf{P}_0 \in\mathbb R^{d \times d}$  
+> Init: $\mathbf{w}_0 \in\mathbb R^{d}, \boldsymbol{\Sigma}_0 \in\mathbb R^{d \times d}$  
 > For $t=1,2,\dots$, do:  
 > $\qquad$ Prior prediction (mean and variance) of $y_t$:
 > $$
 > \begin{align}
 > \hat{y}_t &=  \mathbf{w}_{t-1}^\top \mathbf{x}_{t} \\
-> s^2_{t} &= \sigma^2 + \mathbf{x}_{t}^\top \mathbf{P}_{t-1} \mathbf{x}_{t}
+> s^2_{t} &= \sigma^2 + \mathbf{x}_{t}^\top \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}
 > \end{align}
 > $$
 >
@@ -622,7 +818,7 @@ Note that the update to $\mathbf{P}_{t}$ requires computing the outer product of
 >
 > $$
 > \begin{align}
-> \mathbf{k}_t = \frac{\mathbf{P}_{t-1} \mathbf{x}_{t}}{s^2_{t}}
+> \mathbf{k}_t = \frac{\boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}}{s^2_{t}}
 > \end{align}
 > $$
 >
@@ -639,8 +835,8 @@ Note that the update to $\mathbf{P}_{t}$ requires computing the outer product of
 >
 > $$
 > \begin{align}
-> \mathbf{P}_{t}
-> &= \mathbf{P}_{t-1} - s^2_{t} \, \mathbf{k}_t \mathbf{k}_t^\top
+> \boldsymbol{\Sigma}_{t}
+> &= \boldsymbol{\Sigma}_{t-1} - s^2_{t} \, \mathbf{k}_t \mathbf{k}_t^\top
 > \end{align}
 > $$
 
@@ -698,8 +894,44 @@ p(z \mid x,y) = \frac{p(z \mid x) \cdot p(y \mid z)}{p(y)}
 \end{align}
 $$
 
-### Matrix Inversion Lemma
+### Useful Matrix Identities
 
+**Inverse of matrix sum**  
+Let  $\mathbf{A}, \mathbf{B} \in\mathbb R^{n \times n}$. Suppose $(\mathbf{A} + \mathbf{B})$ is invertible. Then,
+
+$$
+\begin{align}
+\mathbf{A} (\mathbf{A} + \mathbf{B})
+&= \mathbf{I} - \mathbf{B} (\mathbf{A} + \mathbf{B})^{-1}
+\end{align}
+$$
+
+Special case: $\mathbf{B} = \lambda \mathbf{I}$. Then,
+
+$$
+\begin{align}
+\mathbf{A} (\mathbf{A} + \lambda \mathbf{I})
+&= \mathbf{I} - \lambda (\mathbf{A} + \lambda \mathbf{I})^{-1}
+\end{align}
+$$
+
+*Proof*: By assumption,
+
+$$
+\begin{align*}
+(\mathbf{A} + \mathbf{B}) (\mathbf{A} + \mathbf{B})^{-1}
+&= \mathbf{I}
+\\
+\mathbf{A} (\mathbf{A} + \mathbf{B})^{-1}  + \mathbf{B} (\mathbf{A} + \mathbf{B})^{-1}
+&= \mathbf{I}
+\\
+\mathbf{A} (\mathbf{A} + \mathbf{B})
+&= \mathbf{I} - \mathbf{B} (\mathbf{A} + \mathbf{B})^{-1}
+\tag*{$\blacksquare$}
+\end{align*}
+$$
+
+**Matrix Inversion Lemma**  
 Let $\mathbf{A}\in\mathbb R^{n \times n}$ and $\mathbf{C}\in\mathbb R^{m \times m}$ be invertible. Let $\mathbf{U}\in\mathbb R^{n \times m}$ and $\mathbf{V}\in\mathbb R^{m \times n}$.
 
 $$
@@ -738,8 +970,7 @@ Special cases:
   \end{align}
   $$
 
-### Outer Products
-
+**Outer Products**  
 The outer product of two vectors $\mathbf u \in\mathbb R^m, \mathbf v \in\mathbb R^n$ is a matrix, defined by $\mathbf u \mathbf v^\top \in\mathbb R^{m \times n}$.
 
 **Fact**: For $\mathbf u = \mathbf v$, the outerproduct $\mathbf u \mathbf u^\top$ is always postive semi definite.

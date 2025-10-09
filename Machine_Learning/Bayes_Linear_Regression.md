@@ -327,12 +327,14 @@ Having derived the posterior $p(\mathbf{w} \mid D)$, we are ready to derive the 
 
 $$
 \begin{align*}
-y_* = \mathbf{w}^\top \mathbf{x}_* + \varepsilon, \quad
-\varepsilon \sim \mathcal N(\mathrm{0}, \sigma^2)
+y_* = \mathbf{w}^\top \mathbf{x}_* + \varepsilon_*, \quad
+\varepsilon_* \sim \mathcal N(\mathrm{0}, \sigma^2)
 \end{align*}
 $$
 
-Given training data $D$ and new input $\mathbf{x}_*$, the label $y_*$ is Gaussian because it is a sum of two independent Gaussian random variables $\mathbf{w}^\top \mathbf{x}_*$ and $\varepsilon$. Hence, it is sufficient to compute the mean and variance of $y_*$ (given $\mathbf{x}_*$ and $D$) in order to obtain the posterior predictive.
+Given training data $D$ and new input $\mathbf{x}_*$, the label $y_*$ is Gaussian because it is a sum of two independent Gaussian random variables $\mathbf{w}^\top \mathbf{x}_*$ and $\varepsilon_*$. 
+
+Hence, it is sufficient to compute the mean and variance of $y_*$ (given $\mathbf{x}_*$ and $D$) in order to obtain the posterior predictive.
 
 $$
 \begin{align*}
@@ -358,19 +360,31 @@ Therefore, the posterior predictive is
 
 > $$
 > \begin{align}
-> y_* \mid \mathbf{x}_*, D \sim \mathcal N(
->     \mathbf{w}_n^\top \mathbf{x}_*, \:
->     \mathbf{x}_*^\top \boldsymbol{\Sigma}_n \mathbf{x}_* + \sigma^2
-> )
+> y_* \mid \mathbf{x}_*, D
+> \sim \mathcal N(\mathbf{w}_n^\top \mathbf{x}_*, \: \mathbf{x}_*^\top \boldsymbol{\Sigma}_n \mathbf{x}_* + \sigma^2)
 > \end{align}
 > $$
+
+where
+
+$$
+\begin{align}
+\mathbf{w}_n^\top \mathbf{x}_*
+&= \mathbf{w}_0^\top \mathbf{x}_* +
+  \mathbf{x}_*^\top \left( \mathbf{X}^\top \mathbf{X} + \sigma^{2}\boldsymbol{\Sigma}_0^{-1} \right)^{-1} \mathbf{X}^\top
+  \left( \mathbf{y} - \mathbf{X} \mathbf{w}_0 \right)
+\\
+\mathbf{x}_*^\top \boldsymbol{\Sigma}_n \mathbf{x}_* + \sigma^2
+&= \sigma^{2} \left[ 1 + \mathbf{x}_*^\top \left( \mathbf{X}^\top \mathbf{X} + \sigma^{2}\boldsymbol{\Sigma}_0^{-1} \right)^{-1} \mathbf{x}_* \right]
+\end{align}
+$$
 
 Remarks:
 
 * The predictive mean $\mathbf{w}_n^\top \mathbf{x}_*$ coincides with the label predicted by plugging the MAP estimate $\hat{\mathbf{w}}_\text{MAP} = \mathbf{w}_n$ into $\mathbf{w}^\top \mathbf{x}_*$.
 * The variance $\mathbf{x}_*^\top \boldsymbol{\Sigma}_n \mathbf{x}_* + \sigma^2$ quantifies the uncertainty about $y_*$, which consists of two parts:
   * ***Epistemic uncertainty*** $\mathbf{x}_*^\top \boldsymbol{\Sigma}_n \mathbf{x}_*$, which arises arises from limited training data and parameter uncertainty. It also depends on the location of the test data point relative to the training dataset. In point estimate of parameter, this term is implicity ignored.
-  * ***Irreducible noise*** $\sigma^2$, which quantifies the inherent uncertainty due to label noise.
+  * ***Irreducible noise*** $\sigma^2$, which quantifies the inherent uncertainty due to label noise. Also known as ***aleatoric uncertainty***.
 
 ### Important Special Cases
 
@@ -391,10 +405,13 @@ $$
 \boldsymbol{\Sigma}_1
 &= \left( \sigma^{-2} \mathbf{x}_1 \mathbf{x}_1^\top + \boldsymbol{\Sigma}_0^{-1} \right)^{-1}
 \\
-\mathbf{w}_1
-&= \boldsymbol{\Sigma}_1 \left( \sigma^{-2} \mathbf{x}_1 y_1 + \boldsymbol{\Sigma}_0^{-1} \mathbf{w}_0 \right)
+&= \boldsymbol{\Sigma}_0 - \frac{\boldsymbol{\Sigma}_0 \mathbf{x}_1 \mathbf{x}_1^\top \boldsymbol{\Sigma}_0}{\sigma^2 + \mathbf{x}_1^\top \boldsymbol{\Sigma}_0 \mathbf{x}_1^\top}
+\qquad \text{matrix inversion lemma}
 \\
+\mathbf{w}_1
 &= \mathbf{w}_0 + \sigma^{-2} \boldsymbol{\Sigma}_1 \mathbf{x}_1 \left( y_1 - \mathbf{w}_0^\top \mathbf{x}_1 \right)
+\\
+&= \mathbf{w}_0 + \frac{\boldsymbol{\Sigma}_0 \mathbf{x}_1}{\sigma^2 + \mathbf{x}_1^\top \boldsymbol{\Sigma}_0 \mathbf{x}_1^\top} (y_1 - \mathbf{w}_0^\top \mathbf{x}_1)
 \end{align*}
 $$
 
@@ -407,9 +424,22 @@ y_* \mid x_*, D
 \end{align*}
 $$
 
-where $\mu_*, \sigma_*^2 = \text{TODO}$
+where
 
-This result is useful for deriving [online Bayesian linear regression](#online-bayesian-linear-regression).
+$$
+\begin{align*}
+\mu_*
+&= \mathbf{w}_1^\top \mathbf{x}_*
+= \mathbf{w}_0^\top \mathbf{x}_* + \frac{\mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{x}_1}{\sigma^2 + \mathbf{x}_1^\top \boldsymbol{\Sigma}_0 \mathbf{x}_1^\top} (y_1 - \mathbf{w}_0^\top \mathbf{x}_1)
+\\
+\sigma_*^2
+&= \mathbf{x}_*^\top \boldsymbol{\Sigma}_1 \mathbf{x}_* + \sigma^2
+= \sigma^2 + \mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{x}_*
+  -\frac{(\mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{x}_1)^2}{\sigma^2 + \mathbf{x}_1^\top \boldsymbol{\Sigma}_0 \mathbf{x}_1^\top}
+\end{align*}
+$$
+
+This result is useful when deriving [online Bayesian linear regression](#online-bayesian-linear-regression).
 
 **Special Case 2: Spherical Gaussian Prior**  
 In standard MAP estimation, we assume $\mathbf{w}_0 = \mathbf{0}$ and $\boldsymbol{\Sigma}_0 = \sigma^2_0 \mathbf{I}$, i.e.
@@ -435,10 +465,11 @@ $$
 \begin{align}
 \boldsymbol{\Sigma}_n
 &= \left( \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \sigma_{0}^{-2} \mathbf{I} \right)^{-1}
+= \sigma^2 \left( \mathbf{X}^\top \mathbf{X} + \lambda\mathbf{I} \right)^{-1},
+\qquad \lambda \triangleq \frac{\sigma^{2}}{\sigma_{0}^{2}}
 \\
 \mathbf{w}_n
-&= \left( \mathbf{X}^\top \mathbf{X} + \lambda\mathbf{I} \right)^{-1} \mathbf{X}^\top \mathbf{y},
-\qquad \lambda \triangleq \frac{\sigma^{2}}{\sigma_{0}^{2}}
+&= \left( \mathbf{X}^\top \mathbf{X} + \lambda\mathbf{I} \right)^{-1} \mathbf{X}^\top \mathbf{y}
 \end{align}
 $$
 
@@ -456,7 +487,19 @@ y_* \mid x_*, D
 \end{align*}
 $$
 
-where $\mu_*, \sigma_*^2 = \text{TODO}$
+where
+
+$$
+\begin{align*}
+\mu_*
+&= \mathbf{w}_n^\top \mathbf{x}_*
+= \mathbf{x}_*^\top \left( \mathbf{X}^\top \mathbf{X} + \lambda\mathbf{I} \right)^{-1} \mathbf{X}^\top \mathbf{y}
+\\
+\sigma_*^2
+&= \mathbf{x}_*^\top \boldsymbol{\Sigma}_n \mathbf{x}_* + \sigma^2
+= \sigma^2 \left[ 1 + \mathbf{x}_*^\top \left( \mathbf{X}^\top \mathbf{X} + \lambda\mathbf{I} \right)^{-1} \mathbf{x}_* \right]
+\end{align*}
+$$
 
 ## Function Space View
 
@@ -616,10 +659,88 @@ $$
   \mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{X}^\top
   \left( \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n \right)^{-1}
   \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{x}_*
+\\
+&= \sigma^2 + \mathbf{x}_*^\top
+  \left[
+    \boldsymbol{\Sigma}_0 - \boldsymbol{\Sigma}_0 \mathbf{X}^\top \left( \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n \right)^{-1}
+  \mathbf{X} \boldsymbol{\Sigma}_0 
+  \right]
+  \mathbf{x}_*
 \end{align}
 $$
 
-TODO: show that the above result is equivalent to weight space view
+### Equivalance between both Views
+
+> **Claim**: The weight space view and function space view yield the same posterior distribution.
+
+WARNING: massive math bombing coming.
+
+*Proof*: Recall the mean and variance of the posterior predictive distribution in weight space view:
+
+$$
+\begin{align*}
+\mathbf{w}_n^\top \mathbf{x}_*
+&= \mathbf{w}_0^\top \mathbf{x}_* +
+  \mathbf{x}_*^\top \left( \mathbf{X}^\top \mathbf{X} + \sigma^{2}\boldsymbol{\Sigma}_0^{-1} \right)^{-1} \mathbf{X}^\top
+  \left( \mathbf{y} - \mathbf{X} \mathbf{w}_0 \right)
+\\
+\mathbf{x}_*^\top \boldsymbol{\Sigma}_n \mathbf{x}_* + \sigma^2
+&= \sigma^{2} \left[ 1 + \mathbf{x}_*^\top \left( \mathbf{X}^\top \mathbf{X} + \sigma^{2}\boldsymbol{\Sigma}_0^{-1} \right)^{-1} \mathbf{x}_* \right]
+\end{align*}
+$$
+
+Hence, we need to verify both views give the same mean and variance. We need to show that
+
+$$
+\begin{align*}
+\underbrace{
+  \mathbf{w}_0^\top \mathbf{x}_* +
+  \mathbf{x}_*^\top \left( \mathbf{X}^\top \mathbf{X} + \sigma^{2}\boldsymbol{\Sigma}_0^{-1} \right)^{-1} \mathbf{X}^\top
+  \left( \mathbf{y} - \mathbf{X} \mathbf{w}_0 \right)
+}_{\text{mean in weight space view}}
+&=
+\underbrace{
+	\mathbf{w}_0^\top \mathbf{x}_* +
+  \mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{X}^\top
+  \left( \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n \right)^{-1}
+  (\mathbf{y} -  \mathbf{X} \mathbf{w}_0)
+}_{\text{mean in function space view}}
+
+\\
+\underbrace{
+  \sigma^{2} \left[ 1 + \mathbf{x}_*^\top \left( \mathbf{X}^\top \mathbf{X} + \sigma^{2}\boldsymbol{\Sigma}_0^{-1} \right)^{-1} \mathbf{x}_* \right]
+}_{\text{variance in weight space view}}
+&=
+\underbrace{
+  \sigma^2 + \mathbf{x}_*^\top
+  \left[
+    \boldsymbol{\Sigma}_0 - \boldsymbol{\Sigma}_0 \mathbf{X}^\top \left( \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n \right)^{-1}
+  \mathbf{X} \boldsymbol{\Sigma}_0 
+  \right]
+  \mathbf{x}_*
+}_{\text{variance in function space view}}
+\end{align*}
+$$
+
+Comparing the terms, it suffices to show
+
+$$
+\begin{align*}
+\left( \mathbf{X}^\top \mathbf{X} + \sigma^{2}\boldsymbol{\Sigma}_0^{-1} \right)^{-1} \mathbf{X}^\top
+&=
+\boldsymbol{\Sigma}_0 \mathbf{X}^\top
+\left( \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n \right)^{-1}
+\tag{$\dag$}
+\\
+\sigma^{2} \left( \mathbf{X}^\top \mathbf{X} + \sigma^{2}\boldsymbol{\Sigma}_0^{-1} \right)^{-1} 
+&=
+\boldsymbol{\Sigma}_0 - \boldsymbol{\Sigma}_0 \mathbf{X}^\top \left( \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n \right)^{-1}
+\mathbf{X} \boldsymbol{\Sigma}_0
+\tag{$\ddag$}
+\end{align*}
+$$
+
+Applying matrix inversion lemma on $\left( \mathbf{X}^\top \mathbf{X} + \sigma^{2}\boldsymbol{\Sigma}_0^{-1} \right)^{-1}$ yields
 
 ## Online Bayesian Linear Regression
 

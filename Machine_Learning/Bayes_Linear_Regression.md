@@ -196,7 +196,7 @@ p(D \mid \mathbf{w})
 \end{align*}
 $$
 
-The posterior is
+The (parameter) posterior is
 
 $$
 \begin{align*}
@@ -262,6 +262,7 @@ Remarks:
   $$
   \mathbf{X}^\top \mathbf{y} = \sum_{i=1}^n \mathbf{x}_i y_i \in \mathbb R^{d}
   $$
+* As we increase the size of the training dataset, the term $\mathbf{X}^\top \mathbf{X}$ becomes larger. Consequently, the parameter uncertainty $\boldsymbol{\Sigma}_n$ becomes smaller.
 
 The posterior mean $\mathbf{w}_n$ can be reformulated as the prior mean $\mathbf{w}_0$ plus a correction term, or as a weighted sum of  $\mathbf{w}_0$ and $\mathbf{y}$.
 
@@ -405,13 +406,13 @@ $$
 \boldsymbol{\Sigma}_1
 &= \left( \sigma^{-2} \mathbf{x}_1 \mathbf{x}_1^\top + \boldsymbol{\Sigma}_0^{-1} \right)^{-1}
 \\
-&= \boldsymbol{\Sigma}_0 - \frac{\boldsymbol{\Sigma}_0 \mathbf{x}_1 \mathbf{x}_1^\top \boldsymbol{\Sigma}_0}{\sigma^2 + \mathbf{x}_1^\top \boldsymbol{\Sigma}_0 \mathbf{x}_1^\top}
+&= \boldsymbol{\Sigma}_0 - \frac{\boldsymbol{\Sigma}_0 \mathbf{x}_1 \mathbf{x}_1^\top \boldsymbol{\Sigma}_0}{\sigma^2 + \mathbf{x}_1^\top \boldsymbol{\Sigma}_0 \mathbf{x}_1}
 \qquad \text{matrix inversion lemma}
 \\
 \mathbf{w}_1
 &= \mathbf{w}_0 + \sigma^{-2} \boldsymbol{\Sigma}_1 \mathbf{x}_1 \left( y_1 - \mathbf{w}_0^\top \mathbf{x}_1 \right)
 \\
-&= \mathbf{w}_0 + \frac{\boldsymbol{\Sigma}_0 \mathbf{x}_1}{\sigma^2 + \mathbf{x}_1^\top \boldsymbol{\Sigma}_0 \mathbf{x}_1^\top} (y_1 - \mathbf{w}_0^\top \mathbf{x}_1)
+&= \mathbf{w}_0 + \frac{\boldsymbol{\Sigma}_0 \mathbf{x}_1}{\sigma^2 + \mathbf{x}_1^\top \boldsymbol{\Sigma}_0 \mathbf{x}_1} (y_1 - \mathbf{w}_0^\top \mathbf{x}_1)
 \end{align*}
 $$
 
@@ -430,12 +431,12 @@ $$
 \begin{align*}
 \mu_*
 &= \mathbf{w}_1^\top \mathbf{x}_*
-= \mathbf{w}_0^\top \mathbf{x}_* + \frac{\mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{x}_1}{\sigma^2 + \mathbf{x}_1^\top \boldsymbol{\Sigma}_0 \mathbf{x}_1^\top} (y_1 - \mathbf{w}_0^\top \mathbf{x}_1)
+= \mathbf{w}_0^\top \mathbf{x}_* + \frac{\mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{x}_1}{\sigma^2 + \mathbf{x}_1^\top \boldsymbol{\Sigma}_0 \mathbf{x}_1} (y_1 - \mathbf{w}_0^\top \mathbf{x}_1)
 \\
 \sigma_*^2
 &= \mathbf{x}_*^\top \boldsymbol{\Sigma}_1 \mathbf{x}_* + \sigma^2
 = \sigma^2 + \mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{x}_*
-  -\frac{(\mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{x}_1)^2}{\sigma^2 + \mathbf{x}_1^\top \boldsymbol{\Sigma}_0 \mathbf{x}_1^\top}
+  -\frac{(\mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{x}_1)^2}{\sigma^2 + \mathbf{x}_1^\top \boldsymbol{\Sigma}_0 \mathbf{x}_1}
 \end{align*}
 $$
 
@@ -503,9 +504,12 @@ $$
 
 ## Function Space View
 
-So far we derived the posterior predictive distribution by first computing the posterior distribution of the weights. The intuition is to average the plug-in predictive distribution w.r.t the posterior distribution of the weights. But our ultimate goal is the posterior predictive distribution. Can we derive it directly without using the "additional layer"? The direct modeling of function values leads to the function space view of Bayesian linear regression.
+So far we derived the posterior predictive distribution by first computing the posterior distribution of the weights. Intuitively, this corresponds to averaging the plug-in predictive distribution with respect to the posterior over the weights.
 
-For each training data point $\mathbf{x}_i \in D$, we let the short-hand notation
+However, our ultimate goal is the posterior predictive distribution itself. Can we derive it directly—without going through the “extra layer” of weight inference?
+Directly modeling function values instead of weights leads to the function space view of Bayesian linear regression.
+
+For each training data point $\mathbf{x}_i \in D$, we define the short-hand
 
 $$
 \begin{align}
@@ -513,9 +517,9 @@ f_i \triangleq \mathbf{w}^\top \mathbf{x}_i
 \end{align}
 $$
 
-to denote a linear function evaluated at $\mathbf{x}_i$.
+to denote the linear function evaluated at $\mathbf{x}_i$.
 
-Moreover, we define
+Collecting all function evaluations, we define
 
 $$
 \begin{align}
@@ -533,7 +537,7 @@ $$
 \end{align}
 $$
 
-It is easy to verify that
+It follows immediately that
 
 $$
 \begin{align}
@@ -547,7 +551,7 @@ $$
 p(\mathbf{w}) = \mathcal N(\mathbf{w} \mid \mathbf{w}_0, \boldsymbol{\Sigma}_0)
 $$
 
-Given $\mathbf{x}_{1:n}$, the function evaluation $\mathbf{f}$ is a linear transform of $\mathbf{w}$ and thus Gaussian. Hence,
+Since $\mathbf{f}$ is a linear transformation of $\mathbf{w}$, it is also Gaussian:
 
 $$
 \begin{align}
@@ -556,36 +560,42 @@ p(\mathbf{f} \mid \mathbf{x}_{1:n})
 \end{align}
 $$
 
-Likewise, for the test data point $\mathbf{x}_*$, we define
+Likewise, for a test data point $\mathbf{x}_*$, we define
 
 $$
 f_* \triangleq \mathbf{w}^\top \mathbf{x}_*
 $$
 
-Again, by closedness of Gaussian under linear transform, we have the **prior preditive distribution** for $f_*$
+Again, by closure of Gaussian under linear transformations, we obtain the **prior predictive distribution** for $f_*$
 
 $$
 \begin{align}
 p(f_* \mid \mathbf{x}_*)
-&= \mathcal N(f_* \mid \mathbf{w}^\top \mathbf{x}_*, \mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{x}_*)
+&= \mathcal N(f_* \mid \mathbf{w}_0^\top \mathbf{x}_*, \mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{x}_*)
 \end{align}
 $$
 
-The core idea of function space view is to consider the joint distribution of $\mathbf{f}, f_*$. Note that
+The core idea of function space view is to consider the joint distribution of $\mathbf{f}$ and $f_*$. Define
 
 $$
 \begin{align}
-\underbrace{\begin{bmatrix} \mathbf{f} \\ f_* \end{bmatrix}}_{\tilde{\mathbf{f}}}
-&= \underbrace{
-  \begin{bmatrix} \mathbf{X} \\ \mathbf{x}_*^\top \end{bmatrix}
-}_{\tilde{\mathbf{X}}} \mathbf{w}
+\tilde{\mathbf{f}}
+= \begin{bmatrix} \mathbf{f} \\ f_* \end{bmatrix}
+\in\mathbb R^{n+1},
+\quad
+\tilde{\mathbf{X}}
+= \begin{bmatrix} \mathbf{X} \\ \mathbf{x}_*^\top \end{bmatrix}
+\in\mathbb R^{n+1 \times d}
 \end{align}
 $$
 
-Hence, we obtain the joint distribution of the function values
+Then,
 
 $$
 \begin{align}
+\tilde{\mathbf{f}}
+&= \tilde{\mathbf{X}} \mathbf{w}
+\\
 \tilde{\mathbf{f}} \mid  \mathbf{x}_{1:n}, \mathbf{x}_*
 &\sim \mathcal N\left(
   \tilde{\mathbf{X}} \mathbf{w}_0,
@@ -593,7 +603,13 @@ $$
   \tilde{\mathbf{X}} \boldsymbol{\Sigma}_0 \tilde{\mathbf{X}}^\top
 \right)
 \nonumber
-\\
+\end{align}
+$$
+
+Hence, the joint distribution of the noise-free function values
+
+$$
+\begin{align}
 \begin{bmatrix} \mathbf{f} \\ f_* \end{bmatrix} \mid  \mathbf{x}_{1:n}, \mathbf{x}_*
 &\sim \mathcal N\left(
   \begin{bmatrix} \mathbf{X} \mathbf{w}_0 \\ \mathbf{x}_*^\top \mathbf{w}_0 \end{bmatrix},
@@ -607,7 +623,7 @@ $$
 \end{align}
 $$
 
-To add the label noise, consider
+The labels are just function values plus independent Gaussian noise:
 
 $$
 \begin{bmatrix} \mathbf{y} \\ y_* \end{bmatrix} =
@@ -618,24 +634,24 @@ $$
 \sim \mathcal N(\mathbf{0}, \sigma^2 \mathbf{I}_{n+1})
 $$
 
-Hence, we obtain the joint distribution of the noisy labels
+Therefore, the joint distribution of the noisy labels is
 
-$$
-\begin{align}
-\begin{bmatrix} \mathbf{y} \\ y_* \end{bmatrix} \mid  \mathbf{x}_{1:n}, \mathbf{x}_*
-&\sim \mathcal N\left(
-  \begin{bmatrix} \mathbf{X} \mathbf{w}_0 \\ \mathbf{x}_*^\top \mathbf{w}_0 \end{bmatrix},
-  \:
-  \begin{bmatrix}
-  \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n & \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{x}_* \\
-  \mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{X}^\top & \mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{x}_* + \sigma^2
-  \end{bmatrix}
-\right)
-\\
-\end{align}
-$$
+> $$
+> \begin{align}
+> \begin{bmatrix} \mathbf{y} \\ y_* \end{bmatrix} \mid  \mathbf{x}_{1:n}, \mathbf{x}_*
+> &\sim \mathcal N\left(
+>   \begin{bmatrix} \mathbf{X} \mathbf{w}_0 \\ \mathbf{x}_*^\top \mathbf{w}_0 \end{bmatrix},
+>   \:
+>   \begin{bmatrix}
+>   \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n & \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{x}_* \\
+>   \mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{X}^\top & \mathbf{x}_*^\top \boldsymbol{\Sigma}_0 \mathbf{x}_* + \sigma^2
+>   \end{bmatrix}
+> \right)
+> \\
+> \end{align}
+> $$
 
-The **posterior predictive distribution** $p(y_* \mid \mathbf{x}_*, y_{1:n}, \mathbf{x}_{1:n})$ can be computed by marginalizing the above joint distribution over $\mathbf{y}$. By Gaussian conditioning theorem, we know the posterior predictive distribution is Gaussian:
+The **posterior predictive distribution** $p(y_* \mid \mathbf{x}_*, y_{1:n}, \mathbf{x}_{1:n})$ can be obtained by conditioning this joint distribution on observed labels $\mathbf{y}$. By Gaussian conditioning theorem,
 
 $$
 \begin{align}
@@ -644,7 +660,7 @@ y_* \mid \mathbf{x}_*, y_{1:n}, \mathbf{x}_{1:n}
 \end{align}
 $$
 
-where the posterior predictive mean and the posterior predictive varince are
+where
 
 $$
 \begin{align}
@@ -669,9 +685,9 @@ $$
 \end{align}
 $$
 
-### Equivalance between both Views
+### Equivalance of both Views
 
-> **Claim**: The weight space view and function space view yield the same posterior distribution.
+> **Claim**: The weight space view and function space view yield the same posterior predictive distribution.
 
 WARNING: massive math bombing coming.
 
@@ -689,7 +705,7 @@ $$
 \end{align*}
 $$
 
-Hence, we need to verify both views give the same mean and variance. We need to show that
+To prove the equivalance, we need to show that both views give the same mean and variance:
 
 $$
 \begin{align*}
@@ -740,7 +756,50 @@ $$
 \end{align*}
 $$
 
-Applying matrix inversion lemma on $\left( \mathbf{X}^\top \mathbf{X} + \sigma^{2}\boldsymbol{\Sigma}_0^{-1} \right)^{-1}$ yields
+Applying [matrix inversion lemma](#useful-matrix-identities) on $\left( \mathbf{X}^\top \mathbf{X} + \sigma^{2}\boldsymbol{\Sigma}_0^{-1} \right)^{-1}$ yields
+
+$$
+\begin{align*}
+\left( \mathbf{X}^\top \mathbf{X} + \sigma^{2}\boldsymbol{\Sigma}_0^{-1} \right)^{-1}
+&= \sigma^{-2} \boldsymbol{\Sigma}_0 - \sigma^{-2} \boldsymbol{\Sigma}_0 \mathbf{X}^\top \left( \mathbf{X} \sigma^{-2} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n \right)^{-1} \mathbf{X} \sigma^{-2} \boldsymbol{\Sigma}_0
+\\
+&= \sigma^{-2} \boldsymbol{\Sigma}_0 - \sigma^{-2} \boldsymbol{\Sigma}_0 \mathbf{X}^\top \left( \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n \right)^{-1} \mathbf{X} \boldsymbol{\Sigma}_0
+\end{align*}
+$$
+
+Multipling both sides by $\sigma^2$ gives $(\ddag)$.
+
+To show $(\dag)$, we multiply the above equation both sides by $\mathbf{X}^\top$:
+
+$$
+\left( \mathbf{X}^\top \mathbf{X} + \sigma^{2}\boldsymbol{\Sigma}_0^{-1} \right)^{-1} \mathbf{X}^\top
+= \sigma^{-2} \boldsymbol{\Sigma}_0 \mathbf{X}^\top -
+  \sigma^{-2} \boldsymbol{\Sigma}_0 \mathbf{X}^\top
+  \boxed{\left( \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n \right)^{-1} \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top}
+$$
+
+The boxed part can be simplified by the identity $(\mathbf{A} + \mathbf{B})^{-1} \mathbf{A} = \mathbf{I} - (\mathbf{A} + \mathbf{B})^{-1} \mathbf{B}$:
+
+$$
+\left( \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n \right)^{-1} \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top
+= \mathbf{I}_n - \sigma^2 \left( \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n \right)^{-1}
+$$
+
+Hence, we conclude the equality $(\dag)$:
+
+$$
+\begin{align*}
+\left( \mathbf{X}^\top \mathbf{X} + \sigma^{2}\boldsymbol{\Sigma}_0^{-1} \right)^{-1} \mathbf{X}^\top
+&= \sigma^{-2} \boldsymbol{\Sigma}_0 \mathbf{X}^\top -
+  \sigma^{-2} \boldsymbol{\Sigma}_0 \mathbf{X}^\top
+  \left[
+    \mathbf{I}_n - \sigma^2 \left( \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n \right)^{-1}
+  \right]
+\\
+&= \boldsymbol{\Sigma}_0 \mathbf{X}^\top \left( \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n \right)^{-1}
+\tag*{$\blacksquare$}
+\end{align*}
+$$
 
 ## Online Bayesian Linear Regression
 
@@ -1064,6 +1123,14 @@ $$
 
 Special cases:
 
+* Let $\mathbf{C} = \mathbf{I}$. Then,
+  $$
+  \begin{align}
+  \left( \mathbf{A} + \mathbf{U} \mathbf{V} \right)^{-1}
+  = \mathbf{A}^{-1} - \mathbf{A}^{-1} \mathbf{U} \left( \mathbf{I} + \mathbf{V} \mathbf{A}^{-1} \mathbf{U} \right)^{-1} \mathbf{V} \mathbf{A}^{-1}
+  \end{align}
+  $$
+
 * Let $m=1$, $\mathbf{C} = 1$, $\mathbf{U} = \mathbf{u} \in\mathbb R^{n \times 1}$ and $\mathbf{V} = \mathbf{v}^\top \in\mathbb R^{1 \times n}$. Then,
 
   $$
@@ -1078,7 +1145,7 @@ Special cases:
   $$
   \begin{align}
   \left( \mathbf{A} + \mathbf{u} \mathbf{v}^\top \right)^{-1}
-  = \mathbf{A}^{-1} - \frac{(\mathbf{A}^{-1} \mathbf{u}) (\mathbf{A}^{-1} \mathbf{u})^\top}{1 + \mathbf{v}^\top \mathbf{A}^{-1} \mathbf{u}}
+  = \mathbf{A}^{-1} - \frac{(\mathbf{A}^{-1} \mathbf{u}) (\mathbf{A}^{-1} \mathbf{v})^\top}{1 + \mathbf{v}^\top \mathbf{A}^{-1} \mathbf{u}}
   \end{align}
   $$
 

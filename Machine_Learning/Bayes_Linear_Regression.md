@@ -14,11 +14,11 @@ $$
 \DeclareMathOperator*{\argmin}{argmin}
 $$
 
-**Preliminary**: linear regression, Bayesian inference.
+**Preliminaries**: linear regression, Bayesian inference.
 
 ## Problem Formulation
 
-* Given: training dataset $D=\{(\mathbf{x}_i, y_i)\}_{i=1}^n \stackrel{\text{iid}}{\sim} p(\mathbf x, y)$ where $(\mathbf{x}_i, y_i) \in \mathbb R^d \times \mathbb R$.
+* Given: training data set $D=\{(\mathbf{x}_i, y_i)\}_{i=1}^n \stackrel{\text{iid}}{\sim} p(\mathbf x, y)$ where $(\mathbf{x}_i, y_i) \in \mathbb R^d \times \mathbb R$.
 * Statistical model: $y_i = \mathbf{w}^\top \mathbf{x}_i + \varepsilon_i, \quad \varepsilon_i \stackrel{\text{iid}}{\sim} \mathcal{N}(0, \sigma^2)$
 * Additional assumption: $\varepsilon_i$ and $\mathbf{x}_i$ are statistically independent
 * Goal: Predict the label for a new data point $\mathbf{x}_*$ using the **full** posterior distribution $p(\mathbf w \mid D)$
@@ -226,13 +226,13 @@ $$
 \\
 &= -\frac{1}{2} \left[
        \mathbf{w}^\top \left( \sigma^{-2} \mathbf{X}^\top \mathbf{X} + \boldsymbol{\Sigma}_0^{-1} \right) \mathbf{w} -
-       2 \mathbf{w} \left( \sigma^{-2}\mathbf{X}^\top \mathbf{y} + \boldsymbol{\Sigma}_0^{-1} \mathbf{w}_0 \right)
+       2 \mathbf{w}^\top \left( \sigma^{-2}\mathbf{X}^\top \mathbf{y} + \boldsymbol{\Sigma}_0^{-1} \mathbf{w}_0 \right)
     \right] + \text{const.}
 \\
 \end{align*}
 $$
 
-Hence, the posterior is also Gaussian (by normalization property of multivariate Gaussian )
+Hence, the posterior is also Gaussian (by normalization property of multivariate Gaussian)
 
 > $$
 > \begin{align}
@@ -240,7 +240,7 @@ Hence, the posterior is also Gaussian (by normalization property of multivariate
 > \end{align}
 > $$
 
-The posterior mean and posterior variance can be read-off in the log posterior:
+The posterior mean and posterior variance can be read off in the log posterior:
 
 > $$
 > \begin{align}
@@ -262,7 +262,7 @@ Remarks:
   $$
   \mathbf{X}^\top \mathbf{y} = \sum_{i=1}^n \mathbf{x}_i y_i \in \mathbb R^{d}
   $$
-* As we increase the size of the training dataset, the term $\mathbf{X}^\top \mathbf{X}$ becomes larger. Consequently, the parameter uncertainty $\boldsymbol{\Sigma}_n$ becomes smaller.
+* As we increase the size of the training data set, the term $\mathbf{X}^\top \mathbf{X}$ becomes larger. Consequently, the parameter uncertainty $\boldsymbol{\Sigma}_n$ becomes smaller.
 
 The posterior mean $\mathbf{w}_n$ can be reformulated as the prior mean $\mathbf{w}_0$ plus a correction term, or as a weighted sum of  $\mathbf{w}_0$ and $\mathbf{y}$.
 
@@ -329,7 +329,7 @@ Having derived the posterior $p(\mathbf{w} \mid D)$, we are ready to derive the 
 $$
 \begin{align*}
 y_* = \mathbf{w}^\top \mathbf{x}_* + \varepsilon_*, \quad
-\varepsilon_* \sim \mathcal N(\mathrm{0}, \sigma^2)
+\varepsilon_* \sim \mathcal N(0, \sigma^2)
 \end{align*}
 $$
 
@@ -384,7 +384,7 @@ Remarks:
 
 * The predictive mean $\mathbf{w}_n^\top \mathbf{x}_*$ coincides with the label predicted by plugging the MAP estimate $\hat{\mathbf{w}}_\text{MAP} = \mathbf{w}_n$ into $\mathbf{w}^\top \mathbf{x}_*$.
 * The variance $\mathbf{x}_*^\top \boldsymbol{\Sigma}_n \mathbf{x}_* + \sigma^2$ quantifies the uncertainty about $y_*$, which consists of two parts:
-  * ***Epistemic uncertainty*** $\mathbf{x}_*^\top \boldsymbol{\Sigma}_n \mathbf{x}_*$, which arises arises from limited training data and parameter uncertainty. It also depends on the location of the test data point relative to the training dataset. In point estimate of parameter, this term is implicity ignored.
+  * ***Epistemic uncertainty*** $\mathbf{x}_*^\top \boldsymbol{\Sigma}_n \mathbf{x}_*$, which arises arises from limited training data and parameter uncertainty. It also depends on the location of the test data point relative to the training data set. In point estimate of parameter, this term is implicity ignored.
   * ***Irreducible noise*** $\sigma^2$, which quantifies the inherent uncertainty due to label noise. Also known as ***aleatoric uncertainty***.
 
 ### Important Special Cases
@@ -556,7 +556,7 @@ Since $\mathbf{f}$ is a linear transformation of $\mathbf{w}$, it is also Gaussi
 $$
 \begin{align}
 p(\mathbf{f} \mid \mathbf{x}_{1:n})
-&= \mathcal N(\mathbf{w} \mid \mathbf{X}\mathbf{w}_0, \, \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top)
+&= \mathcal N(\mathbf{f} \mid \mathbf{X}\mathbf{w}_0, \, \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top)
 \end{align}
 $$
 
@@ -651,7 +651,7 @@ Therefore, the joint distribution of the noisy labels is
 > \end{align}
 > $$
 
-The **posterior predictive distribution** $p(y_* \mid \mathbf{x}_*, y_{1:n}, \mathbf{x}_{1:n})$ can be obtained by conditioning this joint distribution on observed labels $\mathbf{y}$. By Gaussian conditioning theorem,
+The **posterior predictive distribution** $p(y_* \mid \mathbf{x}_*, y_{1:n}, \mathbf{x}_{1:n})$ can be obtained by conditioning this joint distribution on observed labels $\mathbf{y}$. By Gaussian conditioning formula,
 
 $$
 \begin{align}
@@ -685,7 +685,7 @@ $$
 \end{align}
 $$
 
-### Equivalance of both Views
+### Equivalence of both Views
 
 > **Claim**: The weight space view and function space view yield the same posterior predictive distribution.
 
@@ -705,7 +705,7 @@ $$
 \end{align*}
 $$
 
-To prove the equivalance, we need to show that both views give the same mean and variance:
+To prove the equivalence, we need to show that both views give the same mean and variance:
 
 $$
 \begin{align*}
@@ -767,7 +767,7 @@ $$
 \end{align*}
 $$
 
-Multipling both sides by $\sigma^2$ gives $(\ddag)$.
+Multiplying both sides by $\sigma^2$ gives $(\ddag)$.
 
 To show $(\dag)$, we multiply the above equation both sides by $\mathbf{X}^\top$:
 
@@ -970,7 +970,7 @@ $$
 \end{align*}
 $$
 
-Note that the update to $\boldsymbol{\Sigma}_{t}$ requires computing the outer product of $\boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}$, which is just a scalar mulitple of the gain $\mathbf{k}_t$. Hence, we can express $\boldsymbol{\Sigma}_{t}$ explicitly in terms of $\mathbf{k}_t$.
+Note that the update to $\boldsymbol{\Sigma}_{t}$ requires computing the outer product of $\boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}$, which is just a scalar multitple of the gain $\mathbf{k}_t$. Hence, we can express $\boldsymbol{\Sigma}_{t}$ explicitly in terms of $\mathbf{k}_t$.
 
 > $$
 > \begin{align}
@@ -979,8 +979,8 @@ Note that the update to $\boldsymbol{\Sigma}_{t}$ requires computing the outer p
 > \end{align}
 > $$
 
-* The correction term is positive semidefinite becuase it is the outer product $ \mathbf{k}_t \mathbf{k}_t^\top$ scaled by the prior predictive variance $\sigma^2 + \mathbf{x}_{t}^\top \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}$ (a non negative number). See Appendix for the semi positive definitenss of outer product.
-* Thus, $\boldsymbol{\Sigma}_{t}$ is computed by substracting a positive semidefinite matrix from $\boldsymbol{\Sigma}_{t-1}$. Intuitively, this means the uncertainty in $\mathbf{w}$ shrinks over time as more data is assimilated.
+* The correction term is positive semidefinite because it is the outer product $ \mathbf{k}_t \mathbf{k}_t^\top$ scaled by the prior predictive variance $\sigma^2 + \mathbf{x}_{t}^\top \boldsymbol{\Sigma}_{t-1} \mathbf{x}_{t}$ (a non negative number). See Appendix for the positive semidefiniteness of outer product.
+* Thus, $\boldsymbol{\Sigma}_{t}$ is computed by subtracting a positive semidefinite matrix from $\boldsymbol{\Sigma}_{t-1}$. Intuitively, this means the uncertainty in $\mathbf{w}$ shrinks over time as more data is assimilated.
 
 ### The Complete Algorithm
 
@@ -1025,7 +1025,7 @@ Remarks:
 * Online Bayesian linear regression requires $O(d^2)$ computation per time step. Over $n$ time steps, the total computational cost is $O(nd^2)$.
 * The algorithm strongly parallels the Kalman filter. In fact, online Bayesian linear regression is a special case of Kalman filter, as we detail below.
 
-From Kalman filter pespective, the Bayesian linear regression model can be reformulated into
+From Kalman filter perspective, the Bayesian linear regression model can be reformulated into
 $$
 \begin{align}
 \mathbf{w}_t &= \mathbf{w}_{t-1} \\
@@ -1036,7 +1036,7 @@ $$
 Remarks:
 
 * $\mathbf{w}_t$ is treated as the latent state vector, evolving deterministically (identity mapping without process noise).
-* $y_t$ is the scalar observation, and $\mathbf{x}_t^\top$ serves as the observation matrix.. The observation noise is modeled by $\varepsilon_t$.
+* $y_t$ is the scalar observation, and $\mathbf{x}_t^\top$ serves as the observation matrix. The observation noise is modeled by $\varepsilon_t$.
 
 ## Appendix
 
@@ -1105,7 +1105,7 @@ $$
 \mathbf{A} (\mathbf{A} + \mathbf{B})^{-1}  + \mathbf{B} (\mathbf{A} + \mathbf{B})^{-1}
 &= \mathbf{I}
 \\
-\mathbf{A} (\mathbf{A} + \mathbf{B})
+\mathbf{A} (\mathbf{A} + \mathbf{B})^{-1}
 &= \mathbf{I} - \mathbf{B} (\mathbf{A} + \mathbf{B})^{-1}
 \tag*{$\blacksquare$}
 \end{align*}
@@ -1161,7 +1161,7 @@ Special cases:
 **Outer Products**  
 The outer product of two vectors $\mathbf u \in\mathbb R^m, \mathbf v \in\mathbb R^n$ is a matrix, defined by $\mathbf u \mathbf v^\top \in\mathbb R^{m \times n}$.
 
-**Fact**: For $\mathbf u = \mathbf v$, the outerproduct $\mathbf u \mathbf u^\top$ is always postive semi definite.
+**Fact**: For $\mathbf u = \mathbf v$, the outer product $\mathbf u \mathbf u^\top$ is always postive semidefinite.
 
 *Proof*: For any $\mathbf x \ne \mathbf 0$, we see that the quadratic form is non negative as
 $$

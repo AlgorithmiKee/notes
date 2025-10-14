@@ -86,7 +86,7 @@ $$
 \operatorname{div} (\rho \mathbf{u}) = \mathbf{u} \cdot \nabla \rho + \rho \operatorname{div} \mathbf{u}
 $$
 
-The contiuity equation can be reformulated as
+The continuity equation can be reformulated as
 
 $$
 \begin{align}
@@ -102,7 +102,7 @@ Remarks:
   \frac{D\rho}{Dt} \triangleq \frac{\partial \rho}{\partial t} + \mathbf{u} \cdot \nabla \rho
   \end{align}
   $$
-* For incompressible flow, the density of a fluid parcel is contant (both in time and space), i.e. $\frac{\partial \rho}{\partial t} = 0$ and $\nabla \rho = \mathbf{0}$. The contiuity equation simplifies to
+* For incompressible flow, the density of a fluid parcel is contant (both in time and space), i.e. $\frac{\partial \rho}{\partial t} = 0$ and $\nabla \rho = \mathbf{0}$. The continuity equation simplifies to
   $$
   \operatorname{div} \mathbf{u} = 0
   $$
@@ -350,7 +350,7 @@ $$
 \end{align}
 $$
 
-We express the contiunity equaiton in terms of Eulerian density rather than Lagrangian density
+We express the continuity equation in terms of Eulerian density rather than Lagrangian density
 
 $$
 \begin{align*}

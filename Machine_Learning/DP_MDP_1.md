@@ -1010,7 +1010,7 @@ $$
 q_{\pi}(s,\pi'(s)) \ge q_{\pi}(s,a)
 $$
 
-In particular,
+In particular, the above inequality holds for $a=\pi(s)$
 $$
 \forall s\in\mathcal S, \:
 q_{\pi}(s,\pi'(s)) \ge q_{\pi}(s,\pi(s))

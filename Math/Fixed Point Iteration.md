@@ -5,16 +5,23 @@ date: "2024"
 fontsize: 12pt
 ---
 
-# Fixed-Point Iteration: Theory and Application
+# Fixed-Point Iteration
 
 [toc]
 
-# Metric Space
+## Metric Space
 
 In this article, $(X,d)$ represents a metric space. Some typical metric spaces are
 
-* $X=\mathbb R$ with $d(x,y) = \vert x - y \vert$
-* $X=\mathbb R^n$ with $d(u,v) = \Vert x - y \Vert$ where $\Vert \cdot \Vert $ can be any norm on $\mathbb R^n$
+* Real number line $X=\mathbb R$ with $d(x,y) = \vert x - y \vert$
+* Euclidean space $X=\mathbb R^n$ with $d(u,v) = \Vert u - v \Vert$ where $\Vert \cdot \Vert $ can be any norm on $\mathbb R^n$. In paritcular,
+  * L1 distance: $d_1(u,v) = \sum_{i=1}^n \vert u_i - v_i\vert$.
+  * L2 distance: $d_2(u,v) = \sqrt{\sum_{i=1}^n (u_i - v_i)^2}$.
+  * sup distance: $d_\infty(u,v) = \max_{1\le i\le n} \vert u_i - v_i\vert$.
+* Space of bounded functions $X=\{f: S \to \mathbb R \mid \Vert f \Vert_\infty < \infty \}$ with $d(f,g) = \Vert f-g \Vert_\infty$ where
+  * $\Vert f \Vert_\infty = \sup_{s\in S} \vert f(s) \vert$
+  * The domain $S$ of bounded functions can be **any** set
+* Vertices set $X=V$ of a connected undirected graph with nonnegative weights. The distance $d(u,v)$ could be defined as the shortest distance between vertices $u$ and $v$.
 
 Later, we will focus a lot on complete metric space. e.g.
 
@@ -49,7 +56,7 @@ Question:
 
 To answer these questions, we need the notion of contractiom mapping.
 
-# Contraction Mapping
+## Contraction Mapping
 
 > A function $f: X \to X$​ is called a **contraction mapping** if
 > $$
@@ -71,8 +78,6 @@ Example:
 
 * Let $X = \mathbb R$. $f(x)=kx + b$ is a contraction mapping iff $-1< k <1$
 * Let $X = \mathbb [1, \infty)$. $f(x)=x + \dfrac{1}{x}$ also "brings points together" but it is **not** a contraction mapping.
-
-## Criterion for Checking Contraction
 
 Checking whether a function is a contraction mapping by verifying the definition is often less straight-forward. Good news is that we can check the first-order derivative instead.
 
@@ -272,9 +277,9 @@ Summary:
 >     $$
 > 1. The initial value can be chosen arbitrarily in $X$
 
-# Numerical Properties
+## Numerical Properties
 
-## Error Bounds
+### Error Bounds
 
 Offline error bound:
 > $$
@@ -331,7 +336,7 @@ $$
 \end{align*}
 $$
 
-## Stopping Rule
+### Stopping Rule
 
 > Starting from the initial point $x_0$, the FPI needs
 > $$
@@ -349,7 +354,7 @@ $$
 
 Apply some log algebra and we conclude.
 
-## Rate of Convergence
+### Rate of Convergence
 
 The rate of convergence is obtained by comparing the errors $d\!\left( x_{n}, \bar x \right)$ and $d\!\left( x_{n-1}, \bar x \right)$.
 $$
@@ -365,9 +370,9 @@ If $\gamma=0$, the fixed-point iteration convergences superlinearly.
 
 Special case: For closed $X\subseteq\mathbb R$, we can show that the FPI converges quadratically.
 
-# Application
+## Application
 
-## Newton's Method
+### Newton's Method
 
 Recall the Newton's method to find the root of a function $g: \mathbb R \to \mathbb R$:
 >
@@ -432,7 +437,7 @@ $$
 
 Hence, $\forall x\in B_\delta[\bar{x}], \vert f'(x) \vert < \gamma \implies $ $f$ is a contraction on $ B_\delta[\bar{x}]$. $\quad\quad\quad\square$
 
-## Existence and Uniqueness Theorem for ODE
+### Existence and Uniqueness Theorem for ODE
 
 We would like to solve the initial value problem
 > $$
@@ -562,7 +567,7 @@ $$
 $$
 We see that $\varphi_k(t)$ represents the $k$-th order Tylor expansion of the exact solution $\bar\varphi(t)=e^t$.
 
-# Exercise
+## Exercise
 
 1. Let $u$ be an eigen vector of $A \in \mathbb R^{n \times n}$ associated with eigen value $\lambda$. In addition, $u$ is a fixed point of the linear map defined by $f: \mathbb R^n \to \mathbb R^n, x\mapsto Ax$. Determine the value of $\lambda$.
 
@@ -585,7 +590,7 @@ $$
 
     (b) Simplify the inequality from (a) if $y$ is the FP
 
-# Table of Abbreviations
+## Table of Abbreviations
 
 | Abbreviation | Expansion                      |
 | ------------ | ------------------------------ |

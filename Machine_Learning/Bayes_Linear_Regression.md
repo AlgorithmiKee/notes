@@ -35,7 +35,7 @@ p(y_i \mid \mathbf{x}_i, \mathbf{w})
 \end{align}
 $$
 
-* Log posterior with Gaussian prior $\mathbf{w} \sim \mathcal N(\mathbf{0}, \sigma^2_0\mathbf{I})$
+* Resulting log-posterior by assuming Gaussian prior $\mathbf{w} \sim \mathcal N(\mathbf{0}, \sigma^2_0\mathbf{I})$
 
 $$
 \begin{align}
@@ -746,13 +746,13 @@ $$
 &=
 \boldsymbol{\Sigma}_0 \mathbf{X}^\top
 \left( \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n \right)^{-1}
-\tag{$\dag$}
+\tag{$\heartsuit$}
 \\
 \sigma^{2} \left( \mathbf{X}^\top \mathbf{X} + \sigma^{2}\boldsymbol{\Sigma}_0^{-1} \right)^{-1} 
 &=
 \boldsymbol{\Sigma}_0 - \boldsymbol{\Sigma}_0 \mathbf{X}^\top \left( \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n \right)^{-1}
 \mathbf{X} \boldsymbol{\Sigma}_0
-\tag{$\ddag$}
+\tag{$\spadesuit$}
 \end{align*}
 $$
 
@@ -767,9 +767,9 @@ $$
 \end{align*}
 $$
 
-Multiplying both sides by $\sigma^2$ gives $(\ddag)$.
+Multiplying both sides by $\sigma^2$ gives $(\spadesuit)$.
 
-To show $(\dag)$, we multiply the above equation both sides by $\mathbf{X}^\top$:
+To show $(\heartsuit)$, we multiply the above equation both sides by $\mathbf{X}^\top$:
 
 $$
 \left( \mathbf{X}^\top \mathbf{X} + \sigma^{2}\boldsymbol{\Sigma}_0^{-1} \right)^{-1} \mathbf{X}^\top
@@ -785,7 +785,7 @@ $$
 = \mathbf{I}_n - \sigma^2 \left( \mathbf{X} \boldsymbol{\Sigma}_0 \mathbf{X}^\top + \sigma^2 \mathbf{I}_n \right)^{-1}
 $$
 
-Hence, we conclude the equality $(\dag)$:
+Hence, we conclude the equality $(\heartsuit)$:
 
 $$
 \begin{align*}

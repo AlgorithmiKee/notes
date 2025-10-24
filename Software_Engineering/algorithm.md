@@ -298,7 +298,7 @@ Now, we develop the DP algorithm. Before we compute $f_{\mathcal C}(A)$, we must
 ---
 
 **Input**: coin denominations $\mathcal C$, target amount $A$.  
-**Output**: $f_{\mathcal C}(a)$.  
+**Output**: $f_{\mathcal C}(A)$.  
 If $A=0$:  
 $\quad$ return 0.  
 // $A$ is at least 1.  

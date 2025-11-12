@@ -8,9 +8,9 @@ Proof-read my notes about SIL test, which is for me a quite new topic. There mig
 
 # Software in the Loop Test
 
-Consider embedded software running on a microcontroller (uC) that connects to multiple peripherals. In unit tests, we test the functionality of individual software components in virtual environments such as virtual machine or docker container.
+Consider embedded software running on a microcontroller (uC) that connects to multiple peripherals. In unit tests, we test the individual software components (e.g. functions, classes) on the host computer without requiring the actual hardware (assuming hardware-dependent parts are replaced with mocks or stubs).
 
-In integration test, we would like to test the overall system or a subsystem to ensure components interact correctly. But how can we test the complete system without physical hardware? We need some virtual environment that does not only simulates the target uC, but also the topology and interaction between the uC and its peripherals. This is exactly the basic idea of **software-in-the-loop (SIL) testing**.
+In integration test, we would like to test the overall system or a subsystem to ensure components interact correctly. But how can we test the complete system without physical hardware? We need a virtual environment that can execute the application code and emulate the behavior of the surrounding hardware and communication interfaces (e.g. sensors, actuators).This is exactly the basic idea of **software-in-the-loop (SIL) testing**.
 
 **CANoe** is a common tool for SIL testing. It allows building a simulation environment that mimics the structure and interfaces of the real system.
 
@@ -20,7 +20,7 @@ In SIL, the **system under test (SUT)** is a custom build of the software to be 
 
 * hardware-dependent code is replaced with **stubs**, which simulate the hardware-level function calls (e.g. GPIO reads).
 
-* SUT contains the main test **logic** (e.g. how the uC reacts to certain sensor inputs).
+* SUT contains the main application **logic** (e.g. how the uC reacts to certain sensor inputs).
 
 A **SIL adapter** is a shared library that connects the SUT to the simulation environment. It serves as the bridge between the SUT and CANoe (e.g., for I/O, network frames, timing, and stimuli). In particular, it is responsible for data exchange between the SUT and CANoe.
 
@@ -28,7 +28,8 @@ During test execution:
 
 1. CANoe loads the SIL adapter.
 1. SIL adapter loads and runs the SUT.
-1. CANoe sends test stimuli into SIL adapter, which converts the test stimuli into function calls or data understood by the SUT.
+1. CANoe sends test stimuli into SIL adapter.
+1. SIL adapter translates the test stimuli into inputs understood by the SUT (e.g. variable udpates or function calls).
 1. The SUT receives the input from the SIL adapter, processes it, and reacts to it by sending outputs.
 1. The SIL adapter converts the SUT outputs back to CANoe for monitoring and evaluation.
 
@@ -42,17 +43,17 @@ Basic workflow of SIL test:
     * install CANoe (with SIL adapter support)
     * install CMake or Visual Studio (for building the SIL adapter)
 1. Build the SUT for SIL
-    * replace the hardware dependent modules with stubs.
+    * replace the hardware-dependent modules with stubs.
     * build the software binaries (aka SUT) for SIL test
     * ensure the software is runnable on the host machine
 1. Build SIL adapter
-    * define the interfaces in CANoe
+    * define the communication interfaces in CANoe (in `.vCDL` file)
     * map the test stimuli to variables or function calls in SUT
     * build the adapter using CMake or Visual Studio
 1. Connect the SIL adapter to the software
 1. Create CANoe simulation environment
     * create network simulation (CAN, LIN, Ethernet, etc.)
-    * add simulated peripherals (sensors, actors)
+    * add simulated peripherals (sensors, actuators)
 1. Connect the SIL adapter to the simulation environment
 1. Define test cases in CAPL
     * write stimuli, checks, and verdicts (PASS/FAIL)
@@ -62,12 +63,11 @@ Basic workflow of SIL test:
 
 ### Prepare the Source Code for SIL
 
-The production code typically calls **hardware abstraction layer (HAL)** functions for accessing the uC registers and peripherals. Before SIL test, we must replace those HAL functions with **stub functions** (or simply **stubs**) which simulate the hardware behavior. As a result, the SIL build of the SUT is runable on the host PC without physical hardware.
+The production code typically calls **hardware abstraction layer (HAL)** functions for accessing the uC registers and peripherals. Before SIL test, we must replace those HAL functions with **stub functions** (or simply **stubs**) which simulate the hardware behavior. The SUT is runnable on the host PC without physical hardware. Hence, it must be built by linking against stubs.
 
 Remarks:
 
 * The stubs are also known as **adapter functions** or **mock HALs**. They are simulation-based implementations of the HAL APIs.
-* In SIL, the SUT must be built and linked against these replacements. Otherwise, the SUT will fail due to missing hardware access. The SUT must be a standalone software runnable on the host PC.
 * 💣 Not to be confused by the wording *simulation*:
   * Stubs simulate the internal hardware-dependent behaviour of SUT
   * CANoe simulates the external environment which the SUT interacts with
@@ -76,16 +76,10 @@ Remarks:
 The best practice for writing stubs:
 
 1. keep the HAL API intact for portability
-1. provide a simulated implementation of the HAL functions. This can be done either via conditional compiliation (e.g. `#ifdef SIL_BUILD`) or separate source files.
+1. provide a simulated implementation of the HAL functions. This can be done either via conditional compilation (e.g. `#ifdef SIL_BUILD`) or separate source files.
+1. simulate I/O by reading/writing shared global variables that represent sensor/actuator states.
 
-Inside stubs, hardware IO is typically simulated by reading/writing global variables representing sensor or actuator states.
-
-With all HAL functions being replaced, we can build the binary aka the SUT. The format of SUT depends on the execution strategy:
-
-* host-native build: build the SUT as a Windows/Linux executable or library. On windows, SUT is typically built as `.exe` or `.dll`.
-* instruction-set simulation (ISS): too advanced. not covered here.
-
-**Example**: replacing a HAL function with a stub.
+**Example**: stub for rotary switch (sensor)
 
 ```c
 // hal.c  (production HAL)
@@ -104,8 +98,13 @@ uint8_t HAL_ReadRotarySwitch(void) {
 Remarks:
 
 * `simulated_switch_position` is a global variable representing the simulated sensor state. It is defined in `sil_sim_data.h` and updated by the SIL adapter at runtime.
-* The SIL adapter receives stimuli from CANoe (e.g. set the rotary swtich to position 2) and maps that stimuli to `simulated_switch_position`.
+* The SIL adapter receives stimuli from CANoe (e.g. set the rotary switch to position 2) and maps that stimuli to `simulated_switch_position`.
 * The SUT reads `simulated_switch_position` and process it further (e.g. update the blink pattern accordingly).
+
+With all HAL functions being replaced, we can build the binary aka the SUT. The format of SUT depends on the execution strategy:
+
+* host-native build: build the SUT as a Windows/Linux executable or library. On windows, SUT is typically built as `.exe` or `.dll`.
+* instruction-set simulation (ISS): too advanced. not covered here.
 
 ### Build SIL Adapter
 
@@ -115,14 +114,14 @@ The **SIL adapter** is a compiled shared library (e.g. `.dll` on Windows) that s
 * translate test stimuli from CANoe into stub function calls or simulated variable updates inside the SUT
 * capture SUT outputs and forward them back to CANoe for monitoring and evaluation.
 
-#### Script a vCDL file
+#### Define Interfaces in vCDL
 
 The data exchange between CANoe and the SUT is defined in a **vCDL** file. This file declares what data items CANoe can provide to or receive from the SUT:
 
 * **provided data**: data provided by CANoe, i.e. inputs to the SUT (e.g. sensor readings)
 * **consumed data**: data received by CANoe, i.e. outputs from the SUT (e.g. actuator states)
 
-Modern vCDL (v2.0 or above) uses **IDL (Interface Definition Language)** to describe these interfaces in a structured way. This file acts as the blueprint for generating the SIL adapter.
+Modern vCDL (v2.0+) uses **IDL (Interface Definition Language)** to describe these interfaces in a structured way. This file acts as the blueprint for generating the SIL adapter.
 
 **Example**: vCDL for blinking LED with rotary switch
 
@@ -152,12 +151,11 @@ namespace Blinky
 
 Remarks:
 
-* Conceptually, the vCDL keyword `interface` $\approx$ keyword `class` in C++. The interfaces `IRotary` and `ILed` are like classes in C++. The prefix `I` is a common naming convention, not enforced by vCDL.
+* `interface` is conceptually similar to class in C++. The prefix `I` in `IRotary` and `ILed` is a common naming convention, not mandatory in vCDL.
 * `IRotary rotary;` creates an instance of the interface, just like creating an object from a class.
-* `[Binding="SilKit"]` tells CANoe which communication technology or middleware to use for connecting CANoe and SUT (here, SilKit).
+* `[Binding="SilKit"]` pecifies that SilKit is the communication middleware between CANoe and the SUT.
+* Each `provided` or `consumed` data item is like a one-way transmission portal from CANoe to SUT or vice versa.
 * For our toy example, a single-interface vCDL also works. $\to$ See [appendix](#single-interface-vcdl).
-
-TODO: distinguish `switch_position` in vCDL and `simulated_switch_position` in the SUT.
 
 #### Generate Source Files for SIL Adapter
 
@@ -167,11 +165,11 @@ The **CANoe SIL Adapter Builder** is a Vector tool that reads a `.vCDL` file and
 * mapping CANoe stimuli to stubs
 * handling data exchange during test execution
 
-⚠️ Important: The Adapter Builder does not compile the SIL adpater iteself. It only generates the source files for the SIL adapter, which must then be compiled manually into `.dll`.
+⚠️ Important: The Adapter Builder does not compile the SIL adpater itself. It only generates the source files for the SIL adapter, which must then be compiled manually into `.dll`.
 
 💡 Good to know: For a simple SUT (e.g., sensor $\to$ compute $\to$ actuator), the code template generated by CANoe SIL Adapter Builder is usually sufficient for building the SIL adapter. A full virtual ECU or AUTOSAR stack is not required.
 
-The CANoe SIL Adapter Builder can be invoked either in the GUI of CANoe, or via the following commandline in power shell:
+The CANoe SIL Adapter Builder can be invoked either in the GUI of CANoe, or via the following command line in power shell:
 
 ```shell
 /path/to/sil-adapter-builder.exe /path/to/myProj.vCDL -o . -l cpp
@@ -192,8 +190,8 @@ This command typically creates a SilAdapter folder containing
 
 Remarks:
 
-* Each interface defined in `.vCDL` file yields a corresponding header file and a source file. e.g. The `IRotary` interface yields `RotaryInterface.h` and `RotaryInterface.cpp`.
-* We need to implement the bridge logic, not in `*Interface.cpp`, but in `*Interface_User.cpp`. Otherwise, every `.vCDL` file update re-generates and overwrites our implemention in `*Interface.cpp`.
+* Each interface defined in `.vCDL` file yields a corresponding header-source pair. e.g. The `IRotary` interface yields `RotaryInterface.h` and `RotaryInterface.cpp`.
+* We need to implement the bridge logic, not in `*Interface.cpp`, but in `*Interface_User.cpp`. Otherwise, every `.vCDL` file update re-generates and overwrites our implementation in `*Interface.cpp`.
 
 `RotaryInterface.h` would look like
 
@@ -212,6 +210,9 @@ void RotaryInterface_Initialize(void);
 // Called during adapter shutdown (optional, empty by default)
 void RotaryInterface_Terminate(void);
 ```
+
+`RotaryInterface_OnSwitchPositionProvided` is an auto-generated callback that is triggered whenever CANoe sends a new value for the data item `switch_position`.
+Our implementation in the `_User.cpp` file defines what happens when this occurs—typically updating a simulated hardware variable shared with the SUT.
 
 `RotaryInterface.cpp` would look like
 
@@ -252,8 +253,6 @@ void RotaryInterface_OnSwitchPositionProvided(int switch_position)
     simulated_switch_position = switch_position;
 }
 ```
-
-Question: shouldn't we set `simulated_switch_position = Blinky::rotary.switch_position` inside `RotaryInterface_OnSwitchPositionProvided()`?
 
 ## Appendix
 

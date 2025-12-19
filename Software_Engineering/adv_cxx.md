@@ -337,6 +337,7 @@ int main(){
 Stores an array of elements in continuous memory. The size of the array is dynamically adjustable.
 
 * Construction:
+
   ```c++
   #include<vector>
   // empty vector
@@ -346,11 +347,15 @@ Stores an array of elements in continuous memory. The size of the array is dynam
   // a vector of length n filled with 0
   std::vector<int> w(n, 0);
   ```
+
 * Get the number of elements:
+
   ```c++
   auto len = v.size();
   ```
+
 * Iterate: There are multiple ways to iterate through an vector
+
   ```c++
   // classical for-loop based on indexing
   for(int i = 0; i < v.size(); i++) {
@@ -367,14 +372,18 @@ Stores an array of elements in continuous memory. The size of the array is dynam
     cout << x << " ";
   }
   ```
+
 * Insert and remove element
+
   ```c++
   v.push_back(value); // insert elm. at the end
   v.pop_back(value);  // delete elm. at the end
   v.insert(v.begin() + k, val); // insert val at index k
   v.erase(v.begin() + k);       // remove elm. at index k
   ```
+
 * Search: `std::vector` has no memeber function `.find()`. We must use `std::find()` from STL algorithm library!
+
   ```c++
   #include <algorithm>
   // locate the iterator pointing to val
@@ -383,7 +392,9 @@ Stores an array of elements in continuous memory. The size of the array is dynam
   // if found val in v
   if(it != v.end())
   ```
+
 * Sort: `std::vector` has no memeber function `.sort()`. We must use `std::sort()` from STL algorithm library!
+
   ```c++
   #include <algorithm>  
   // sort 
@@ -395,6 +406,7 @@ Stores an array of elements in continuous memory. The size of the array is dynam
 Here, we focues on 2D array implemented by nesting `std::vector`.
 
 * Construction:
+
   ```c++
   #include<vector>
   using std::vector;
@@ -405,7 +417,9 @@ Here, we focues on 2D array implemented by nesting `std::vector`.
   // fill with zeros
   vector<vector<int>> Zeros(nrows, vector<int>(ncols, 0))
   ```
+
 * Get the number of rows and columns:
+
   ```c++
   auto nrow = v.size();
   auto ncol = v[0].size();
@@ -420,6 +434,7 @@ $O(1)$ for insert, delete, and search.
 Illustration: hash table for storing goods and prices.
 
 * Construction:
+
   ```c++
   #include<unordered_map>
   
@@ -428,12 +443,14 @@ Illustration: hash table for storing goods and prices.
   ```
 
 * Insert: If the `key` does not exist in the hash table, insert the key-value pair. Otherwise, overwrite the `value` the existing key-value pair.
+
   ```c++
   stock_to_price["TSLA"] = 316.70;
   stock_to_price["NVDA"] = 165.55;
   ```
 
 * Search:
+
   ```c++
   // if "APPL" exists in the hash map
   if(stock_to_price.find("APPL") != stock_to_price.end())

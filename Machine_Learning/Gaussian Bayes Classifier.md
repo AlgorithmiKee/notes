@@ -473,14 +473,6 @@ Remark:
 
 *Proof*: Here, we only prove the formula of $\hat{\pi}_k$. For $\hat\mu_k$ and $\hat\Sigma_k$, see notes *Everything about Gaussian Distribution*.
 
-### MLE for LDA
-
-TODO
-
-### MLE for GNB
-
-TODO
-
 # Exercise
 
 1. **Multi Choice**: Gaussian Naive Bayes model is

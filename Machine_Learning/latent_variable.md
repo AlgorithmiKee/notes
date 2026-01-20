@@ -283,65 +283,25 @@ Parameter estimation is also challenging since we only observe $\mathbf{x}$, not
 
 Given:
 
-* Parameter $\theta$ of the latent variable model
-* Dataset: $D = \{ \mathbf{x}^{(1)}, \dots, \mathbf{x}^{(n)} \}$ (TODO: question: sampled from which distribution? $p_\theta(\mathbf{x})$ or unknown ground truth $p^*(\mathbf{x})$? )
+* Parameter $\theta$ of the latent variable model.
+* Dataset: $D = \{ \mathbf{x}^{(1)}, \dots, \mathbf{x}^{(n)} \} \stackrel{\text{iid}}{\sim} p^*$.
 
-Goal: compute the posterior $p_\theta(\mathbf{z} \vert \mathbf{x}^{(i)})$ for each $i=1,\dots,n$
-
-### Classical VI
-
-TODO
-
-### Amortized VI
-
-Key idea of amortized VI: Instead of computing $p_\theta(\mathbf{z} \vert \mathbf{x})$ directly, we use another tractable posterior $q_\phi(\mathbf{z} \vert \mathbf{x})$ to approximate $p_\theta(\mathbf{z} \vert \mathbf{x})$. For each $\mathbf{x} \in D$, the loss of $q_\phi(\mathbf{z} \vert \mathbf{x})$ is given by the KL divergence
-
-$$
-\begin{align}
-D_\text{KL}(q_\phi(\mathbf{z} \vert \mathbf{x}) \parallel p_\theta(\mathbf{z} \vert \mathbf{x}))
-&= \mathbb E_{\mathbf{z} \sim q_\phi(\mathbf{z} \vert \mathbf{x})} \left[ \log\frac{q_\phi(\mathbf{z} \vert \mathbf{x})}{p_\theta(\mathbf{z} \vert \mathbf{x})} \right]
-\end{align}
-$$
+Goal: approximate the posterior $p_\theta(\mathbf{z} \vert \mathbf{x}^{(i)})$ using a tractable variational distribution $q_\phi(\mathbf{z} \vert \mathbf{x})$.
 
 Remarks:
 
-* $\phi$ is called ***variational parameter***. $q_\phi(\mathbf{z} \vert \mathbf{x})$  is called ***variational distribution***.
-* In amortized VI, the same variational parameter $\phi$ is shared by all $\mathbf{x} \in \mathbb R^d$.
+* $\phi$ is called ***variational parameter***. The set of all possible $q_\phi(\mathbf{z} \vert \mathbf{x})$ by varying $\phi$ is called ***variational family***.
+* Variational inference transforms the intractable inference problem to a tractable optimization problem.
 
-This reformulates the inference problem into an optimization problem
-
-$$
-\begin{align}
-\min_\phi D_\text{KL}(q_\phi(\mathbf{z} \vert \mathbf{x}) \parallel p_\theta(\mathbf{z} \vert \mathbf{x}))
-\end{align}
-$$
-
-Remarks:
-
-* The KL divergence requires knowledge of $p_\theta(\mathbf{z} \vert \mathbf{x})$, which is what we want to approximate in the first place. Later, we will make this optimization problem tractable by introducing [evidence lower bound](#evidence-lower-bound).
-
-#### Example: Variational Gaussian
-
-Suppose $\mathbf{z}\in\mathbb R^\ell$. We use multivariate Gaussian as the variational distribution:
-
-$$
-\begin{align}
-q_\phi(\mathbf{z} \vert \mathbf{x}) = \mathcal N(\mathbf{z} ; \mu_\phi(\mathbf{x}), \Sigma_\phi(\mathbf{x}))
-\end{align}
-$$
-
-where $\mu_\phi(\mathbf{x}), \Sigma_\phi(\mathbf{x})$ are functions of $\mathbf{x}$, parameterized by $\phi$. In VAEs, those functions are represented by neural nets (whose weights are $\phi$) and thus can be arbitrarily complex. In mean field VI, the covariance matrix $\Sigma_\phi(\mathbf{x})$ is diagonal, reducing the number of variational parameters.
-
-TODO: pytorch code for variational gaussian
 
 ### Evidence Lower Bound
 
-The evidence lower bound (ELBO) for each $\mathbf{x} \in D$ is defined by
+The evidence lower bound (ELBO) for each $\mathbf{x}^{(i)} \in D$ is defined by
 
 $$
 \begin{align}
-\mathcal L_{\theta, \phi}(\mathbf{x})
-\triangleq \mathbb E_{\mathbf{z} \sim q_\phi(\mathbf{z} \vert \mathbf{x})} \left[ \log\frac{p_\theta(\mathbf{x},\mathbf{z})}{q_\phi(\mathbf{z} \vert \mathbf{x})} \right]
+\mathcal L_{\theta, \phi}(\mathbf{x}^{(i)})
+\triangleq \mathbb E_{\mathbf{z} \sim q_\phi(\mathbf{z} \vert \mathbf{x}^{(i)})} \left[ \log\frac{p_\theta(\mathbf{x}^{(i)},\mathbf{z})}{q_\phi(\mathbf{z} \vert \mathbf{x}^{(i)})} \right]
 \end{align}
 $$
 
@@ -349,103 +309,79 @@ The ELBO is a lower bound because
 
 $$
 \begin{align}
-\log p_\theta(\mathbf{x})
-&= \mathcal L_{\theta, \phi}(\mathbf{x}) + D_\text{KL}(q_\phi(\mathbf{z} \vert \mathbf{x}) \parallel p_\theta(\mathbf{z} \vert \mathbf{x})) \\
-&\ge \mathcal L_{\theta, \phi}(\mathbf{x})
+\log p_\theta(\mathbf{x}^{(i)})
+&= \mathcal L_{\theta, \phi}(\mathbf{x}^{(i)}) + D_\text{KL}(q_\phi(\mathbf{z} \vert \mathbf{x}^{(i)}) \parallel p_\theta(\mathbf{z} \vert \mathbf{x}^{(i)})) \\
+&\ge \mathcal L_{\theta, \phi}(\mathbf{x}^{(i)})
 \end{align}
 $$
 
-where the inequality in the 2nd line becomes equality iff $q_\phi(\mathbf{z} \vert \mathbf{x}) = p_\theta(\mathbf{z} \vert \mathbf{x})$ a.e.
+where the inequality in the 2nd line becomes equality iff $q_\phi(\mathbf{z} \vert \mathbf{x}^{(i)}) = p_\theta(\mathbf{z} \vert \mathbf{x}^{(i)})$ a.e.
 
 *Proof*:
 
 $$
 \begin{align*}
-\mathcal L_{\theta, \phi}(\mathbf{x})
-&= \mathbb E_{\mathbf{z} \sim q_\phi(\mathbf{z} \vert \mathbf{x})} \left[ \log\frac{p_\theta(\mathbf{z} \vert \mathbf{x}) \cdot p_\theta(\mathbf{x})}{q_\phi(\mathbf{z} \vert \mathbf{x})} \right] \\
-&= \mathbb E_{\mathbf{z} \sim q_\phi(\mathbf{z} \vert \mathbf{x})} \left[ \log\frac{p_\theta(\mathbf{z} \vert \mathbf{x})}{q_\phi(\mathbf{z} \vert \mathbf{x})} + \log p_\theta(\mathbf{x}) \right] \\
-&= \underbrace{\mathbb E_{\mathbf{z} \sim q_\phi(\mathbf{z} \vert \mathbf{x})} \left[ \log\frac{p_\theta(\mathbf{z} \vert \mathbf{x})}{q_\phi(\mathbf{z} \vert \mathbf{x})} \right]}_{- D_\text{KL}(q_\phi(\mathbf{z} \vert \mathbf{x}) \parallel p_\theta(\mathbf{z} \vert \mathbf{x}))} + \log p_\theta(\mathbf{x})
+\mathcal L_{\theta, \phi}(\mathbf{x}^{(i)})
+&= \mathbb E_{\mathbf{z} \sim q_\phi(\mathbf{z} \vert \mathbf{x}^{(i)})} \left[ \log\frac{p_\theta(\mathbf{z} \vert \mathbf{x}^{(i)}) \cdot p_\theta(\mathbf{x}^{(i)})}{q_\phi(\mathbf{z} \vert \mathbf{x}^{(i)})} \right] \\
+&= \mathbb E_{\mathbf{z} \sim q_\phi(\mathbf{z} \vert \mathbf{x}^{(i)})} \left[ \log\frac{p_\theta(\mathbf{z} \vert \mathbf{x}^{(i)})}{q_\phi(\mathbf{z} \vert \mathbf{x}^{(i)})} + \log p_\theta(\mathbf{x}^{(i)}) \right] \\
+&= \underbrace{\mathbb E_{\mathbf{z} \sim q_\phi(\mathbf{z} \vert \mathbf{x}^{(i)})} \left[ \log\frac{p_\theta(\mathbf{z} \vert \mathbf{x}^{(i)})}{q_\phi(\mathbf{z} \vert \mathbf{x}^{(i)})} \right]}_{- D_\text{KL}(q_\phi(\mathbf{z} \vert \mathbf{x}^{(i)}) \parallel p_\theta(\mathbf{z} \vert \mathbf{x}^{(i)}))} + \log p_\theta(\mathbf{x}^{(i)})
 \end{align*}
 $$
 
-Rearranging the terms, we conconclude the equality in the 1st line. The inequality in the 2nd line follows from properties of KL divergence. $\:\blacksquare$
+Rearranging the terms, we conclude the equality in the 1st line. The inequality in the 2nd line follows from properties of KL divergence. $\:\blacksquare$
 
-Therefore, minimizing the KL divergence is equivalent to maximizing the ELBO
-
-$$
-\begin{align}
-\max_\phi \mathcal L_{\theta, \phi}(\mathbf{x})
-\end{align}
-$$
-
-### Reparameterization Trick
-
-We apply SGD to maximize the ELBO w.r.t. $\phi$
+Hence, for each $\mathbf{x}^{(i)} \in D$, minimizing the KL divergence is equivalent to maximizing the ELBO
 
 $$
 \begin{align}
-\text{random. draw } \mathbf{x} \in D \\
-\phi \leftarrow \phi + \eta_t \nabla_\phi \mathcal L_{\theta, \phi}(\mathbf{x})
+\max_\phi \mathcal L_{\theta, \phi}(\mathbf{x}^{(i)})
 \end{align}
 $$
 
-However, the gradient of the ELBO cannot be computed directly:
+### Classical VI
+
+Classical VI optimzes $\phi$ for each $\mathbf{x}^{(i)} \in D$ individually using a tractable variational family. Formally, classical VI solves $n$ optimization problems:
 
 $$
 \begin{align}
-\nabla_\phi \mathcal L_{\theta, \phi}(\mathbf{x})
-&= \nabla_\phi \mathbb E_{\mathbf{z} \sim q_\phi(\mathbf{z} \vert \mathbf{x})} \left[ \log\frac{p_\theta(\mathbf{x},\mathbf{z})}{q_\phi(\mathbf{z} \vert \mathbf{x})} \right]
+\phi^{(i)*} = \argmax_\phi \mathcal L_{\theta, \phi}(\mathbf{x}^{(i)}),
+\quad i = 1,\dots,n
 \end{align}
 $$
 
-We cannot move the gradient operator $\nabla_\phi$ inside the expectation because the distribution $q_\phi(\mathbf{z} \vert \mathbf{x})$ depends on $\phi$. This problem can be tackled by **reparameterization trick**. (see notes *gradient approximation*)
+Remarks:
 
-We find a function $g$ and a reference random variable $\epsilon$ s.t.
+* Typical tractable variational family: mean-field Gaussian.
+* If the variational family is conjugate, $\phi^{(i)*}$ has closed-form solution. (not detailed here)
+* Limitation: $\phi$ is optimized separately for each data point and has to be recomputed for new observations. This motivates us to move to amortized VI.
 
-1. The reference density $p(\epsilon)$ does not depend on $\phi$.
-1. $\mathbf{z} = g_{\mathbf{x}, \phi}(\epsilon)$ has the distribution $q_\phi(\mathbf{z} \vert \mathbf{x})$.
-1. $g_{\mathbf{x}, \phi}$ is differentiable w.r.t. $\phi$.
+### Amortized VI
 
-After we apply the reparameterizaiton trick, both the ELBO and its gradient are expressed in the form $\mathbb E_{\epsilon \sim p(\epsilon)}[\cdot]$. Hence, they can be estimated by Monte Carlo sampling.
+Key idea of amortized VI: Let $\phi$ be shared by all $\mathbf{x} \in \mathbb R^d$ (not just $\mathbf{x} \in D$!). We maximize the dataset level ELBO which is defined as the sum of sample level ELBO.
 
 $$
 \begin{align}
-\mathcal L_{\theta, \phi}(\mathbf{x})
-&= \mathbb E_{\epsilon \sim p(\epsilon)} \left[ \left.
-  \log\frac{p_\theta(\mathbf{x},\mathbf{z})}{q_\phi(\mathbf{z} \vert \mathbf{x})}
-\right|_{\mathbf{z}=g_{\mathbf{x}, \phi}(\epsilon)} \right]
-\\
-\nabla_\phi \mathcal L_{\theta, \phi}(\mathbf{x})
-&= \mathbb E_{\epsilon \sim p(\epsilon)} \left[ \left.
-  \nabla_\phi \log\frac{p_\theta(\mathbf{x},\mathbf{z})}{q_\phi(\mathbf{z} \vert \mathbf{x})}
-\right|_{\mathbf{z}=g_{\mathbf{x}, \phi}(\epsilon)} \right]
+\mathcal L_{\theta, \phi}(D) &= \sum_{i=1}^n \mathcal L_{\theta, \phi}(\mathbf{x}^{(i)}) \\
+\phi^*
+= \argmax_\phi \mathcal L_{\theta, \phi}(D) &= \argmax_\phi \sum_{i=1}^n \mathcal L_{\theta, \phi}(\mathbf{x}^{(i)}) \\
 \end{align}
 $$
 
-For example, the variational Gaussian
+A typical choice of variational family is Gaussian:
 
 $$
-\begin{align*}
+\begin{align}
 q_\phi(\mathbf{z} \vert \mathbf{x}) = \mathcal N(\mathbf{z} ; \mu_\phi(\mathbf{x}), \Sigma_\phi(\mathbf{x}))
-\end{align*}
-$$
-
-can be reparameterized as
-
-$$
-\begin{align}
-\mathbf{z} = \mu_\phi(\mathbf{x}) + L_\phi(\mathbf{x}) \cdot \epsilon, \quad \epsilon \sim\mathcal N(0, I)
 \end{align}
 $$
 
-where $L_\phi(\mathbf{x})$ is the Chekovskey factor of the covariance matrix $\Sigma_\phi(\mathbf{x})$.
+where $\mu_\phi(\mathbf{x}), \Sigma_\phi(\mathbf{x})$ are functions of $\mathbf{x}$, parameterized by $\phi$. In VAEs, those functions are represented by neural nets (whose weights are $\phi$) and thus can be arbitrarily complex. In mean-field settings, the covariance matrix $\Sigma_\phi(\mathbf{x})$ is diagonal, reducing the number of variational parameters.
 
-In special case where $\mathbf{z}\in\mathbb R$, the reparameterization simplifies to
+The dataset level ELBO and its gradient could not be computed directly because
 
-$$
-\begin{align}
-\mathbf{z} = \mu_\phi(\mathbf{x}) + \sigma_\phi(\mathbf{x}) \cdot \epsilon, \quad \epsilon \sim\mathcal N(0, 1)
-\end{align}
-$$
+1. For large dataset, the dataset level ELBO consists a huge amount of sample level ELBO.
+1. The gradient and the expectation in ELBO are both taken w.r.t. $\phi$. Solution: reparameterization trick.
 
-### The Complete VI Algorithm
+The 1st issue can be addressed by SGD (sample a mini batch from $D$). The 2nd issue is addressed by reparameterization trick. (see notes *gradient approximation*) for Gaussian variational family.
+
+The complete algorithm is summarized in notes *variational inference*.

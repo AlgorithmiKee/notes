@@ -4,18 +4,95 @@ author: "Ke Zhang"
 date: "2024"
 ---
 
-# Struct
+# Advanced C
 
-Byte alignment.
+## Union
 
-# Union
+Union vs struct:
 
-* `struct`: allocates storage for all members.
-* `union`: allocates only the storage for the largest member.
+* `struct`: allocates storage for all members (plus padding).
+  $$
+  \mathtt{sizeof\big(struct\big)} \ge \sum_{\mathtt i} \mathtt{member_i}
+  $$
+  
 
-# Pointers
+* `union`: allocates only the storage for the largest member (plus padding).
+  $$
+  \mathtt{sizeof\big(union\big)} \ge \max_{\mathtt i} \mathtt{member_i}
+  $$
 
-## ptr to const vs. const ptr
+### Tagged Union
+
+Tagged union is a classic C design pattern for representing a value that may take on one of multiple different types. Typical implementation:
+
+```c
+struct {
+    enum tag;
+    union data;
+}
+```
+
+e.g. We want to define a struct `Shape` that can represent circle, rectangle, and square. The parameters of `Shape` depends on the exact shape variant.
+
+1. define the parameters of each shape variant:
+
+   ```c
+   typedef struct {
+       int radius;
+   } Circle;
+   
+   typedef struct {
+       int width;
+       int height;
+   } Rectangle;
+   
+   typedef struct {
+       int side;
+   } Square;
+   ```
+
+2. define the **tag** for each shape variant:
+
+   ```c
+   typedef enum {
+       SHAPE_CIRC,
+       SHAPE_RECT,
+       SHAPE_SQUA
+   } ShapeType;
+   ```
+
+3. define `Shape` as a tagged union:
+
+   ```c
+   typedef union {
+       Circle circ;
+       Rectangle rect;
+       Square squa;
+   } ShapeData;
+   
+   typedef struct {
+       ShapeType tag;
+       ShapeData data;
+   } Shape;
+   ```
+
+Remarks on `Shape` example:
+
+* At any given time, **only one** union member is considered “active”.
+
+* The active member is the one we most recently wrote to.
+
+* Reading a different member than the one you last wrote is **undefined behavior** in C.
+
+TODO:
+
+1. construction of Shape variables
+2. change the shape
+3. compute area s.t. the calculation adapts to the shape type flexibly 
+
+## Pointers
+
+### ptr to const vs. const ptr
 
 The pointer to const should be interpreted as read-only pointer.
 

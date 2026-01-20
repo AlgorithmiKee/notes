@@ -8,6 +8,39 @@ date: "2025"
 
 [toc]
 
+## Dijkstra's Algorithm
+
+**Input**:
+
+* an undirected graph $G=(V,E)$ with non-negative weight $w:E\to\mathbb R_{\ge0}$.
+* starting vertex $s\in V$.
+
+**Output**:
+* $d(v), \forall v \in V$: the shortest distance from $s$ to $v$.
+* $p(v), \forall v \in V$: the predecessor vertex of $v$ on the optimal $s$-$v$ path.
+
+---
+
+Initializations:  
+$S = \varnothing$. $\quad$ // explored vertices.  
+$d(s) = 0$.  
+$d(v) = \infty, \: \forall v \in V\setminus \{s\}$.  
+$p(v) = \mathtt{NULL}, \: \forall v \in V$
+
+while $S \neq V$, do:  
+$\quad$ // select the cheapest **unexplored** vertex and mark it as explored.    
+$\quad$ $u^* = \argmin d(u)$ s.t. $u\in V\setminus S$.  
+$\quad$ $S = S \cup \{u^*\}$.  
+$\quad$ // update info of **unexplored** neibours of $u^*$.    
+$\quad$ for each $v \in \mathcal N(u^*) \setminus S$:  
+$\qquad$ if $d(v) > d(u^*) + w(u^*, v)$:  
+$\qquad\quad$ $d(v) = d(u^*) + w(u^*, v)$.    
+$\qquad\quad$ $p(v) = u^*$.    
+
+return $d(v)$ and $p(v)$ for all $v\in V$.
+
+---
+
 ## Max Contained Water
 
 > [Leetcode 11. Container With Most Water](https://leetcode.com/problems/container-with-most-water/description/)  

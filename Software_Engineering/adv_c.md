@@ -79,16 +79,72 @@ e.g. We want to define a struct `Shape` that can represent circle, rectangle, an
 Remarks on `Shape` example:
 
 * At any given time, **only one** union member is considered “active”.
-
 * The active member is the one we most recently wrote to.
-
 * Reading a different member than the one you last wrote is **undefined behavior** in C.
 
-TODO:
+Example usage:
 
-1. construction of Shape variables
-2. change the shape
-3. compute area s.t. the calculation adapts to the shape type flexibly 
+* Raw initialization (error-prone, not recommended)
+  ```c
+  Shape a = { .tag = SHAPE_CIRC, .data.circ = { .radius = 10 } };
+  Shape b = { .tag = SHAPE_RECT, .data.rect = { .width = 3, .height = 4 } };
+  Shape c = { .tag = SHAPE_SQUA, .data.squa = { .side = 5 } };
+  // passes compilation but logically makes no sense.
+  Shape d = { .tag = SHAPE_CIRC, .data.rect = {.width = 3, .height = 4} };
+  printf("%d\n", d.data.rect.width);    // OK
+  printf("%d\n", d.data.circ.radius);   // UNDEFINED BEHAVIOR
+  ```
+* Constructor for tagged union (recommended)
+
+  ```c
+  #include <assert.h>
+
+  static inline Shape create_circle(int radius) {
+      Shape s;
+      s.tag = SHAPE_CIRC;
+      s.data.circ = (Circle){ .radius = radius };
+      return s;
+  }
+
+  static inline Shape create_rectangle(int width, int height) {
+      Shape s;
+      s.tag = SHAPE_RECT;
+      s.data.rect = (Rectangle){ .width = width, .height = height };
+      return s;
+  }
+
+  static inline Shape create_square(int side) {
+      Shape s;
+      s.tag = SHAPE_SQUA;
+      s.data.squa = (Square){ .side = side };
+      return s;
+  }
+  ```
+
+* Function that flexibly adapts its behaviour on the tag:
+
+  ```c
+  double shape_area(const Shape *s) {
+      assert(s);
+      switch (s->tag) {
+          case SHAPE_CIRC: {
+              double r = (double)s->data.circ.radius;
+              return M_PI * r * r;
+          }
+          case SHAPE_RECT:
+              return (double)s->data.rect.width * (double)s->data.rect.height;
+
+          case SHAPE_SQUA: {
+              double a = (double)s->data.squa.side;
+              return a * a;
+          }
+          default:
+              // Unknown tag: decide a policy (assert, return 0, etc.)
+              assert(!"Invalid ShapeType tag");
+              return 0.0;
+      }
+  }
+  ```
 
 ## Pointers
 

@@ -126,8 +126,6 @@ if(c1==d1){			// OK, although non sense
 ```
 Here, `Color, Day` and `red, blue, Mon, Tue, ...` share the same scope. No qulifier is needed when using the enumerator. This leads to the disadvantage that name collison becomes more probable. Another disadvange comes from weak typicality. Comparision between `c1` and `d1` is allowed since they are both implicitly converted into `int`. However, it makes no sense to do the comparison. 
 
-
-
 ```c++
 enum class Color{
   red, blue
@@ -147,28 +145,232 @@ if(c1===d1){						// Compiler error
 
 Here, the enumeration `Color` and `Day`  declared by `enum class` has the global scope. The enumerators are put in their corresponding subscopes qualified by the enumeration names. To access the color red, one must write `Color::red`. Scoped enumeration is strongly typed, meaning that comparion is only allowed among variables of the same enum type.
 
-
-
-
 ## OOP
 
-###  Copy Constructor
+### Copy Constructor
 
 > The source object must be passed by reference. 
 
-Why? Suppose we pass the source object by value. Once we call the copy constructor, the program will call the copy constructor again to copy the argument, which once again calls the copy constructor... It is a dead loop. 
+Why? Suppose we pass the source object by value. Once we call the copy constructor, the program will call the copy constructor again to copy the argument, which once again calls the copy constructor... It is a dead loop.
 
-### Friend Methods
+## Operator Overloading
 
-### Operator Overloading
+Example: overloading `+`
 
-Example: overloading `+` 
+Example: overloading `<<`
 
 Example: overloading of `=` (Basic)
 
-Example: overloading of `=` (Copy Swap)
+Example: overloading of `=` (copy swap idiom)
 
-Here, we used [copy- swap idiom](#copy-and-swap-idiom) to improve the robustness.
+### Function Objects
+
+A class/struct overloading the parenthesis operator `()` is called a ***functor class***. An instance of a functor class is called ***function object*** or ***functor***. The overloaded parenthesis operator `()` is known as ***call operator***.
+
+There are two ways to understand a functor:
+
+1. a functor is a callable object.
+1. a functor is a function with internal state.
+
+Compared to a function pointer, a functor has its own state (can be understood as configuration), which adapts its behaviour with different configuration.
+
+```c++
+#include <iostream>
+#include <string>
+
+struct Cat {
+    std::string name;
+
+    // constructor
+    Cat(std::string n) : name(n) {
+        std::cout << name << " has been born!\n";
+    }
+
+    // overloaded parenthesis
+    void operator()(const std::string& message) {
+        std::cout << name << " says: " << message << "\n";
+    }
+};
+
+int main() {
+    Cat mycat("Daisy"); // invokes constructor
+    mycat("Hello");     // invokes overloaded parenthesis
+  
+    mycat.name = "Tina"; // changes state
+    mycat("Hello");   // invokes overloaded parenthesis
+    return 0;
+}
+```
+
+Remarks:
+
+* Not to be confused: `Cat mycat("Daisy")` invokes the constructor. vs. `mycat("Hello")` invokes call operator.
+* The functor `mycat` can be understood as a callable `Cat` object, and a function with state `name`.
+
+A useful example of functor: Sorting by various criteria.
+
+```c++
+class Shirt {
+private:
+    std::string _brand;
+    int _price;
+    int _sold;
+
+public:
+    Shirt(std::string brand, int price, int sold):
+        _brand(brand), _price(price), _sold(sold) {}
+    
+    bool operator<(const Shirt& rhs) const {
+        return this->_price < rhs._price;
+    }
+};
+
+int main() {
+    std::vector<Shirt> shirts = {
+        Shirt("BOSS",   60,  173),
+        Shirt("Adidas", 30,  412),
+        Shirt("Polo",   150, 412),
+        Shirt("Nike",   29,  306),
+        Shirt("Adidas", 110, 210),
+    };
+
+    // sort shirts by price in ascending order
+    std::sort(shirts.begin(), shirts.end());
+    return 0;
+}
+```
+
+The class `Shirt` overloaded `operator<` which enables comparison between `Shirt` objects. However, what if we want to sort shirts by price in descending order? Or what if we want to sort them by brand or popularity? We could not overload `operator<` again. Hence, functors are helpful to address these problems.
+
+```c++
+class CompareByPrice {
+private:
+    bool _ascending = true; // true <=> chpeapest first
+
+public:
+    CompareByPrice(bool ascending) : _ascending(ascending) {}
+    bool operator()(const Shirt& lhs, const Shirt& rhs) {
+        if(_ascending) {
+            return lhs._price < rhs._price;
+        }
+        else {
+            return lhs._price > rhs._price;
+        }
+    }
+
+};
+
+class CompareByPopularity {
+private:
+    bool _ascending = true; // true <=> least sold first
+
+public:
+    CompareByPopularity(bool ascending) : _ascending(ascending) {}
+    bool operator()(const Shirt& lhs, const Shirt& rhs) {
+        if(_ascending) {
+            return lhs._sold < rhs._sold;
+        }
+        else {
+            return lhs._sold > rhs._sold;
+        }
+    }
+
+};
+```
+
+Remarks:
+
+* We defined two functor classes responsible for comparing by price and by popularity. By toggling the attribute `_ascending`, we can configure the direction of comparison.
+* To grant functor classes the access to attributes of `Shirt`, we need to make them friend classes of `Shirt`.
+
+    ```c++
+    // forward declarations
+    class CompareByPopularity;
+    class CompareByPrice;
+
+    class Shirt {
+    private:
+        // same as before
+    public:
+        // same as before
+
+        // grant the following functor classes access to attributes
+        friend class CompareByPopularity;
+        friend class CompareByPrice;
+    };
+    ```
+
+The functors can be used as
+
+```c++
+int main() {
+    std::vector<Shirt> shirts = { /* same as before */ };
+
+    // sort by sales volume in descending order (most sold first)
+    CompareByPopularity most_sold_first(false);
+    std::sort(shirts.begin(), shirts.end(), most_sold_first);
+
+    // sort by price in ascending order (cheapest first)
+    CompareByPrice cheapest_first(true);
+    std::sort(shirts.begin(), shirts.end(), cheapest_first);
+
+    return 0;
+}
+```
+
+Likewise, we can define another functoin class to enable sorting by brand in alphabetical order.
+However, we can unify the comparison logic into one single functor class and thus avoid code repetition.
+
+```c++
+enum class SortBy {PRICE, BRAND, SALE_VOLUME};
+enum class SortOrder {ASCENDING, DESCENDING};
+
+struct Comparator {
+    SortBy _criterion;
+    SortOrder _order;
+
+    Comparator(SortBy criterion, SortOrder order) :
+        _criterion(criterion), _order(order) {}
+    
+    bool operator()(const Shirt& lhs, const Shirt& rhs) {
+        bool result = true;
+        // assume sort in ascending order
+        switch(this->_criterion) {
+            case SortBy::PRICE:
+                result = lhs._price < rhs._price;
+                break;
+            case SortBy::BRAND:
+                result = lhs._brand < rhs._brand;
+                break;
+            case SortBy::SALE_VOLUME:
+                result = lhs._sold < rhs._sold;
+                break;
+        }
+        
+        return (this->_order == SortOrder::ASCENDING) ? result : ! result;
+    }
+};
+```
+
+The unified comparator class can be reconfigured in run time to enable flexible sorting. (Imagine the user clicks *sort by* menu)
+
+```c++
+int main() {
+    std::vector<Shirt> shirts = { /* same as before */ };
+
+    // sort by brand in A-Z
+    Comparator cmp(SortBy::BRAND, SortOrder::ASCENDING);
+    std::sort(shirts.begin(), shirts.end(), cmp);
+
+    // suppose the user reselects the sort menu
+    cmp._criterion = SortBy::PRICE;
+
+    // sort by price (cheapest first)
+    std::sort(shirts.begin(), shirts.end(), cmp);
+
+    return 0;
+}
+```
 
 ## Template
 
@@ -456,9 +658,16 @@ Illustration: hash table for storing goods and prices.
   if(stock_to_price.find("APPL") != stock_to_price.end())
   ```
 
-### Pointer to Functions
+### Functional
 
-TODO
+A C++ function `std::function` is an extended STL class that can store:
+
+* function addresses (just like raw function pointers do)
+* lambdas (with or without capture)
+* functors (objects that overload `operator()`)
+* bound member functions (using `std::bind`)
+
+`std::function` uses **type erasure** technique, which allows it to store differnt types of objects that shares the same signature.
 
 ## Lvalues & Rvalues
 

@@ -8,21 +8,32 @@ Proof-read my notes about SIL test, which is for me a quite new topic. There mig
 
 # Software in the Loop Test
 
-Consider embedded software running on a microcontroller (uC) that connects to multiple peripherals. In unit tests, we test the individual software components (e.g. functions, classes) on the host computer without requiring the actual hardware (assuming hardware-dependent parts are replaced with mocks or stubs).
+## Basic Terms
 
-In integration test, we would like to test the overall system or a subsystem to ensure components interact correctly. But how can we test the complete system without physical hardware? We need a virtual environment that can execute the application code and emulate the behavior of the surrounding hardware and communication interfaces (e.g. sensors, actuators).This is exactly the basic idea of **software-in-the-loop (SIL) testing**.
+The **host** machine (or host PC) refers to the computer where the development work is done. It is typically a Windows or Linux laptop.
 
-**CANoe** is a common tool for SIL testing. It allows building a simulation environment that mimics the structure and interfaces of the real system.
+The **target machine** refers to the chip where the application software is run. It is typically an ARM microcontroller.
 
-## The Big Picture
+**Software-in-the-Loop (SIL)** testing is a verification method where the application software code is tested within a simulated environment that mimics the hardware and external systems.
 
-In SIL, the **system under test (SUT)** is a custom build of the software to be tested. The SUT is also referred to as software image or binary. Inside SUT:
+* SIL is typically used for integration testing and early system-level testing. Compared to unit test, SIL is a higher level of verification. Compared to hardware-in-the-loop (HIL), SIL does not require physical hardware.
+* The application software runs natively on the host PC, not on the target machine.
+  * Hardware-dependent components are replace by stubs.
+  * External environment is simulated by CANoe.
 
-* hardware-dependent code is replaced with **stubs**, which simulate the hardware-level function calls (e.g. GPIO reads).
+A **stub** is a host-executable implementation that replaces a hardware-dependent component while preserving its interface.
 
-* SUT contains the main application **logic** (e.g. how the uC reacts to certain sensor inputs).
+* Hardware-dependent components are typically HAL functions.
+* This allows the application software to execute in a hardware-free environment.
 
-A **SIL adapter** is a shared library that connects the SUT to the simulation environment. It serves as the bridge between the SUT and CANoe (e.g., for I/O, network frames, timing, and stimuli). In particular, it is responsible for data exchange between the SUT and CANoe.
+The **system under test (SUT)** is a host-compiled variant of the application software, built for execution on the host PC instead of the target machine.
+
+* The SUT is not cross-compiled for target machine on the host PC. It is native to the host.
+* In SIL, all hardware-dependent components in SUT are replaced with stubs.
+
+A **SIL adapter** is a dynamically loaded library (DLL) that connects CANoe with the SUT. It handles data exchange between CANoe and the SUT.
+
+## Execution Flow
 
 During test execution:
 

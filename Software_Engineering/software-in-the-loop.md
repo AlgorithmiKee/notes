@@ -16,92 +16,86 @@ The **target machine** refers to the chip where the application software is run.
 
 **Software-in-the-Loop (SIL)** testing is a verification method where the application software code is tested within a simulated environment that mimics the hardware and external systems.
 
-* SIL is typically used for integration testing and early system-level testing. Compared to unit test, SIL is a higher level of verification. Compared to hardware-in-the-loop (HIL), SIL does not require physical hardware.
+* SIL is used for integration and system-level testing, which is a higher level of verification than unit testing. Compared to hardware-in-the-loop (HIL), SIL does not require physical hardware.
 * The application software runs natively on the host PC, not on the target machine.
-  * Hardware-dependent components are replace by stubs.
-  * External environment is simulated by CANoe.
+  * Hardware-dependent components are replaced by stubs that preserve their interface but do not replicate the actual hardware behavior.
+  * The external environment can be simulated by tools such as CANoe, but other simulation tools may also be used depending on the project requirements.
 
 A **stub** is a host-executable implementation that replaces a hardware-dependent component while preserving its interface.
 
 * Hardware-dependent components are typically HAL functions.
 * This allows the application software to execute in a hardware-free environment.
+* The stub implementation exposes sensor reading and actuator status as simulation variables (often global), which are updated by the SIL adapter and read by the SUT.
 
-The **system under test (SUT)** is a host-compiled variant of the application software, built for execution on the host PC instead of the target machine.
+The **system under test (SUT)** is a host-compiled variant of the application software, typically built as a dynamic library (e.g. `.dll` on Windows).
 
-* The SUT is not cross-compiled for target machine on the host PC. It is native to the host.
+* The SUT is compiled to run natively on the host PC, not cross-compiled for the target machine.
 * In SIL, all hardware-dependent components in SUT are replaced with stubs.
+* The SUT exposes function interfaces to external parties (e.g. `main.cpp` of test harness). Those interfaces typically include SUT initialization, SUT step, and data exchange functions. The test harness calls those interfaces to execute the SUT.
 
 A **SIL adapter** is a dynamically loaded library (DLL) that connects CANoe with the SUT. It handles data exchange between CANoe and the SUT.
 
-## Execution Flow
+The **test harness** is the final executable that runs on the host PC during test execution. It loads the SUT dll and the SIL adapter, and manages the test execution flow.
 
-During test execution:
+> Note: In some contexts, the term 'SUT' may refer to the test harness, which includes both the SUT dll and the SIL adapter. However, in this document, we use 'SUT' to refer specifically to the control logic of the application software, while the 'test harness' refers to the entire executable that includes both the SUT and the SIL adapter.
 
-1. CANoe loads the SIL adapter.
-1. SIL adapter loads and runs the SUT.
-1. CANoe sends test stimuli into SIL adapter.
-1. SIL adapter translates the test stimuli into inputs understood by the SUT (e.g. variable udpates or function calls).
-1. The SUT receives the input from the SIL adapter, processes it, and reacts to it by sending outputs.
-1. The SIL adapter converts the SUT outputs back to CANoe for monitoring and evaluation.
+## Overview of SIL Test Workflow
+
+In the following, we assume Windows as the host OS, and CANoe as the simulation tool. The general workflow is similar for other OS and simulation tools, but the details may differ.
+
+How to build a SIL test?
+
+1. Preparation:
+    * install CANoe (with SIL adapter support)
+    * install CMake and compiler toolchain (for building the SIL adapter and SUT)
+1. Build the SUT for SIL
+    * replace the hardware-dependent modules with stubs.
+    * build the SUT as windows dll.
+1. Create a new CANoe project for SIL testing
+1. Generate source files for SIL adapter
+    * define the communication interfaces in a `.vCDL` file
+    * generate the source files for the SIL adapter using CANoe SIL Adapter Builder
+1. Build the test harness
+    * create a main.cpp that serves as the entry point of the test harness. It typically includes code for loading the SUT dll, initializing the SIL adapter, bridging the communication between CANoe and SUT, and executing the test cases.
+    * link the SUT dll and the SIL adapter dll together to create the test harness executable
+1. Optional: create a panel for graphical stimulating/monitoring of the SUT outputs in CANoe
+
+How to run the SIL test manually?
+
+1. Open the SIL test project in CANoe and start simulation.
+1. Launch the test harness executable on the host PC.
+1. Stimulate the SUT by sending signals from CANoe. This can be done either by using the controls in the CANoe panel, or by modifying the CANoe variables directly.
+1. Monitor the SUT outputs.
 
 ## Step-by-Step Guide
 
 Example: embedded software running on an arm processor, which connects to a rotary switch and an LED. As the switch position changes, the microcontroller updates the LED blink pattern.
 
-Basic workflow of SIL test:
+### Build the SUT for SIL Test
 
-1. Preparation:
-    * install CANoe (with SIL adapter support)
-    * install CMake or Visual Studio (for building the SIL adapter)
-1. Build the SUT for SIL
-    * replace the hardware-dependent modules with stubs.
-    * build the software binaries (aka SUT) for SIL test
-    * ensure the software is runnable on the host machine
-1. Build SIL adapter
-    * define the communication interfaces in CANoe (in `.vCDL` file)
-    * map the test stimuli to variables or function calls in SUT
-    * build the adapter using CMake or Visual Studio
-1. Connect the SIL adapter to the software
-1. Create CANoe simulation environment
-    * create network simulation (CAN, LIN, Ethernet, etc.)
-    * add simulated peripherals (sensors, actuators)
-1. Connect the SIL adapter to the simulation environment
-1. Define test cases in CAPL
-    * write stimuli, checks, and verdicts (PASS/FAIL)
-1. Run and debug the system
-    * execute measurements, inspect traces, log failures, and iterate
-    * optional: automate testing
+Prepare the code for SIL:
 
-### Prepare the Source Code for SIL
-
-The production code typically calls **hardware abstraction layer (HAL)** functions for accessing the uC registers and peripherals. Before SIL test, we must replace those HAL functions with **stub functions** (or simply **stubs**) which simulate the hardware behavior. The SUT is runnable on the host PC without physical hardware. Hence, it must be built by linking against stubs.
-
-Remarks:
-
-* The stubs are also known as **adapter functions** or **mock HALs**. They are simulation-based implementations of the HAL APIs.
-* 💣 Not to be confused by the wording *simulation*:
-  * Stubs simulate the internal hardware-dependent behaviour of SUT
-  * CANoe simulates the external environment which the SUT interacts with
-* 💣 Stubs are not tied to CANoe. They are independently runnable on the host PC.
-
-The best practice for writing stubs:
-
-1. keep the HAL API intact for portability
-1. provide a simulated implementation of the HAL functions. This can be done either via conditional compilation (e.g. `#ifdef SIL_BUILD`) or separate source files.
-1. simulate I/O by reading/writing shared global variables that represent sensor/actuator states.
+* sensor and actuator status are typically modelded as global variables.
+* interrupt-driven behavior is typically modeled using scheduled callbacks or polling mechanisms.
 
 **Example**: stub for rotary switch (sensor)
 
 ```c
-// hal.c  (production HAL)
-uint8_t HAL_ReadRotarySwitch(void) {
-    return (uint8_t)(GPIO_ReadPin(ROTARY_PIN));
+// rotary_sw.h  (common header for APIs)
+uint8_t read_rotary_sw(void);
+
+// rotary_sw.c  (production code)
+#include "rotary_sw.h"                  // common header for APIs
+#include "stm32xx.h"                    // hardware specific header
+uint8_t read_rotary_sw(void) {
+    return (uint8_t)(HAL_ReadPin(ROTARY_PIN));
 }
 
-// sil_stub.c  (stubbed HAL for SIL)
+// rotary_sw_stub.c  (SIL test code)
+#include "rotary_sw.h"                  // common header for APIs
 #include "sil_sim_data.h"               // contains virtual hardware states
 
-uint8_t HAL_ReadRotarySwitch(void) {
+uint8_t read_rotary_sw(void) {
     return simulated_switch_position;   // declared in sil_sim_data.h
 }
 ```

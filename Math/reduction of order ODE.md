@@ -1,7 +1,7 @@
 ---
-title: Reduction of Order
-author: Ke Zhang
-date: 2026
+title: "Reduction of Order"
+author: "Ke Zhang"
+date: "2026"
 ---
 
 # Reduction of Order

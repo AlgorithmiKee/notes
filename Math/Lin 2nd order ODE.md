@@ -688,3 +688,95 @@ The general solution to the inhomogeneous ODE is:
 $$
 y(t) = C_1 e^{-t} + C_2 t e^{-t} + 5 t^2 e^{-t}
 $$
+
+## Initial Value Problems
+
+So far, we have discussed general solutions to homogeneous and inhomogeneous equations. From now on, we will focus on solving initial value problems (IVPs) of the form
+
+$$
+y'' + p(t)y' + q(t)y = f(t), \quad y(t_0)=y_0,\; y'(t_0)=y_1.
+$$
+
+Steps to solve an IVP:
+
+1. Find the complementary solution $y_h$ to the homogeneous equation $y'' + p(t)y' + q(t)y = 0$.
+1. Find a particular solution $y_p$ to the inhomogeneous equation $y'' + p(t)y' + q(t)y = f(t)$.
+1. Form the general solution to the inhomogeneous equation: $y(t) = y_h(t) + y_p(t)$.
+1. Substitute the initial conditions into the general solution to solve for the constants in the complementary solution.
+
+**Example**: Consider the following IVP:
+
+$$
+y'' + \omega^2 y = \sin(\omega t), \quad y(0) = y_0, \; y'(0) = 0
+$$
+
+The complementary solution is given by:
+
+$$
+y_h(t) = C_1 \cos(\omega t) + C_2 \sin(\omega t)
+$$
+
+A particular solution can be guessed due to resonance as:
+
+$$
+y_p(t) = A t \cos(\omega t) + B t \sin(\omega t)
+$$
+
+Applying the method of undetermined coefficients, we can find the coefficients $A$ and $B$:
+
+$$
+A = -\frac{1}{2\omega},\quad B = 0
+$$
+
+Hence, the particular solution is $y_p(t) = -\frac{1}{2\omega} t \cos(\omega t)$.
+
+The general solution to the inhomogeneous equation is:
+
+$$
+y(t) = C_1 \cos(\omega t) + C_2 \sin(\omega t) - \frac{1}{2\omega} t \cos(\omega t)
+$$
+
+Substituting the initial conditions, we get:
+
+$$
+C_1 = y_0, \quad C_2 = \frac{1}{2\omega^2}
+$$
+
+Thus, the solution to the IVP is:
+
+$$
+\begin{align*}
+y(t)
+&= y_0 \cos(\omega t) + \frac{1}{2\omega^2} \sin(\omega t) - \frac{1}{2\omega} t \cos(\omega t) \\
+&= \left(y_0 - \frac{t}{2\omega}\right) \cos(\omega t) + \frac{1}{2\omega^2} \sin(\omega t)
+\end{align*}
+$$
+
+### Zero-input and Zero-state Responses
+
+Define:
+
+- **Zero-input response** $y_{\text{zi}}$ as the solution of
+  $$
+  y_{\text{zi}}'' + p(t)y_{\text{zi}}' + q(t)y_{\text{zi}} = 0,\quad
+  y_{\text{zi}}(t_0)=y_0,\; y_{\text{zi}}'(t_0)=y_1.
+  $$
+
+- **Zero-state response** $y_{\text{zs}}$ as the solution of
+  $$
+  y_{\text{zs}}'' + p(t)y_{\text{zs}}' + q(t)y_{\text{zs}} = f(t),\quad
+  y_{\text{zs}}(t_0)=0,\; y_{\text{zs}}'(t_0)=0.
+  $$
+
+Then, the solution to the original IVP can be expressed as the sum of the zero-input response and the zero-state response:
+
+> $$
+> y(t) = y_{\text{zi}}(t) + y_{\text{zs}}(t)
+> $$
+
+Remarks:
+
+- The zero-input response $y_{\text{zi}}$ captures the effect of the initial conditions on the system's behavior. Physically, it represents the system's response due to the initial energy stored in the system, without any external forcing.
+- The zero-state response $y_{\text{zs}}$ captures the effect of the external forcing on the system's behavior. Physically, it represents the system's response due to the external input, assuming that the system initially contains no energy.
+
+*Proof*: It is easy to verify that $y_{\text{zi}} + y_{\text{zs}}$ is a solution to the original IVP. By the existence and uniqueness theorem for ODEs, this solution must be the unique solution to the original IVP. $\quad\blacksquare$

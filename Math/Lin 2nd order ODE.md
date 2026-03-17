@@ -559,13 +559,13 @@ $$
 
 ### Methods to Solve Inhomogeneous ODEs
 
-There are several methods for finding a particular solution to an inhomogeneous ODE, including:
+There are several methods for finding a particular solution to an inhomogeneous ODE, including.
 
 1. **Method of Undetermined Coefficients**: This method is applicable when (i) the coefficients $p(t)$ and $q(t)$ are constants, and (ii) the inhomogeneous term $f(t)$ is a simple function such as a polynomial, exponential, sine, or cosine. The idea is to guess a form for $y_p$ based on the form of $f(t)$ and then determine the coefficients by substituting back into the ODE.
-2. **Variation of Parameters**: This method is more general and can be used when the method of undetermined coefficients is not applicable. It involves using the solutions to the homogeneous equation to construct a particular solution to the inhomogeneous equation.
+2. **Green's Function**: This method breaks $f(t)$ into infinitesimal impulses and finds the response of the system to each impulse. The particular solution is then obtained by integrating the responses over time.
 3. **Laplace Transform**: This method is particularly useful for solving ODEs with constant coefficients and can be used to find a particular solution by transforming the ODE into an algebraic equation in the Laplace domain.
 
-Here, we will focus on the method of undetermined coefficients and variation of parameters.
+Here, we will focus on the method of undetermined coefficients and Green's function.
 
 ### Method of Undetermined Coefficients
 
@@ -689,6 +689,150 @@ $$
 y(t) = C_1 e^{-t} + C_2 t e^{-t} + 5 t^2 e^{-t}
 $$
 
+### Green's Function
+
+> Green's function relies on the Dirac delta $\delta(t)$, which is not a function in strict mathematical sense but rather a **[distribution](https://en.wikipedia.org/wiki/Distribution_(mathematical_analysis))** (or **generalized function**). However, we allow some mathematical abuse and treat $\delta(t)$ as a function, defined as
+> $$
+> \delta(t) =
+> \begin{cases}
+> \infty, & t = 0 \\
+> 0, & t \ne 0
+> \end{cases}
+> \text{ s.t. } \int_{-\infty}^{\infty} \delta(t) dt = 1
+> $$
+>
+> Moreover, we will use the notion of **unit step function** $u(t)$, defined as
+>
+> $$
+> u(t) =
+> \begin{cases}
+> 1, & t \ge 0 \\
+> 0, & t < 0
+> \end{cases}
+> $$
+>
+> In classical calculus, the unit step function is not differentiable at $t = 0$. However, the distribution theory allows us to define the **(distributional) derivative** of $u(t)$ as the Dirac delta $\delta(t)$, i.e.,
+> $$
+> u'(t) = \delta(t)
+> $$
+>
+> More properties about the Dirac delta and the unit step function can be found in the [appendix](#appendix).
+
+The Green's function $G(t, \tau)$ is defined as the solution to the following IVP:
+
+$$
+y'' + p(t)y' + q(t)y = \delta(t - \tau), \quad y(t_0) = 0, \; y'(t_0) = 0
+$$
+
+where $\delta(t - \tau)$ is the Dirac delta centered at $\tau$.
+
+Remarks:
+
+- Intuitively, $G(t, \tau)$ represents the response of the system at time $t$ due to an impulse (a "kick") occurring at time $\tau$. The zero intial conditions ensure that the system contains no energy before it get kicked.
+- $G(t, \tau)$ does not depend on the inhomogeneous term $f(t)$. It is an inherent property of the system described by the homogeneous equation.
+- If the system is time-invariant, i.e., $p(t)$ and $q(t)$ are constants, the Green's function only depends on the difference $t - \tau$. We often call it the impulse response of the system, denoted by $h(t - \tau) \triangleq G(t, \tau)$.
+
+**Fact 1**: The Green's function $G(t, \tau)$ can be expressed as:
+
+$$
+G(t, \tau) = \frac{y_1(\tau)y_2(t) - y_1(t)y_2(\tau)}{W(y_1, y_2)(\tau)} \cdot u(t - \tau)
+$$
+
+where $W(y_1, y_2)(\tau)$ is the Wronskian determinant of $y_1$ and $y_2$ evaluated at $\tau$.
+
+Remarks:
+
+- A constructive proof of this fact requires the theory of distributions, which is beyond the scope of this note. Omitted here. Nonetheless, we can verify that the function defined above indeed satisfies the IVP for Green's function.
+- Once we have the Green's function, we can find a particular solution to the inhomogeneous equation with any inhomogeneous term $f(t)$ by integration.
+
+**Fact 2**: A particular solution to the IVP
+
+$$
+y'' + p(t)y' + q(t)y = f(t), \quad y(t_0) = 0, \; y'(t_0) = 0
+$$
+
+can be expressed in terms of the Green's function as:
+
+$$
+y_p(t) = \int_{t_0}^{t} G(t, \tau) f(\tau) \, d\tau
+$$
+
+Remarks:
+
+- This fact is known as the **convolution integral**, which is used to compute the [zero-state response](#zero-input-and-zero-state-responses) of a system to an arbitrary input $f(t)$.
+- A rigorous proof of this fact requires operator theory and distribution theory. Omitted here. Nonetheless, we understand this fact intuitively as follows:
+
+$$
+\begin{align*}
+\\
+\delta(t - \tau) \longrightarrow &\boxed{\text{System}} \longrightarrow G(t, \tau)
+\\
+f(t) = \underbrace{\int \delta(t - \tau) f(\tau) \, d\tau}_{\text{"weighted sum of impulses"}}
+\longrightarrow &\boxed{\text{System }} \longrightarrow
+\underbrace{\int G(t, \tau) f(\tau) \, d\tau}_{\text{"weighted sum of responses"}} = y_p(t)
+\end{align*}
+$$
+
+**Example**: Consider the following IVP:
+
+$$
+y'' + \omega^2 y = f(t), \quad y(0) = 0, \; y'(0) = 0
+$$
+
+The fundamental solutions to the homogeneous equation are
+
+$$
+y_1(t) = \cos(\omega t), \quad y_2(t) = \sin(\omega t)
+$$
+
+The Wronskian determinant is
+
+$$
+W(y_1, y_2)(t)
+= \det
+\begin{bmatrix}
+\cos(\omega t) & \sin(\omega t) \\
+-\omega \sin(\omega t) & \omega \cos(\omega t)
+\end{bmatrix}
+= \omega
+$$
+
+By fact 1, the Green's function is given by:
+
+$$
+\begin{align*}
+G(t, \tau)
+&= \frac{\cos(\omega \tau)\sin(\omega t) - \cos(\omega t)\sin(\omega \tau)}{\omega} \cdot u(t - \tau) \\
+&= \frac{\sin(\omega (t - \tau))}{\omega} \cdot u(t - \tau)
+\end{align*}
+$$
+
+By fact 2, a particular solution to the IVP is given by:
+
+$$
+y_p(t) = \int_{0}^{t} \frac{\sin(\omega (t - \tau))}{\omega} f(\tau) \, d\tau
+$$
+
+Case A: For $f(t) = 1$, we have
+
+$$
+y_p(t) = \frac{1 - \cos(\omega t)}{\omega^2}
+$$
+
+Note that $\frac{1}{\omega^2}$ is the particular solution obtained by the method of undetermined coefficients. The additional term $-\frac{\cos(\omega t)}{\omega^2}$ is a solution to the homogeneous equation, which does not affect the validity of $y_p$ as a particular solution.
+
+Case B: For $f(t) = \sin(\omega t)$, we have
+
+$$
+\begin{align*}
+y_p(t)
+&= \int_{0}^{t} \frac{\sin(\omega (t - \tau))}{\omega} \sin(\omega \tau) \, d\tau \\
+&= \frac{\sin(\omega t)}{2\omega^2} - \frac{t \cos(\omega t)}{2\omega}
+\end{align*}
+$$
+
+Again, the term $\frac{\sin(\omega t)}{2\omega^2}$ is a particular solution obtained by the method of undetermined coefficients, which reflects the resonce phenomenon. The additional term $-\frac{t \cos(\omega t)}{2\omega}$ does not affect the validity of $y_p$ as a particular solution.
+
 ## Initial Value Problems
 
 So far, we have discussed general solutions to homogeneous and inhomogeneous equations. From now on, we will focus on solving initial value problems (IVPs) of the form
@@ -780,3 +924,26 @@ Remarks:
 - The zero-state response $y_{\text{zs}}$ captures the effect of the external forcing on the system's behavior. Physically, it represents the system's response due to the external input, assuming that the system initially contains no energy.
 
 *Proof*: It is easy to verify that $y_{\text{zi}} + y_{\text{zs}}$ is a solution to the original IVP. By the existence and uniqueness theorem for ODEs, this solution must be the unique solution to the original IVP. $\quad\blacksquare$
+
+The zero-input response can be found by (i) solving the homogeneous equation and (ii) applying the initial conditions to solve the constants:
+
+$$
+y_{\text{zi}}(t) = C_1 y_1(t) + C_2 y_2(t)
+$$
+
+The zero-state response can be found using convolution integral with the [Green's function](#greens-function):
+
+$$
+y_{\text{zs}}(t) = \int_{t_0}^{t} G(t, \tau) f(\tau) \, d\tau
+$$
+
+The total response of the system is the sum of the zero-input response and the zero-state response:
+
+$$
+y(t) = C_1 y_1(t) + C_2 y_2(t) + \int_{t_0}^{t} G(t, \tau) f(\tau) \, d\tau
+$$
+
+## Appendix
+
+### Dirac Delta Function and Unit Step Function
+

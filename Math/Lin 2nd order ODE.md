@@ -732,7 +732,13 @@ Remarks:
 - $G(t, \tau)$ does not depend on the inhomogeneous term $f(t)$. It is an inherent property of the system described by the homogeneous equation.
 - If the system is time-invariant, i.e., $p(t)$ and $q(t)$ are constants, the Green's function only depends on the difference $t - \tau$. We often call it the impulse response of the system, denoted by $h(t - \tau) \triangleq G(t, \tau)$.
 
-**Fact 1**: The Green's function $G(t, \tau)$ can be expressed as:
+**Fact 1**: Let $y_1$ and $y_2$ be fundamental solutions to the homogeneous equation
+
+$$
+y'' + p(t)y' + q(t)y = 0.
+$$
+
+The Green's function $G(t, \tau)$ can be expressed as:
 
 $$
 G(t, \tau) = \frac{y_1(\tau)y_2(t) - y_1(t)y_2(\tau)}{W(y_1, y_2)(\tau)} \cdot u(t - \tau)
@@ -745,21 +751,22 @@ Remarks:
 - A constructive proof of this fact requires the theory of distributions, which is beyond the scope of this note. Omitted here. Nonetheless, we can verify that the function defined above indeed satisfies the IVP for Green's function.
 - Once we have the Green's function, we can find a particular solution to the inhomogeneous equation with any inhomogeneous term $f(t)$ by integration.
 
-**Fact 2**: A particular solution to the IVP
+**Fact 2**: For any piecewise continuous function $f(t)$, the solution to the IVP
 
 $$
 y'' + p(t)y' + q(t)y = f(t), \quad y(t_0) = 0, \; y'(t_0) = 0
 $$
 
-can be expressed in terms of the Green's function as:
+can be expressed as the **convolution integral**:
 
 $$
-y_p(t) = \int_{t_0}^{t} G(t, \tau) f(\tau) \, d\tau
+y(t) = \int_{t_0}^{t} G(t, \tau) f(\tau) \, d\tau
 $$
 
 Remarks:
 
-- This fact is known as the **convolution integral**, which is used to compute the [zero-state response](#zero-input-and-zero-state-responses) of a system to an arbitrary input $f(t)$.
+- Mathematically, the convolutional integral gives the unique particular solution to the inhomogeneous equation that satisfies the zero initial conditions.
+- In engineering, the convolutional integral is used to compute the [zero-state response](#zero-input-and-zero-state-responses) of a system to an arbitrary input $f(t)$.
 - A rigorous proof of this fact requires operator theory and distribution theory. Omitted here. Nonetheless, we understand this fact intuitively as follows:
 
 $$
@@ -769,32 +776,40 @@ $$
 \\
 f(t) = \underbrace{\int \delta(t - \tau) f(\tau) \, d\tau}_{\text{"weighted sum of impulses"}}
 \longrightarrow &\boxed{\text{System }} \longrightarrow
-\underbrace{\int G(t, \tau) f(\tau) \, d\tau}_{\text{"weighted sum of responses"}} = y_p(t)
+\underbrace{\int G(t, \tau) f(\tau) \, d\tau}_{\text{"weighted sum of responses"}} = y(t)
 \end{align*}
 $$
 
-**Example**: Consider the following IVP:
+**Fact 3**: The general solution to the inhomogeneous equation (without initial conditions)
 
 $$
-y'' + \omega^2 y = f(t), \quad y(0) = 0, \; y'(0) = 0
+y'' + p(t)y' + q(t)y = f(t)
 $$
 
-The fundamental solutions to the homogeneous equation are
+can be expressed in terms of the Green's function as:
 
 $$
-y_1(t) = \cos(\omega t), \quad y_2(t) = \sin(\omega t)
+y(t) = C_1 y_1(t) + C_2 y_2(t) + \int_{t_0}^{t} G(t, \tau) f(\tau) \, d\tau
 $$
 
-The Wronskian determinant is
+where $y_1$ and $y_2$ are the fundamental solutions to the homogeneous equation, and $t_0$ can be chosen arbitrarily.
+
+*Proof*: We already know that the general solution to the inhomogeneous equation can be expressed as the sum of the complementary solution and a particular solution. By fact 2, we know one particular solution is given by the convolution integral. Hence, we conclude. $\quad\blacksquare$
+
+**Example**: Consider the ODE:
 
 $$
-W(y_1, y_2)(t)
-= \det
-\begin{bmatrix}
-\cos(\omega t) & \sin(\omega t) \\
--\omega \sin(\omega t) & \omega \cos(\omega t)
-\end{bmatrix}
-= \omega
+y'' + \omega^2 y = f(t), \quad t > 0
+$$
+
+It is easy to verify that the fundamental solutions to the homogeneous equation and their Wronskian determinant are:
+
+$$
+\begin{cases}
+y_1(t) = \cos(\omega t) \\
+y_2(t) = \sin(\omega t)
+\end{cases},
+\quad W(y_1, y_2)(t) = \omega
 $$
 
 By fact 1, the Green's function is given by:
@@ -807,21 +822,37 @@ G(t, \tau)
 \end{align*}
 $$
 
-By fact 2, a particular solution to the IVP is given by:
+To find a particular solution to the inhomogeneous equation, we can choose $t_0 = 0$ and solve the IVP:
+
+$$
+y'' + \omega^2 y = f(t), \quad y(0) = 0, \; y'(0) = 0
+$$
+
+By fact 2, the solution to the IVP is obtained from the convolution integral:
 
 $$
 y_p(t) = \int_{0}^{t} \frac{\sin(\omega (t - \tau))}{\omega} f(\tau) \, d\tau
 $$
 
-Case A: For $f(t) = 1$, we have
+By fact 3, the general solution to the inhomogeneous equation is given by:
+
+$$
+y(t) = C_1 \cos(\omega t) + C_2 \sin(\omega t) + \int_{0}^{t} \frac{\sin(\omega (t - \tau))}{\omega} f(\tau) \, d\tau
+$$
+
+*Case A*: For $f(t) = 1$, we have
 
 $$
 y_p(t) = \frac{1 - \cos(\omega t)}{\omega^2}
 $$
 
-Note that $\frac{1}{\omega^2}$ is the particular solution obtained by the method of undetermined coefficients. The additional term $-\frac{\cos(\omega t)}{\omega^2}$ is a solution to the homogeneous equation, which does not affect the validity of $y_p$ as a particular solution.
+Note that $\frac{1}{\omega^2}$ coincides with the particular solution obtained by the method of undetermined coefficients. The additional term $-\frac{\cos(\omega t)}{\omega^2}$ is a solution to the homogeneous equation, which can be absorbed into the complementary solution. Hence, the general solution to the inhomogeneous is:
 
-Case B: For $f(t) = \sin(\omega t)$, we have
+$$
+y(t) = C_1 \cos(\omega t) + C_2 \sin(\omega t) + \frac{1}{\omega^2}
+$$
+
+*Case B*: For $f(t) = \sin(\omega t)$, we have
 
 $$
 \begin{align*}
@@ -831,7 +862,17 @@ y_p(t)
 \end{align*}
 $$
 
-Again, the term $\frac{\sin(\omega t)}{2\omega^2}$ is a particular solution obtained by the method of undetermined coefficients, which reflects the resonce phenomenon. The additional term $-\frac{t \cos(\omega t)}{2\omega}$ does not affect the validity of $y_p$ as a particular solution.
+Again, the term $- \frac{t \cos(\omega t)}{2\omega}$ coincides with the result obtained by the method of undetermined coefficients. The additional term $\frac{\sin(\omega t)}{2\omega^2}$ can be again absorbed into the complementary solution. Hence, the general solution to the inhomogeneous is:
+
+$$
+y(t) = C_1 \cos(\omega t) + C_2 \sin(\omega t) - \frac{t \cos(\omega t)}{2\omega}
+$$
+
+Green's function method vs. method of undetermined coefficients:
+
+- The Green's function method is more systematic and can be applied to a wider range of inhomogeneous terms, without assuming any specific form for $f(t)$.
+- In time-invariant systems, the Green's function method does not require us to check for resonance, as the convolution integral automatically accounts for it.
+- For simple inhomogeneous terms, the method of undetermined coefficients is often more straightforward and computationally efficient than the Green's function method since the former avoids integration.
 
 ## Initial Value Problems
 
@@ -843,8 +884,10 @@ $$
 
 Steps to solve an IVP:
 
-1. Find the complementary solution $y_h$ to the homogeneous equation $y'' + p(t)y' + q(t)y = 0$.
-1. Find a particular solution $y_p$ to the inhomogeneous equation $y'' + p(t)y' + q(t)y = f(t)$.
+1. Find the complementary solution $y_h$ to the homogeneous equation.
+    - This can be done either by characteristic equations (for constant coefficients) or by reduction of order (for varying coefficients).
+1. Find a particular solution $y_p$ to the inhomogeneous equation.
+    - This can be done either by the method of undetermined coefficients or by Green's function.
 1. Form the general solution to the inhomogeneous equation: $y(t) = y_h(t) + y_p(t)$.
 1. Substitute the initial conditions into the general solution to solve for the constants in the complementary solution.
 
@@ -860,19 +903,11 @@ $$
 y_h(t) = C_1 \cos(\omega t) + C_2 \sin(\omega t)
 $$
 
-A particular solution can be guessed due to resonance as:
+A particular solution can be obtained by the method of undetermined coefficients:
 
 $$
-y_p(t) = A t \cos(\omega t) + B t \sin(\omega t)
+y_p(t) = -\frac{1}{2\omega} t \cos(\omega t)
 $$
-
-Applying the method of undetermined coefficients, we can find the coefficients $A$ and $B$:
-
-$$
-A = -\frac{1}{2\omega},\quad B = 0
-$$
-
-Hence, the particular solution is $y_p(t) = -\frac{1}{2\omega} t \cos(\omega t)$.
 
 The general solution to the inhomogeneous equation is:
 
@@ -880,7 +915,7 @@ $$
 y(t) = C_1 \cos(\omega t) + C_2 \sin(\omega t) - \frac{1}{2\omega} t \cos(\omega t)
 $$
 
-Substituting the initial conditions, we get:
+Substituting the initial conditions and solving the linear equations, we get:
 
 $$
 C_1 = y_0, \quad C_2 = \frac{1}{2\omega^2}
@@ -945,5 +980,60 @@ $$
 
 ## Appendix
 
-### Dirac Delta Function and Unit Step Function
+### Properties of the Dirac Delta Function
 
+1. Even function:
+
+    $$
+    \delta(t) = \delta(-t)
+    $$
+
+1. Scaling property: For $a \ne 0$,
+
+    $$
+    \delta(at) = \frac{1}{|a|} \delta(t)
+    $$
+
+1. Product with function:
+
+    $$
+    f(t) \delta(t - a) = f(a) \delta(t - a)
+    $$
+
+1. Sifting property: For any continuous function $f(t)$,
+
+    $$
+    \int_{-\infty}^{\infty} f(t) \delta(t - a) \, dt = f(a)
+    $$
+
+1. Derivative property: The (Distributional) derivative $\delta'(t)$ satisfies
+
+    $$
+    \int_{-\infty}^{\infty} f(t) \delta'(t) \, dt = -f'(0)
+    $$
+
+### Properties of the Unit Step Function
+
+1. Shifted unit step function: 
+
+    $$
+    u(t - a) = \begin{cases} 1, & t \ge a \\ 0, & t < a \end{cases}
+    $$
+
+1. (Distributional) derivative:
+
+    $$
+    \frac{d}{dt} u(t - a) = \delta(t - a)
+    $$
+
+1. Multiplication property:
+
+    $$
+    u(t - a) f(t) = \begin{cases} f(t), & t \ge a \\ 0, & t < a \end{cases}
+    $$
+
+1. Product of step functions:
+
+    $$
+    u(t - a) u(b - t) = \begin{cases} 1, & a \le t \le b \\ 0, & \text{otherwise} \end{cases}
+    $$

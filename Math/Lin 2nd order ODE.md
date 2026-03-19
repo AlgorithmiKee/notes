@@ -64,7 +64,7 @@ Here, $y(t)$ represents the charge on the capacitor at time $t$, and $V(t)$ repr
 
 - $f(t) = \frac{V(t)}{L}$ (external voltage per unit inductance)
 
-## 2nd Order ODE as a System of 1st Order ODEs
+## Linear Systems Representation
 
 The 2nd order ODE $y'' + p(t)y' + q(t)y = f(t)$ can be rewritten as a system of two 1st order ODEs by introducing
 
@@ -160,6 +160,14 @@ Remarks:
 If we can solve a general system of 1st order ODEs, we can solve any linear 2nd order ODE. However, the former approach is beyond the scope of this note. We will turn back to the original 2nd order ODE and discuss the structure of the solutions to homogeneous and inhomogeneous equations, as well as methods for finding these solutions.
 
 ## Homogeneous Equations
+
+Consider the homogeneous equation
+
+$$
+y'' + p(t)y' + q(t)y = 0
+$$
+
+Obviously, the zero function $y(t) = 0$ is always a solution to the homogeneous equation. This is known as the **trivial solution**. We are more interested in finding **non-trivial solutions** which are not zero everywhere.
 
 ### Structure of the Solutions to Homogeneous Equations
 
@@ -730,38 +738,38 @@ Remarks:
 
 - Intuitively, $G(t, \tau)$ represents the response of the system at time $t$ due to an impulse (a "kick") occurring at time $\tau$. The zero intial conditions ensure that the system contains no energy before it get kicked.
 - $G(t, \tau)$ does not depend on the inhomogeneous term $f(t)$. It is an inherent property of the system described by the homogeneous equation.
-- If the system is time-invariant, i.e., $p(t)$ and $q(t)$ are constants, the Green's function only depends on the difference $t - \tau$. We often call it the impulse response of the system, denoted by $h(t - \tau) \triangleq G(t, \tau)$.
+- If the system is time-invariant, i.e., $p(t)$ and $q(t)$ are constants, the Green's function only depends on the difference $t - \tau$. We often call it the **impulse response** of the system, denoted by $h(t - \tau) \triangleq G(t, \tau)$.
 
-**Fact 1**: Let $y_1$ and $y_2$ be fundamental solutions to the homogeneous equation
-
-$$
-y'' + p(t)y' + q(t)y = 0.
-$$
-
-The Green's function $G(t, \tau)$ can be expressed as:
-
-$$
-G(t, \tau) = \frac{y_1(\tau)y_2(t) - y_1(t)y_2(\tau)}{W(y_1, y_2)(\tau)} \cdot u(t - \tau)
-$$
-
-where $W(y_1, y_2)(\tau)$ is the Wronskian determinant of $y_1$ and $y_2$ evaluated at $\tau$.
+> **Fact 1**: Let $y_1$ and $y_2$ be fundamental solutions to the homogeneous equation
+>
+> $$
+> y'' + p(t)y' + q(t)y = 0.
+> $$
+>
+> The Green's function $G(t, \tau)$ can be expressed as:
+>
+> $$
+> G(t, \tau) = \frac{y_1(\tau)y_2(t) - y_1(t)y_2(\tau)}{W(y_1, y_2)(\tau)} \cdot u(t - \tau)
+> $$
+>
+> where $W(y_1, y_2)(\tau)$ is the Wronskian determinant of $y_1$ and $y_2$ evaluated at $\tau$.
 
 Remarks:
 
 - A constructive proof of this fact requires the theory of distributions, which is beyond the scope of this note. Omitted here. Nonetheless, we can verify that the function defined above indeed satisfies the IVP for Green's function.
+- For time-invariant systems, the Green's function (or impulse response) can also be derived from Laplace transform besides this formula.
 - Once we have the Green's function, we can find a particular solution to the inhomogeneous equation with any inhomogeneous term $f(t)$ by integration.
 
-**Fact 2**: For any piecewise continuous function $f(t)$, the solution to the IVP
-
-$$
-y'' + p(t)y' + q(t)y = f(t), \quad y(t_0) = 0, \; y'(t_0) = 0
-$$
-
-can be expressed as the **convolution integral**:
-
-$$
-y(t) = \int_{t_0}^{t} G(t, \tau) f(\tau) \, d\tau
-$$
+> **Fact 2**: For any piecewise continuous function $f(t)$, the solution to the IVP
+>
+> $$
+> y'' + p(t)y' + q(t)y = f(t), \quad y(t_0) = 0, \; y'(t_0) = 0
+> $$
+>
+> can be expressed as the **convolution integral**:
+> $$
+> y(t) = \int_{t_0}^{t} G(t, \tau) f(\tau) \, d\tau
+> $$
 
 Remarks:
 
@@ -780,19 +788,18 @@ f(t) = \underbrace{\int \delta(t - \tau) f(\tau) \, d\tau}_{\text{"weighted sum 
 \end{align*}
 $$
 
-**Fact 3**: The general solution to the inhomogeneous equation (without initial conditions)
-
-$$
-y'' + p(t)y' + q(t)y = f(t)
-$$
-
-can be expressed in terms of the Green's function as:
-
-$$
-y(t) = C_1 y_1(t) + C_2 y_2(t) + \int_{t_0}^{t} G(t, \tau) f(\tau) \, d\tau
-$$
-
-where $y_1$ and $y_2$ are the fundamental solutions to the homogeneous equation, and $t_0$ can be chosen arbitrarily.
+> **Fact 3**: The general solution to the inhomogeneous equation (without initial conditions)
+>
+> $$
+> y'' + p(t)y' + q(t)y = f(t)
+> $$
+>
+> can be expressed in terms of the Green's function as:
+> $$
+> y(t) = C_1 y_1(t) + C_2 y_2(t) + \int_{t_0}^{t} G(t, \tau) f(\tau) \, d\tau
+> $$
+>
+> where $y_1$ and $y_2$ are the fundamental solutions to the homogeneous equation, and $t_0$ can be chosen arbitrarily.
 
 *Proof*: We already know that the general solution to the inhomogeneous equation can be expressed as the sum of the complementary solution and a particular solution. By fact 2, we know one particular solution is given by the convolution integral. Hence, we conclude. $\quad\blacksquare$
 
@@ -962,20 +969,60 @@ Remarks:
 
 The zero-input response can be found by (i) solving the homogeneous equation and (ii) applying the initial conditions to solve the constants:
 
-$$
-y_{\text{zi}}(t) = C_1 y_1(t) + C_2 y_2(t)
-$$
+> $$
+> y_{\text{zi}}(t) = C_1 y_1(t) + C_2 y_2(t)
+> $$
 
 The zero-state response can be found using convolution integral with the [Green's function](#greens-function):
 
-$$
-y_{\text{zs}}(t) = \int_{t_0}^{t} G(t, \tau) f(\tau) \, d\tau
-$$
+> $$
+> y_{\text{zs}}(t) = \int_{t_0}^{t} G(t, \tau) f(\tau) \, d\tau
+> $$
 
 The total response of the system is the sum of the zero-input response and the zero-state response:
 
+> $$
+> y(t) = C_1 y_1(t) + C_2 y_2(t) + \int_{t_0}^{t} G(t, \tau) f(\tau) \, d\tau
+> $$
+
+**Example**: Recall the following IVP:
+
 $$
-y(t) = C_1 y_1(t) + C_2 y_2(t) + \int_{t_0}^{t} G(t, \tau) f(\tau) \, d\tau
+y'' + \omega^2 y = \sin(\omega t), \quad y(0) = y_0, \; y'(0) = 0.
+$$
+
+- The zero-input response is found by solving
+
+    $$
+    y'' + \omega^2 y = 0, \quad y(0) = y_0, \; y'(0) = 0.
+    $$
+
+    Using the method of [characteristic equations](#characteristic-equations-for-constant-coefficients) plus the initial conditions, we get
+
+    $$
+    y_{\text{zi}}(t) = y_0 \cos(\omega t).
+    $$
+
+- The zero-state response is found by solving
+
+    $$
+    y'' + \omega^2 y = \sin(\omega t), \quad y(0) = 0, \; y'(0) = 0.
+    $$
+
+    Using the [convolution integral](#greens-function), we get
+
+    $$
+    y_{\text{zs}}(t) = -\frac{1}{2\omega} t \cos(\omega t) + \frac{1}{2\omega^2} \sin(\omega t)
+    $$
+
+The total response is hence:
+
+$$
+\begin{align*}
+y(t)
+&= y_{\text{zi}}(t) + y_{\text{zs}}(t) \\
+&= \left(y_0 - \frac{t}{2\omega}\right) \cos(\omega t) + \frac{1}{2\omega^2} \sin(\omega t)
+\end{align*}
 $$
 
 ## Appendix

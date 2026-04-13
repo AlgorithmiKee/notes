@@ -1,7 +1,7 @@
 ---
 title: "Basic Python"
 date: "2025"
-author: "Kezhang"
+author: "Ke Zhang"
 ---
 
 # Basic Python

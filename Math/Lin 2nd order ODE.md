@@ -141,6 +141,7 @@ y_2'
 y_1 \\
 y_2
 \end{bmatrix}
+\tag*{$\lozenge$}
 $$
 
 ### Existence and Uniqueness Theorem
@@ -461,6 +462,7 @@ Hence, the general solution is given by:
 
 $$
 y(t) = C_1 t^2 + C_2 t^2 \ln(t)
+\tag*{$\lozenge$}
 $$
 
 ## Inhomogeneous Equations
@@ -570,10 +572,10 @@ $$
 There are several methods for finding a particular solution to an inhomogeneous ODE, including.
 
 1. **Method of Undetermined Coefficients**: This method is applicable when (i) the coefficients $p(t)$ and $q(t)$ are constants, and (ii) the inhomogeneous term $f(t)$ is a simple function such as a polynomial, exponential, sine, or cosine. The idea is to guess a form for $y_p$ based on the form of $f(t)$ and then determine the coefficients by substituting back into the ODE.
-2. **Green's Function**: This method breaks $f(t)$ into infinitesimal impulses and finds the response of the system to each impulse. The particular solution is then obtained by integrating the responses over time.
-3. **Laplace Transform**: This method is particularly useful for solving ODEs with constant coefficients and can be used to find a particular solution by transforming the ODE into an algebraic equation in the Laplace domain.
+2. **Green's Function**: This method breaks $f(t)$ into infinitesimal impulses and finds the response of the system to each impulse. A particular solution is then obtained by integrating the responses over time.
+3. **Laplace Transform**: This method is particularly useful for solving ODEs with initial conditions. It transforms the ODE into an algebraic equation in the Laplace domain, where it can be solved more easily. The solution in the time domain is then obtained by taking the inverse Laplace transform.
 
-Here, we will focus on the method of undetermined coefficients and Green's function.
+In this chapter, we will focus on the method of undetermined coefficients and Green's function. In the [next chapter](#initial-value-problems), we will discuss the Laplace transform method.
 
 ### Method of Undetermined Coefficients
 
@@ -873,6 +875,7 @@ Again, the term $- \frac{t \cos(\omega t)}{2\omega}$ coincides with the result o
 
 $$
 y(t) = C_1 \cos(\omega t) + C_2 \sin(\omega t) - \frac{t \cos(\omega t)}{2\omega}
+\tag*{$\lozenge$}
 $$
 
 Green's function method vs. method of undetermined coefficients:
@@ -935,6 +938,7 @@ $$
 y(t)
 &= y_0 \cos(\omega t) + \frac{1}{2\omega^2} \sin(\omega t) - \frac{1}{2\omega} t \cos(\omega t) \\
 &= \left(y_0 - \frac{t}{2\omega}\right) \cos(\omega t) + \frac{1}{2\omega^2} \sin(\omega t)
+\tag*{$\lozenge$}
 \end{align*}
 $$
 
@@ -964,6 +968,7 @@ Remarks:
 
 - The zero-input response $y_{\text{zi}}$ captures the effect of the initial conditions on the system's behavior. Physically, it represents the system's response due to the initial energy stored in the system, without any external forcing.
 - The zero-state response $y_{\text{zs}}$ captures the effect of the external forcing on the system's behavior. Physically, it represents the system's response due to the external input, assuming that the system initially contains no energy.
+- This decomposition of the solution into zero-input and zero-state responses allows us to analyze the effects of initial conditions and external inputs separately.
 
 *Proof*: It is easy to verify that $y_{\text{zi}} + y_{\text{zs}}$ is a solution to the original IVP. By the existence and uniqueness theorem for ODEs, this solution must be the unique solution to the original IVP. $\quad\blacksquare$
 
@@ -983,6 +988,12 @@ The total response of the system is the sum of the zero-input response and the z
 
 > $$
 > y(t) = C_1 y_1(t) + C_2 y_2(t) + \int_{t_0}^{t} G(t, \tau) f(\tau) \, d\tau
+> $$
+
+If the coefficients of the ODE are constants, the Green's function only depends on the difference $t - \tau$. In this case, we write $h(t - \tau) \triangleq G(t, \tau)$ as the (shifted) impulse response of the system. The zero-state response can then be expressed as the convolution of the impulse response and the inhomogeneous term:
+
+> $$
+> y_{\text{zs}}(t) = \int_{t_0}^{t} h(t - \tau) f(\tau) \, d\tau
 > $$
 
 **Example**: Recall the following IVP:
@@ -1022,8 +1033,116 @@ $$
 y(t)
 &= y_{\text{zi}}(t) + y_{\text{zs}}(t) \\
 &= \left(y_0 - \frac{t}{2\omega}\right) \cos(\omega t) + \frac{1}{2\omega^2} \sin(\omega t)
+\tag*{$\lozenge$}
 \end{align*}
 $$
+
+### Laplace Transform Method
+
+> The reader is assumed to be familiar with the Laplace transform and its properties.
+
+Laplace transform is a powerful tool for solving IVPs with constant coefficients.
+
+$$
+ay''(t) + by'(t) + cy(t) = f(t), \quad y(0) = y_0, \; y'(0) = y_1
+$$
+
+Taking the Laplace transform of both sides, we get:
+
+$$
+a[s^2 Y(s) - s y_0 - y_1] + b[s Y(s) - y_0] + c Y(s) = F(s)
+$$
+
+Now, $Y(s)$ can be solved algebraically on the s-domain:
+
+$$
+Y(s) = \frac{F(s) + a s y_0 + a y_1 + b y_0}{a s^2 + b s + c}
+$$
+
+The solution to the original IVP can be obtained by taking the inverse Laplace transform of $Y(s)$:
+
+$$
+y(t) = \mathcal{L}^{-1}\{Y\}(t), \quad t \ge 0
+$$
+
+Remarks:
+
+- Laplace transform method solves IVP where the unknown function $y(t)$ is defined on $[0, \infty)$ rather than $(-\infty, \infty)$.
+- For simple $f(t)$, the corresponding $F(s)$ can be easily found using the Laplace transform table.
+- The resulting $Y(s)$ is often a rational function, which can be decomposed into simpler fractions using partial fraction decomposition. The inverse Laplace transform of each term can then be found using the Laplace transform table.
+
+**Example**: Consider the following IVP:
+
+$$
+y'' - 3y' + 2y = e^{4t}, \quad y(0) = 1, \; y'(0) = 0
+$$
+
+Taking the Laplace transform of both sides, we get:
+
+$$
+s^2 Y(s) - s - 3[s Y(s) - 1] + 2 Y(s) = \frac{1}{s - 4}
+$$
+
+Rearranging the equation, we get:
+
+$$
+Y(s) = \frac{s^2 - 7s + 13}{(s - 4)(s - 1)(s - 2)}
+$$
+
+Using partial fraction decomposition, we can express $Y(s)$ as:
+
+$$
+Y(s) = \frac{1}{6(s - 4)} + \frac{7}{3(s - 1)} - \frac{3}{2(s - 2)}
+$$
+
+The solution to the original IVP can be obtained by taking the inverse Laplace transform of $Y(s)$:
+
+$$
+Y(s) \xrightarrow{\mathcal{L}^{-1}} y(t) = \frac{1}{6} e^{4t} + \frac{7}{3} e^{t} - \frac{3}{2} e^{2t}, \quad t \ge 0
+\tag*{$\lozenge$}
+$$
+
+The transfer function of the ODE $ay'' + by' + cy = f(t)$ is defined as the ratio of the Laplace transform of the output $Y(s)$ to the Laplace transform of the input $F(s)$, assuming zero initial conditions:
+
+$$
+H(s) = \frac{Y(s)}{F(s)} = \frac{1}{a s^2 + b s + c}
+$$
+
+Hence, for any initial conditions, the solution on the s-domain can be expressed as:
+
+$$
+Y(s) =
+\underbrace{H(s)(a s y_0 + a y_1 + b y_0)}_{Y_{\text{zi}}(s)}
++
+\underbrace{H(s) F(s)}_{Y_{\text{zs}}(s)}
+$$
+
+Remarks:
+
+- The transfer function $H(s)$ captures the inherent properties of the system described by the homogeneous equation. It does not depend on the inhomogeneous term $f(t)$ or the initial conditions.
+- The zero-input response $Y_{\text{zi}}(s)$ on the s-domain captures the effect of the initial conditions on the system's behavior.
+- The zero-state response $Y_{\text{zs}}(s)$ on the s-domain captures the effect of the external forcing on the system's behavior.
+
+Taking the inverse Laplace transform, we can express the solution to the original IVP as the sum of the zero-input response and the zero-state response:
+
+$$
+y(t) =
+\underbrace{\mathcal{L}^{-1}\{Y_{\text{zi}}\}(t)}_{y_{\text{zi}}(t)} +
+\underbrace{\mathcal{L}^{-1}\{Y_{\text{zs}}\}(t)}_{y_{\text{zs}}(t)},
+\quad t \ge 0
+$$
+
+where
+
+- The inverse of $Y_{\text{zi}}(s)$ can be found using partial fraction decomposition and the Laplace transform table. (since $Y_{\text{zi}}(s)$ is a rational function)
+
+- The inverse of $Y_{\text{zs}}(s) = H(s) F(s)$ can be found using the convolution theorem of Laplace transform:
+
+    $$
+    Y_{\text{zs}}(s) = H(s) F(s) \xrightarrow{\mathcal{L}^{-1}} y_{\text{zs}}(t) = \int_{0}^{t} h(t - \tau) f(\tau) \, d\tau
+    $$
+
+    where $h(t) = \mathcal{L}^{-1}\{H\}(t)$ is the impulse response of the system.
 
 ## Appendix
 

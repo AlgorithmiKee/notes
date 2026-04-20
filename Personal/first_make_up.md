@@ -134,3 +134,13 @@ $$
 | 眼影 | Eyeshadow |
 | 腮红 | Blush |
 | 口红 | Lipstick |
+
+### 本次用到的化妆品清单
+
+1. 眼部遮瑕：*Catrice* under eye brightener liguid (020 Warm nude)
+1. 粉底液：*Maybelline* fit me matte + poreless foundation (105)
+1. 定妆喷雾：*Catrice* prime and fine fixing spray
+1. 眼影盘：*Essence* the rose edition 9-color eyeshadow palette
+1. 打底腮红：*Essence* soft touch bouncy blush (10 antique bloom)
+1. 反光腮红：*Essence* soft baked blush (30 rose all day)
+1. 口红：*L'Oreal* paradise glow p(191 nude heaven)

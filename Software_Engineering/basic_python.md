@@ -296,76 +296,80 @@ print(L)            # -> [6,7,8,1]
 
 ## Function Decorators
 
-### Wrapper and Decorator
+### Wrapper Function and Decorator
 
-To understand function decorators, we first need to understand the concept of a **wrapper**. A wrapper is a function that takes another function as an argument and extends its behavior without explicitly modifying it.
+A **decorator** is a higher-order function that takes a function as its argument and returns a new function, called a **wrapper function**. The wrapper function calls the original function and adds extra behavior before and/or after it — without modifying the original function itself.
 
-**Example**: a simple wrapper that prints a message before calling the original function:
+This is analogous to operators in mathematics. Just as the differentiation operator $D$ takes a function $f$ and produces a new function $Df$, or the Fourier transform $\mathcal{F}$ takes a function and returns its frequency-domain counterpart, a decorator takes a function and returns an extended version of it.
+
+**Example**: a decorator that prints a message before and after calling the original function:
 
 ```python
-def wrapper(func):
-    def extended_func():
+def wrapper(func):           # decorator: takes a function, returns a wrapper function
+    def extended_func():     # wrapper function: calls func and adds behavior
         print("Starting the function...")
-        func()  # call the original function
+        func()               # call the original function
         print("Function has finished.")
     return extended_func
 ```
 
-Here, `wrapper` is a function that takes another function `func` as an argument and defines a local function `extended_func` that adds some behavior before and after calling `func`. The `wrapper` then returns this new function. We can use it like:
+Here:
+
+* `wrapper` is the **decorator** — a higher-order function that accepts `func` and returns a new function.
+* `extended_func` is the **wrapper function** — the inner function that calls `func` and adds extra behavior around it.
+
+We can apply the decorator manually:
 
 ```python
 def greet():
     print("Hello, world!")
 
-greet = wrapper(greet)  # wrap the greet function
-greet()  # calls the extended function
+greet = wrapper(greet)  # apply the decorator: greet is now extended_func
+greet()                 # calls the wrapper function
 ```
 
-A **decorator** is a special syntax in Python that allows us to apply a wrapper to a function in a more concise way. Instead of manually wrapping the function, we can use the `@` symbol upon the function definition, e.g.
+Python provides the `@` syntax as shorthand for exactly this pattern. Placing `@wrapper` above a function definition is equivalent to `greet = wrapper(greet)`:
 
 ```python
 @wrapper
 def greet():
     print("Hello, world!")
 
-greet()  # calls the extended function. no need to manually wrap it
+greet()  # calls the wrapper function; no need to manually apply the decorator
 ```
 
-We say that `greet` is decorated by `wrapper` in this case. The `@wrapper` syntax is just a shorthand for `greet = wrapper(greet)`.
+We say that `greet` is **decorated** by `wrapper`.
 
 ### Decorating functions with arguments
 
-If the original function takes arguments, the wrapper function must also accept those arguments and pass them to the original function. This can be done using `*args` and `**kwargs` to allow for any number of positional and keyword arguments.
+If the original function takes arguments, the wrapper function must also accept and forward those arguments. Using `*args` and `**kwargs` makes the decorator generic — it works with any function regardless of its signature.
 
 ```python
-def wrapper(func):
-    def extended_func(*args, **kwargs):
+def wrapper(func):                            # decorator
+    def extended_func(*args, **kwargs):       # wrapper function
         print("Starting the function...")
-        result = func(*args, **kwargs)  # call the original function with arguments
+        result = func(*args, **kwargs)        # forward all arguments to the original
         print("Function has finished.")
-        return result
+        return result                         # forward the return value
     return extended_func
 ```
 
-In this example:
-
-* `*args` and `**kwargs` take care of any number of positional and keyword arguments, respectively, so that the extended function can work with any original function regardless of its signature.
-* The wrapper can also return the result of the original function if needed.
-
-Then we can use this wrapper to decorate functions with arguments:
+* `*args` and `**kwargs` capture any number of positional and keyword arguments so that `extended_func` can stand in for any callable.
+* The wrapper function returns the result of the original function so that the decorated function behaves identically to the original from the caller's perspective.
 
 ```python
 @wrapper
 def greet(name):
     print(f"Hello, {name}!")
-greet("Alice")  # calls the extended function with an argument
+
+greet("Alice")   # prints the surrounding messages, then "Hello, Alice!"
 
 @wrapper
 def add(x, y) -> int:
     return x + y
 
-result = add(3, 4)  # calls the extended function with arguments
-print(result)  # -> 7
+result = add(3, 4)   # -> 7
+print(result)
 ```
 
 ### Multiple decorators
@@ -412,5 +416,5 @@ def install_sw(curr_user, app, version):
     print(f"Installing {app}, version {version}...")
 
 current_user = {"name": "Alice", "logged_in": True, "role": "guest"}
-install_sw(current_user, "VS Code", "1.113.0") 
+install_sw(current_user, "VS Code", "1.113.0")
 ```

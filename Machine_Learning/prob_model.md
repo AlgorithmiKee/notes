@@ -29,7 +29,7 @@ Remarks:
 
 * training data $D$: iid from unknown ground truth distribution $p^\star$.
 * ML method: compute an estimate $\hat{p}$ from $D$ to estimate $p^\star$ as closely as possible.
-* The learned distribution $\hat{p}$ is used on new data for predictions, anormaly detection, etc.
+* The learned distribution $\hat{p}$ is used on new data for predictions, anomaly detection, etc.
 
 Which probability do we want to learn?
 
@@ -49,7 +49,7 @@ The true distribution $p^\star$ may not lie within our assumed family $\{p_\thet
 
 Examples:
 
-* In unsupervised learning, the ground truth is a mixure model while we assume a single Gaussain.
+* In unsupervised learning, the ground truth is a mixture model while we assume a single Gaussian.
 * In supervised learning, the ground truth is a nonlinear model while we assume linear model.
 
 Assuming correct model specification, we distinguish two major statistical philosophies:
@@ -62,9 +62,9 @@ Throughout this notes:
 * We assume that all models are correctly specified, i.e. $p^\star \in \{p_\theta(\cdot)\}$
 * We adopt the frequentist perspective, focusing on point estimation. Although MAP uses a prior, we treat it only as a regularizer, not as part of the Bayesian inference.
 
-## Unsuperivsed Learning
+## Unsupervised Learning
 
-Unspervised learning with fully observable data:
+Unsupervised learning with fully observable data:
 
 * Model: $p(\mathbf x \mid \boldsymbol{\theta})$ with unknown $\boldsymbol{\theta}$.
 * Given: training data $D = \{\mathbf x_1, \cdots, \mathbf x_n\} \stackrel{\text{iid}}{\sim} p(\mathbf x \mid \boldsymbol{\theta})$
@@ -152,7 +152,7 @@ If the data set $D$ is large, one can use
     \end{align}
     $$
 
-* or stochastic gradient (speical case of mini-batch when $m=1$)
+* or stochastic gradient (special case of mini-batch when $m=1$)
     $$
     \begin{align}
     & \text{randomly draw } \mathbf x^{(t)} \in D \nonumber
@@ -219,7 +219,7 @@ Gradient-based optimization:
     \end{align*}
     $$
 
-* Mini-bath gradient ascent:
+* Mini-batch gradient ascent:
     $$
     \begin{align*}
     & \text{randomly draw } B^{(t)} \subset D \text{ with } \vert B \vert = m
@@ -279,7 +279,7 @@ $$
 
 ### Latent Variable Model
 
-Unspervised learning with latent variables:
+Unsupervised learning with latent variables:
 
 * Model: $p(\mathbf x, \mathbf z \mid \boldsymbol{\theta})$ with unknown $\boldsymbol{\theta}$
 * Given: training data $D = \{\mathbf x_1, \cdots, \mathbf x_n\} \stackrel{\text{iid}}{\sim} p(\mathbf x \mid \boldsymbol{\theta}) = \displaystyle\int p(\mathbf x, \mathbf z \mid \boldsymbol{\theta}) \,\mathrm d\mathbf z$. The latent variables $\mathbf z_{1:n}$ are missing.
@@ -301,9 +301,9 @@ The (incomplete-data) likelihood is
 $$
 \begin{align}
 p(D \mid \boldsymbol{\theta})
-&= p(\mathbf x_{1:n} \mid \theta) \\
-&= \prod_{i=1}^n  p(\mathbf x_{i} \mid \theta) \\
-&= \prod_{i=1}^n  \int p(\mathbf x_{i}, \mathbf z_{i} \mid \theta) \,\mathrm d\mathbf z_{i} \\
+&= p(\mathbf x_{1:n} \mid \boldsymbol{\theta}) \\
+&= \prod_{i=1}^n  p(\mathbf x_{i} \mid \boldsymbol{\theta}) \\
+&= \prod_{i=1}^n  \int p(\mathbf x_{i}, \mathbf z_{i} \mid \boldsymbol{\theta}) \,\mathrm d\mathbf z_{i} \\
 \end{align}
 $$
 
@@ -312,7 +312,7 @@ Taking the log, we obtain the (incomplete-data) log likelihood
 $$
 \begin{align}
 \ln p(D \mid \boldsymbol{\theta})
-&= \sum_{i=1}^n  \ln \left( \int p(\mathbf x_{i}, \mathbf z_{i} \mid \theta) \,\mathrm d\mathbf z_{i} \right) \\
+&= \sum_{i=1}^n  \ln \left( \int p(\mathbf x_{i}, \mathbf z_{i} \mid \boldsymbol{\theta}) \,\mathrm d\mathbf z_{i} \right) \\
 \end{align}
 $$
 
@@ -321,15 +321,15 @@ The gradient of $\ln p(D \mid \boldsymbol{\theta})$ has very complex form in gen
 $$
 \begin{align*}
 \nabla_{\boldsymbol{\theta}} \ln p(D \mid \boldsymbol{\theta})
-&= \sum_{i=1}^n  \nabla_{\boldsymbol{\theta}} \ln p(\mathbf x_{i} \mid \theta) \\
-&= \sum_{i=1}^n  \frac{1}{p(\mathbf x_{i} \mid \theta)} \nabla_{\boldsymbol{\theta}} \left( \int p(\mathbf x_{i}, \mathbf z_{i} \mid \theta) \,\mathrm d\mathbf z_{i} \right) \\
-&= \sum_{i=1}^n  \frac{1}{p(\mathbf x_{i} \mid \theta)} \int \nabla_{\boldsymbol{\theta}} p(\mathbf x_{i}, \mathbf z_{i} \mid \theta) \,\mathrm d\mathbf z_{i} \\
+&= \sum_{i=1}^n  \nabla_{\boldsymbol{\theta}} \ln p(\mathbf x_{i} \mid \boldsymbol{\theta}) \\
+&= \sum_{i=1}^n  \frac{1}{p(\mathbf x_{i} \mid \boldsymbol{\theta})} \nabla_{\boldsymbol{\theta}} \left( \int p(\mathbf x_{i}, \mathbf z_{i} \mid \boldsymbol{\theta}) \,\mathrm d\mathbf z_{i} \right) \\
+&= \sum_{i=1}^n  \frac{1}{p(\mathbf x_{i} \mid \boldsymbol{\theta})} \int \nabla_{\boldsymbol{\theta}} p(\mathbf x_{i}, \mathbf z_{i} \mid \boldsymbol{\theta}) \,\mathrm d\mathbf z_{i} \\
 \end{align*}
 $$
 
 In practice, parameters are estimated using EM algorithms instead of directly optimizing the incomplete-data log likelihood.
 
-## Superivsed Learning
+## Supervised Learning
 
 Problem formulation:
 
@@ -357,14 +357,14 @@ $$
 
 Remarks:
 
-* The 1st factorization is called ***discriminative modeling***. Philosophically, a discrimiative model thinks $y$ (e.g. price of a house) as an uncertain consequence of $\mathbf x$ (e.g. housing area). To predict the label under discriminative setting, it is acutally sufficient to estimate $\mathbf{w}$ only.
+* The 1st factorization is called ***discriminative modeling***. Philosophically, a discriminative model thinks $y$ (e.g. price of a house) as an uncertain consequence of $\mathbf x$ (e.g. housing area). To predict the label under discriminative setting, it is actually sufficient to estimate $\mathbf{w}$ only.
 * The 2nd factorization is called ***generative modeling***. Philosophically, a generative model thinks $\mathbf x$ (e.g. size and weight) as an uncertain consequence of $y$ (e.g. animal species). To predict the label under generative setting, we must estimate the whole set of parameters $(\boldsymbol{\pi}, \mathbf{w})$.
 * Note that $\boldsymbol{\pi}$ and $\mathbf{w}$ have different meanings under discriminative model and generative models. In discriminative model, $\boldsymbol{\pi}$ parameterizes $p(\mathbf x)$ while $\mathbf{w}$ parameterizes $p(y\mid \mathbf x)$. In generative model, $\boldsymbol{\pi}$ parameterizes $p(y)$ while $\mathbf{w}$ parameterizes $p(\mathbf x\mid y)$.
 
 **Examples**: Discriminative model or generative model?
 
 1. predicting the price of a house given its area $\to$ discriminative model.
-1. predicting whether a dish is healthy given its ingradients $\to$ discriminative model.
+1. predicting whether a dish is healthy given its ingredients $\to$ discriminative model.
 1. predicting which number given a hand-written digit $\to$ generative model.
 1. predicting which species given the weight and size of an animal $\to$ generative model.
 
@@ -481,7 +481,7 @@ Again, $\hat{\mathbf{w}}_\text{MLE}$ and $\hat{\mathbf{w}}_\text{MAP}$ are compu
   \end{align*}
   $$
 
-* Mini-bath gradient ascent:
+* Mini-batch gradient ascent:
   $$
   \begin{align*}
   & \text{randomly draw } B^{(t)} \subset D \text{ with } \vert B \vert = m
@@ -785,7 +785,7 @@ Therefore, MAP with Gaussian prior $\iff$ minimizing L2 regularized the sum of s
 Remarks:
 
 * $\lambda \triangleq \sigma^2_\text{n} / \sigma^2_\text{p}$ is the hyper parameter for regularization. The larger $\lambda$ is, the stronger is the regularization -- the heavier are large parameters penalized. The hyper parameter $\lambda$ balances between prior belief and observed data.
-* If we have a strong prior belief (i.e. small $\sigma^2_\text{p}$ ) that all parameters should be close to 0, then we have stong regularization (i.e. large $\lambda$ ) and rely more on the prior belief.
+* If we have a strong prior belief (i.e. small $\sigma^2_\text{p}$ ) that all parameters should be close to 0, then we have strong regularization (i.e. large $\lambda$ ) and rely more on the prior belief.
 * If the label noise is small (i.e. small $\sigma^2_\text{n}$ ), then we have weaker regularization (i.e. small $\lambda$ ) and rely more on the observed data.
 
 Once we computed the point estimate, we obtain the plug-in predictive distribution

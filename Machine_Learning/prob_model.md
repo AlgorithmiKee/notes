@@ -358,7 +358,7 @@ $$
 Remarks:
 
 * The 1st factorization is called ***discriminative modeling***. Philosophically, a discrimiative model thinks $y$ (e.g. price of a house) as an uncertain consequence of $\mathbf x$ (e.g. housing area). To predict the label under discriminative setting, it is acutally sufficient to estimate $\mathbf{w}$ only.
-* The 2nd factorization is called ***generative modeling***. Philosophically, a discrimiative model thinks $\mathbf x$ (e.g. size and weight) as an uncertain consequence of $y$ (e.g. animal species). To predict the label under generative setting, we must estimate the whole set of parameters $(\boldsymbol{\pi}, \mathbf{w})$.
+* The 2nd factorization is called ***generative modeling***. Philosophically, a generative model thinks $\mathbf x$ (e.g. size and weight) as an uncertain consequence of $y$ (e.g. animal species). To predict the label under generative setting, we must estimate the whole set of parameters $(\boldsymbol{\pi}, \mathbf{w})$.
 * Note that $\boldsymbol{\pi}$ and $\mathbf{w}$ have different meanings under discriminative model and generative models. In discriminative model, $\boldsymbol{\pi}$ parameterizes $p(\mathbf x)$ while $\mathbf{w}$ parameterizes $p(y\mid \mathbf x)$. In generative model, $\boldsymbol{\pi}$ parameterizes $p(y)$ while $\mathbf{w}$ parameterizes $p(\mathbf x\mid y)$.
 
 **Examples**: Discriminative model or generative model?

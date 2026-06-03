@@ -797,12 +797,8 @@ $$
 For a new input $\mathbf x_*$, assuming square loss is used, the optimal prediction is the mean under the predictive distribution
 
 $$
-\begin{align}
 \hat y
-&= \mathbb E_y [y\mid\mathbf x_*, \hat{\boldsymbol{\theta}}] \nonumber \\
-&= \mathbb E_y \left[ \mathcal N(y ; f_{\hat{\boldsymbol{\theta}}}(\mathbf x_*), \sigma^2_\text{n}) \right] \nonumber \\
-&= f_{\hat{\boldsymbol{\theta}}}(\mathbf x_*)
-\end{align}
+= \mathbb E_y [y\mid\mathbf x_*, \hat{\boldsymbol{\theta}}] = f_{\hat{\boldsymbol{\theta}}}(\mathbf x_*)
 $$
 
 |  Algorithmic Perspective | Statistical Perspective |
@@ -812,7 +808,7 @@ $$
 | sum of square loss | negative log likelihood |
 | minimize sum of square loss $\to\hat{\boldsymbol{\theta}}$ | MLE $\to\hat{\boldsymbol{\theta}}$ |
 | minimize sum of square loss + regularizer $\to\hat{\boldsymbol{\theta}}$ | MAP $\to\hat{\boldsymbol{\theta}}$ |
-| L1 regularization | Laplacian prior |
+| L1 regularization | Laplace prior |
 | L2 regularization | Gaussian prior |
 | predict: $f_{\hat{\boldsymbol{\theta}}}(\mathbf x_*)$ | predict: $\mathbb E_y[y\mid\mathbf x_*, \hat{\boldsymbol{\theta}}]$ |
 | $-$ | uncertainty quantification |

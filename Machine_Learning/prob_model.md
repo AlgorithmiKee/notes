@@ -603,7 +603,7 @@ Again, the optimization is often carried out by gradient based methods. Formulas
 
 How to use a learned generative model?
 
-Suppose we learned a generative model $p(\mathbf x, y, \hat{\boldsymbol{\theta}})$ where $\hat{\boldsymbol{\theta}} = (\hat{\boldsymbol{\pi}}, \hat{\mathbf{w}})$. We can compute the predictive distribution $p(y \mid \mathbf x, \hat{\boldsymbol{\theta}})$ from it.
+Suppose we learned a generative model $p(\mathbf x, y \mid \hat{\boldsymbol{\theta}})$ where $\hat{\boldsymbol{\theta}} = (\hat{\boldsymbol{\pi}}, \hat{\mathbf{w}})$. We can compute the predictive distribution $p(y \mid \mathbf x, \hat{\boldsymbol{\theta}})$ from it.
 
 $$
 \begin{align}
@@ -633,7 +633,7 @@ The predictive distribution $p(y \mid \mathbf x, \hat{\boldsymbol{\theta}})$ can
 
 However, generative models (aka the joint distribution) offer more flexibility than discriminative models (aka the conditional distribution). Specifically, generative models provide more statistical information and allow data generation via $p(\mathbf x \mid y, \hat{\mathbf{w}})$.
 
-Think of $y\in\{0,\dots,9\}$ and $\mathbf x$ as a 128x128 image of a hand-written digit. We can generate a hand-written digit of "7" by sampling $\mathbf x$ from $p(\mathbf x \mid y=7, \hat{\mathbf{w}})$.
+**Example**: Think of $y\in\{0,\dots,9\}$ and $\mathbf x$ as a 128x128 image of a hand-written digit. We can generate a hand-written digit of "7" by sampling $\mathbf x$ from $p(\mathbf x \mid y=7, \hat{\mathbf{w}})$.
 
 ## Discriminative Regression Model
 
@@ -797,12 +797,8 @@ $$
 For a new input $\mathbf x_*$, assuming square loss is used, the optimal prediction is the mean under the predictive distribution
 
 $$
-\begin{align}
 \hat y
-&= \mathbb E_y [y\mid\mathbf x_*, \hat{\boldsymbol{\theta}}] \nonumber \\
-&= \mathbb E_y \left[ \mathcal N(y ; f_{\hat{\boldsymbol{\theta}}}(\mathbf x_*), \sigma^2_\text{n}) \right] \nonumber \\
-&= f_{\hat{\boldsymbol{\theta}}}(\mathbf x_*)
-\end{align}
+= \mathbb E_y [y\mid\mathbf x_*, \hat{\boldsymbol{\theta}}] = f_{\hat{\boldsymbol{\theta}}}(\mathbf x_*)
 $$
 
 |  Algorithmic Perspective | Statistical Perspective |
@@ -812,7 +808,7 @@ $$
 | sum of square loss | negative log likelihood |
 | minimize sum of square loss $\to\hat{\boldsymbol{\theta}}$ | MLE $\to\hat{\boldsymbol{\theta}}$ |
 | minimize sum of square loss + regularizer $\to\hat{\boldsymbol{\theta}}$ | MAP $\to\hat{\boldsymbol{\theta}}$ |
-| L1 regularization | Laplacian prior |
+| L1 regularization | Laplace prior |
 | L2 regularization | Gaussian prior |
 | predict: $f_{\hat{\boldsymbol{\theta}}}(\mathbf x_*)$ | predict: $\mathbb E_y[y\mid\mathbf x_*, \hat{\boldsymbol{\theta}}]$ |
 | $-$ | uncertainty quantification |

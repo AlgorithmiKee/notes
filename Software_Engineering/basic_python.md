@@ -17,9 +17,8 @@ Common examples:
 
 | Immutable | Mutable |
 |-----------|----------|
-| `int`, `float`, `bool` | `list` |
-| `str` | `dict`, `set` |
-| `tuple` | most user-defined classes |
+| `int`, `float`, `complex`, `bool` | most user-defined classes |
+| `str`, `tuple`, `bytes`, `range` | `list`, `dict`, `set`, np arrays |
 
 ### In-place modification
 

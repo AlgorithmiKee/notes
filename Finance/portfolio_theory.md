@@ -86,9 +86,8 @@ $$
 
 Remarks:
 
-* For now, we do not restrict $w_i$ to be in $[0,1]$. This assumption leads to simpler mathematical results and has practical significance.
-* $w_i < 0$ means we short-sell asset $i$. i.e. we borrow that asset and immediately sell it, obtaining extra cash.
-* $w_i > 1$ means we hold asset $i$ with leverage. i.e. we use borrowed capital to buy more of that asset.
+* $w_i \in\mathbb{R}$ allows short-selling ($w_i < 0$) or leveraging ($w_i > 1$) asset $i$.
+* If we restrict to long-only portfolios, we require $w_i \in [0,1]$ for all $i$.
 
 **Example 1** – No short-selling and no leverage:  
 You have \$100. You invest \$60 in Apple and \$40 in Tesla:
@@ -112,7 +111,7 @@ Let
 
 * $\boldsymbol{\mu}$ and $\boldsymbol{\Sigma}$ denote the mean and covariance matrix of $\mathbf{r}$.
 
-A portfolio is then represented by a vector $\mathbf{w}$ s.t.
+A portfolio is then represented by a vector $\mathbf{w} \in \mathbb{R}^n$ on the hyperplane:
 
 $$
 \begin{align}
@@ -120,7 +119,9 @@ $$
 \end{align}
 $$
 
-The return of the portfolio is defined as
+For long-only portfolios, we further require $\mathbf{w} \ge \mathbf{0}$. In this case, the feasible set of portfolio weights is the unit simplex in $\mathbb{R}^n$.
+
+The portfolio return is modeled by the random variable
 
 $$
 \begin{align}
@@ -186,6 +187,8 @@ Remarks:
 
 * For visualization, we often use mean-volatility space since they have the same unit (in %).
 * For mathematical derivation, we apply mean-variance analysis because variance is algebraically cleaner to work with.
+
+For long-only portfolio
 
 Fundamental questions in portfolio theory:
 
@@ -323,11 +326,10 @@ Therefore, on the hyperbola:
 
 ## Multi-Asset Diversification
 
-Now, consider a portfolio consisting of $n$ assets. Without loss of generality, assume
+Now, consider a portfolio consisting of $n \ge 3$ assets. We assume in the following that
 
-$$
-\mu_1 < \dots < \mu_n, \quad \sigma_1 < \dots < \sigma_n
-$$
+1. $\boldsymbol{\mu} \notin \operatorname{span}(\mathbf{1})$. i.e. not all assets have the same expected return.
+2. $\boldsymbol{\Sigma}$ is positive definite. i.e. no asset is a linear combination of other assets.
 
 The feasible set of portfolio returns and volatilities is
 
@@ -355,7 +357,7 @@ $\to$ See [appendix](#proof-unbounded-variance-of-multi-asset-portfolio) for a p
 
 ### Mean-Variance Optimization
 
-Can we minimize the portfolio variance for a fixed exptected return $\mu_p$? Formally, this leads to the optimization problem
+To balance the portfolio return and volatilities, we fix the target expected return $\mu_p$ and minimize the portfolio variance. Formally, we solve the optimization problem
 
 $$
 \begin{align}
@@ -373,96 +375,96 @@ L(\mathbf{w}, \alpha, \beta) =
 \end{align}
 $$
 
-By stationarity,
+The stationarity condition $\nabla_{\mathbf{w}} L = \mathbf{0}$ gives
 
 $$
-\begin{align}
-\nabla_{\mathbf{w}} L
-&= \boldsymbol{\Sigma} \mathbf{w} - \alpha\boldsymbol{\mu} - \beta\mathbf{1}
-\equiv \mathbf{0}
+\mathbf{w}
+= \boldsymbol{\Sigma}^{-1} (\alpha\boldsymbol{\mu} + \beta\mathbf{1})
+= \boldsymbol{\Sigma}^{-1} \begin{bmatrix} \boldsymbol{\mu} & \mathbf{1} \end{bmatrix}
+  \begin{bmatrix}  \alpha \\ \beta \end{bmatrix}
+$$
+
+Combining with the primal feasibility constraints,
+
+$$
+\begin{align*}
+\begin{bmatrix} \boldsymbol{\mu}^\top \\ \mathbf{1}^\top \end{bmatrix} \mathbf{w}
+&= \begin{bmatrix} \mu_p \\ 1 \end{bmatrix}
 \\
-\mathbf{w} &= \boldsymbol{\Sigma}^{-1} (\alpha\boldsymbol{\mu} + \beta\mathbf{1})
-\end{align}
+\begin{bmatrix} \boldsymbol{\mu}^\top \\ \mathbf{1}^\top \end{bmatrix}
+\boldsymbol{\Sigma}^{-1} \begin{bmatrix} \boldsymbol{\mu} & \mathbf{1} \end{bmatrix}
+\begin{bmatrix}  \alpha \\ \beta \end{bmatrix}
+&= \begin{bmatrix} \mu_p \\ 1 \end{bmatrix}
+\end{align*}
 $$
 
-Plugging $\mathbf{w} = \boldsymbol{\Sigma}^{-1} (\alpha\boldsymbol{\mu} + \beta\mathbf{1})$ into the constraints yields a linear system in $\alpha, \beta$:
+we obtain a linear system of equations in Lagrange multipliers $\alpha$ and $\beta$:
 
 $$
 \begin{align}
 \underbrace{
 \begin{bmatrix}
-  \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu} & \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1} \\
-  \mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu} & \mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1}
+  \langle \boldsymbol{\mu}, \boldsymbol{\mu} \rangle_{\boldsymbol{\Sigma}^{-1}} & \langle \boldsymbol{\mu}, \mathbf{1} \rangle_{\boldsymbol{\Sigma}^{-1}}  \\
+  \langle \mathbf{1}, \boldsymbol{\mu} \rangle_{\boldsymbol{\Sigma}^{-1}} & \langle \mathbf{1}, \mathbf{1} \rangle_{\boldsymbol{\Sigma}^{-1}} 
 \end{bmatrix}
-}_{\mathbf{A}}
-%%%%%%%%%%%%
-\underbrace{
+}_{\mathbf{G}}
 \begin{bmatrix}
   \alpha \\ \beta
 \end{bmatrix}
-}_{\boldsymbol{\lambda}} =
-%%%%%%%%%%%%
-\underbrace{
+=
 \begin{bmatrix}
   \mu_p \\ 1
 \end{bmatrix}
-}_{\mathbf{b}}
 \end{align}
 $$
 
-We make following claims:
+where $\langle \cdot, \cdot \rangle_{\boldsymbol{\Sigma}^{-1}}$ is the inner product induced by $\boldsymbol{\Sigma}^{-1}$, i.e. $\langle \mathbf{x}, \mathbf{y} \rangle_{\boldsymbol{\Sigma}^{-1}} = \mathbf{x}^\top \boldsymbol{\Sigma}^{-1} \mathbf{y}$.
 
-1. The matrix $\mathbf{A}$ can be factored as
-    $$
-    \begin{align}
-    \mathbf{A} = \mathbf{B}^\top \boldsymbol{\Sigma}^{-1} \mathbf{B},
-    \quad \text{where } \:
-    \mathbf{B} = \begin{bmatrix} \boldsymbol{\mu} & \mathbf{1} \end{bmatrix} \in\mathbb R^{n \times 2}
-    \end{align}
-    $$
-1. The matrix $\mathbf{A}$ is invertible
-1. This linear system has unique solution
-    $$
-    \begin{align}
-    \boldsymbol{\lambda}
-    &= \mathbf{A}^{-1} \mathbf{b}
-    = (\mathbf{B}^\top \boldsymbol{\Sigma}^{-1} \mathbf{B})^{-1} \mathbf{b}
-    \end{align}
-    $$
-
-*Proof*: Claim 1 is straightforward. Claim 3 follows from Claim 2. It remains to show Claim 2.
-
-For $\mathbf{x}\in\mathbb R^2$, consider
+By Cauchy-Schwarz inequality,
 
 $$
-\mathbf{x}^\top \mathbf{Ax}
-= \mathbf{x}^\top \mathbf{B}^\top \boldsymbol{\Sigma}^{-1} \mathbf{B} \mathbf{x}
-= (\mathbf{B} \mathbf{x})^\top \boldsymbol{\Sigma}^{-1} (\mathbf{B} \mathbf{x})
+\det(\mathbf{G})
+= \langle \boldsymbol{\mu}, \boldsymbol{\mu} \rangle_{\boldsymbol{\Sigma}^{-1}} \langle \mathbf{1}, \mathbf{1} \rangle_{\boldsymbol{\Sigma}^{-1}} - \langle \boldsymbol{\mu}, \mathbf{1} \rangle_{\boldsymbol{\Sigma}^{-1}}^2
 \ge 0
 $$
 
-By assumption, $\mu_1 < \dots < \mu_n \implies \boldsymbol{\mu}$ and $\mathbf{1}$ are linearly independent. $\implies \mathbf{Bx} = \mathbf{0}$ iff $\mathbf{x} = \mathbf{0}$.
+with equality iff $\boldsymbol{\mu}$ is a scalar multiple of $\mathbf{1}$, which is ruled out by assumption. Hence, $\mathbf{G}$ is invertible and the Lagrange multipliers are uniquely determined by
 
-Hence, for $\forall \mathbf{x} \ne \mathbf{0}$, $\mathbf{x}^\top \mathbf{Ax} > 0 \iff \mathbf{A}$ is positive definite and thus invertible. $\:\blacksquare$
+$$
+\begin{align}
+\begin{bmatrix}
+  \alpha \\ \beta
+\end{bmatrix}
+&= \mathbf{G}^{-1} \begin{bmatrix} \mu_p \\ 1 \end{bmatrix}
+\\
+&= \frac{1}{\det(\mathbf{G})}
+  \begin{bmatrix}
+    \langle \mathbf{1}, \mathbf{1} \rangle_{\boldsymbol{\Sigma}^{-1}} & -\langle \boldsymbol{\mu}, \mathbf{1} \rangle_{\boldsymbol{\Sigma}^{-1}}  \\
+    -\langle \mathbf{1}, \boldsymbol{\mu} \rangle_{\boldsymbol{\Sigma}^{-1}} & \langle \boldsymbol{\mu}, \boldsymbol{\mu} \rangle_{\boldsymbol{\Sigma}^{-1}}
+  \end{bmatrix}
+  \begin{bmatrix}
+    \mu_p \\ 1
+  \end{bmatrix}
+\end{align}
+$$
 
 The optimal weight vector is
 
 $$
 \begin{align}
 \mathbf{w}^\star
-&= \boldsymbol{\Sigma}^{-1} (\alpha\boldsymbol{\mu} + \beta\mathbf{1}) \nonumber \\
-&= \boldsymbol{\Sigma}^{-1}
-   \underbrace{
-   \begin{bmatrix}
-      \boldsymbol{\mu} & \mathbf{1}
-   \end{bmatrix}
-   }_{\mathbf{B}}
-   \underbrace{
-   \begin{bmatrix}
-      \alpha \\ \beta
-   \end{bmatrix}
-   }_{\boldsymbol{\lambda}} \nonumber \\
-&= \boldsymbol{\Sigma}^{-1} \mathbf{B} \mathbf{A}^{-1} \mathbf{b} \\
+&= \boldsymbol{\Sigma}^{-1} \begin{bmatrix} \boldsymbol{\mu} & \mathbf{1} \end{bmatrix} \begin{bmatrix}  \alpha \\ \beta \end{bmatrix} \nonumber
+\\
+&= \boldsymbol{\Sigma}^{-1} \begin{bmatrix} \boldsymbol{\mu} & \mathbf{1} \end{bmatrix} \mathbf{G}^{-1} \begin{bmatrix} \mu_p \\ 1 \end{bmatrix}
+\\
+&= \frac{1}{\det(\mathbf{G})} \boldsymbol{\Sigma}^{-1} \begin{bmatrix} \boldsymbol{\mu} & \mathbf{1} \end{bmatrix}
+  \begin{bmatrix}
+    \langle \mathbf{1}, \mathbf{1} \rangle_{\boldsymbol{\Sigma}^{-1}} & -\langle \boldsymbol{\mu}, \mathbf{1} \rangle_{\boldsymbol{\Sigma}^{-1}}  \\
+    -\langle \mathbf{1}, \boldsymbol{\mu} \rangle_{\boldsymbol{\Sigma}^{-1}} & \langle \boldsymbol{\mu}, \boldsymbol{\mu} \rangle_{\boldsymbol{\Sigma}^{-1}}
+  \end{bmatrix}
+  \begin{bmatrix}
+    \mu_p \\ 1
+  \end{bmatrix}
 \end{align}
 $$
 
@@ -472,119 +474,94 @@ $$
 \begin{align}
 \sigma_{\min}^2
 &= \mathbf{w}^{\star\top} \boldsymbol{\Sigma} \, \mathbf{w}^\star \nonumber \\
-&=  \mathbf{b}^\top \mathbf{A}^{-1} \mathbf{B}^\top \boldsymbol{\Sigma}^{-1} \cdot \boldsymbol{\Sigma} \cdot \boldsymbol{\Sigma}^{-1} \mathbf{B} \mathbf{A}^{-1} \mathbf{b} \nonumber \\
-&=  \mathbf{b}^\top \mathbf{A}^{-1} \underbrace{\mathbf{B}^\top \boldsymbol{\Sigma}^{-1} \mathbf{B}}_{\mathbf{A}} \mathbf{A}^{-1} \mathbf{b} \nonumber \\
-&=  \mathbf{b}^\top \mathbf{A}^{-1} \mathbf{b} \\
-&= \frac{1}{\det \mathbf{A}}
-   \begin{bmatrix} \mu_p & 1 \end{bmatrix}
-   \begin{bmatrix}
-    \mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1} & -\boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1} \\
-    -\mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu} & \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu}
-  \end{bmatrix}
-   \begin{bmatrix} \mu_p \\ 1 \end{bmatrix}
+&= \begin{bmatrix} \alpha & \beta \end{bmatrix} \begin{bmatrix} \boldsymbol{\mu}^\top \\ \mathbf{1}^\top \end{bmatrix} \boldsymbol{\Sigma}^{-1} \begin{bmatrix} \boldsymbol{\mu} & \mathbf{1} \end{bmatrix} \begin{bmatrix}  \alpha \\ \beta \end{bmatrix} \nonumber \\
+&= \begin{bmatrix} \alpha & \beta \end{bmatrix} \mathbf{G} \begin{bmatrix}  \alpha \\ \beta \end{bmatrix} \nonumber \\
+&= \begin{bmatrix} \mu_p & 1 \end{bmatrix} \mathbf{G}^{-1} \begin{bmatrix}  \mu_p \\ 1 \end{bmatrix} \\
+&= \frac{1}{\det \mathbf{G}} \left[ \langle \mathbf{1}, \mathbf{1} \rangle_{\boldsymbol{\Sigma}^{-1}} \mu_p^2 - 2\langle \boldsymbol{\mu}, \mathbf{1} \rangle_{\boldsymbol{\Sigma}^{-1}} \mu_p + \langle \boldsymbol{\mu}, \boldsymbol{\mu} \rangle_{\boldsymbol{\Sigma}^{-1}} \right]
 \end{align}
 $$
 
-Remarks:
+To summarize, for a fixed target return $\mu_p$, the optimal portfolio weights $\mathbf{w}^\star$ achieves the minimum variance $\sigma_{\min}^2$.
 
-* For a fixed target expected return $\mu_p$, the portfolio variance lies in $\sigma_p^2 \in [\sigma_{\min}^2, \infty)$ where $\sigma_{\min}^2$ depends quadratically on $\mu_p$.
-* As $\mu_p$ varies, the curve $(\mu_p, \sigma_{\min})$ forms the ***minimum-variance frontier*** (also known as ***Markowitz bullet***), which represents the lowest achievable volatility for each expected return.
+### Global Minimum Variance
 
-### Geometry of Minimum-Variance Frontier
-
-For clarity, let
-
-$$
-A = \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu}, \quad
-B = \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1}, \quad
-C = \mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1}
-$$
-
-Then
-
-$$
-\begin{align*}
-\mathbf{A}
-&=
-\begin{bmatrix}
-  \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu} & \boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1} \\
-  \mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \boldsymbol{\mu} & \mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1}
-\end{bmatrix} =
-\begin{bmatrix}
-  A & B \\
-  B & C
-\end{bmatrix}
-\\
-\mathbf{A}^{-1}
-&= \frac{1}{AC - B^2}
-\begin{bmatrix}
-     C & -B \\
-    -B & A
-\end{bmatrix}
-\end{align*}
-$$
-
-Hence,
+The minimum variance $\sigma_{\min}^2$ depends on the target return $\mu_p$. What is the minimum variance across all possible target returns? This is known as the **global minimum variance** (GMV):
 
 $$
 \begin{align}
-\sigma_{\min}^2
-&= \frac{1}{AC - B^2}
-   \begin{bmatrix} \mu_p & 1 \end{bmatrix}
-   \begin{bmatrix}
-     C & -B \\
-    -B & A
-  \end{bmatrix}
-   \begin{bmatrix} \mu_p \\ 1 \end{bmatrix} \nonumber \\
-&= \frac{1}{AC - B^2} \left[ C\mu_p^2 - 2B \mu_p + A \right] \nonumber \\
-&= \frac{C}{AC - B^2} \left( \mu_p - \frac{B}{C} \right)^2 + \frac{1}{C}
+\sigma_{\text{GMV}}^2 = \min_{\mu_p} \sigma_{\min}^2(\mu_p)
 \end{align}
 $$
 
-It is easy to verify that $\frac{C}{AC - B^2} > 0$ and $\frac{1}{C} > 0$. Hence, the minimum-variance frontier is hyperbola.
-
-### Global Minimum Variance and Efficient Frontier
-
-From
-
-$$
-\sigma_{\min}^2 = \frac{C}{AC - B^2} \left( \mu_p - \frac{B}{C} \right)^2 + \frac{1}{C}
-$$
-
-we see that $\sigma_{\min}^2$ is minimized at $\mu_p = \frac{B}{C}$, giving the **global minimum variance** (**GMV**).
+Recall that $\sigma_{\min}^2(\mu_p)$ is a quadratic function of $\mu_p$. The minimum occurs at
 
 $$
 \begin{align}
-\sigma_{\text{GMV}}^2
-& = \frac{1}{C} = \frac{1}{\mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1}} \\
-\mu_{\text{GMV}}
-& = \frac{B}{C} = \frac{\boldsymbol{\mu}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1}}{\mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1}}
+\mu_{\text{GMV}} = \frac{\langle \boldsymbol{\mu}, \mathbf{1} \rangle_{\boldsymbol{\Sigma}^{-1}}}{\langle \mathbf{1}, \mathbf{1} \rangle_{\boldsymbol{\Sigma}^{-1}}}
 \end{align}
 $$
 
-The corresponding GMV weights are
+The corresponding optimal portfolio weights and GMV itself are
 
 $$
 \begin{align}
 \mathbf{w}_{\text{GMV}}
-&= \boldsymbol{\Sigma}^{-1} \mathbf{B} \mathbf{A}^{-1} \mathbf{b} \Big\vert_{\mu_p = \mu_{\text{GMV}}} \nonumber \\
-&= \boldsymbol{\Sigma}^{-1}
-   \begin{bmatrix} \boldsymbol{\mu} & \mathbf{1} \end{bmatrix}
-   \frac{1}{AC-B^2} \begin{bmatrix} C & -B \\ -B & A \end{bmatrix}
-   \begin{bmatrix} \frac{B}{C} \\ 1 \end{bmatrix} \nonumber \\
-&= \boldsymbol{\Sigma}^{-1}
-   \begin{bmatrix} \boldsymbol{\mu} & \mathbf{1} \end{bmatrix}
-   \begin{bmatrix} 0 \\ \frac{1}{C} \end{bmatrix} \nonumber \\
-&= \frac{\boldsymbol{\Sigma}^{-1} \mathbf{1}}{C} \\
-&= \frac{\boldsymbol{\Sigma}^{-1} \mathbf{1}}{\mathbf{1}^\top \boldsymbol{\Sigma}^{-1} \mathbf{1}}
+&= \frac{\boldsymbol{\Sigma}^{-1} \mathbf{1}}{\langle \mathbf{1}, \mathbf{1} \rangle_{\boldsymbol{\Sigma}^{-1}}}
+\\
+\sigma_{\text{GMV}}^2
+&= \frac{1}{\langle \mathbf{1}, \mathbf{1} \rangle_{\boldsymbol{\Sigma}^{-1}}}
 \end{align}
 $$
 
 Remarks:
 
-* Not to be confused: $\sigma_{\min}^2$ denotes the minimum variance for a given target return $\mu_p$, whereas $\sigma_{\text{GMV}}^2$ is the global minimum across all $\mu_p$.
+* The proof is straightforward by using the fact that
+  $$
+  \begin{align*}
+  \mathbf{w}_{\text{GMV}}
+  &= \mathbf{w}^\star(\mu_{\text{GMV}}) = \boldsymbol{\Sigma}^{-1} \begin{bmatrix} \boldsymbol{\mu} & \mathbf{1} \end{bmatrix} \mathbf{G}^{-1} \begin{bmatrix} \mu_{\text{GMV}} \\ 1 \end{bmatrix}
+  \\
+  \sigma_{\text{GMV}}^2
+  &= \sigma_{\min}^2(\mu_{\text{GMV}}) = \begin{bmatrix} \mu_{\text{GMV}} & 1 \end{bmatrix} \mathbf{G}^{-1} \begin{bmatrix}  \mu_{\text{GMV}} \\ 1 \end{bmatrix}
+  \end{align*}
+  $$
+* Not to be confused: $\sigma_{\min}^2$ denotes the minimum variance across all $\mathbf{w}$ for a given $\mu_p$, whereas $\sigma_{\text{GMV}}^2$ denotes the minimum variance across all $\mu_p$.
 * GMV quantities depend only on the covariance matrix $\boldsymbol{\Sigma}$, not on expected returns $\boldsymbol{\mu}$.
-* In $(\sigma,\mu)$ space, the GMV point dominates all portfolios lying below it. Thus, the portion of the minimum variance frontier below GMV corresponds to suboptimal portfolios, while the portion above GMV is the efficient frontier, where no portfolio dominates another.
+
+### Efficient Frontier
+
+The **minimum variance frontier** is the set of all portfolios in $(\sigma, \mu)$ space that achieve the minimum variance for their respective target return:
+
+$$
+\begin{align}
+\mathcal{F}_{\text{MV}}
+&= \left\{ (\sigma, \mu): \sigma^2= \frac{1}{\det \mathbf{G}} \left[ \langle \mathbf{1}, \mathbf{1} \rangle_{\boldsymbol{\Sigma}^{-1}} \mu^2 - 2\langle \boldsymbol{\mu}, \mathbf{1} \rangle_{\boldsymbol{\Sigma}^{-1}} \mu + \langle \boldsymbol{\mu}, \boldsymbol{\mu} \rangle_{\boldsymbol{\Sigma}^{-1}} \right], \mu \in \mathbb R \right\} \\
+\end{align}
+$$
+
+To determine the shape of $\mathcal{F}_{\text{MV}}$, we can rewrite the minimum variance equation by completing the square and substituting the GMV quantities:
+
+$$
+\begin{align}
+\mathcal{F}_{\text{MV}}
+&= \left\{ (\sigma, \mu): \sigma^2 = \frac{\left(\mu - \mu_{\text{GMV}}\right)^2}{\sigma_{\text{GMV}}^2 \det \mathbf{G}} + \sigma_{\text{GMV}}^2
+, \mu \in \mathbb R \right\} \\
+\end{align}
+$$
+
+which infers that $\mathcal{F}_{\text{MV}}$ is a hyperbola in $(\sigma, \mu)$ space.
+
+Remarks:
+
+* The leftmost point of the hyperbola corresponds to the GMV portfolio, which dominates all other portfolios lying below it in $(\sigma, \mu)$ space.
+* The portfolios represented by the points on $\mathcal{F}_{\text{MV}}$ above the GMV point do not dominate each other.
+
+The portion of $\mathcal{F}_{\text{MV}}$ above the GMV point is called the **efficient frontier**.
+
+$$
+\mathcal{F}_{\text{eff}}
+= \left\{ (\sigma, \mu) \in \mathcal{F}_{\text{MV}}: \mu \ge \mu_{\text{GMV}} \right\}
+$$
 
 ### Equivalent Mean–Variance Optimization Problem
 

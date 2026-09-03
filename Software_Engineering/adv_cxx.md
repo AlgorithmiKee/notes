@@ -833,8 +833,8 @@ Is the source managing any resources?
 
 * NO. $\implies$ Shallow copy. In this case, all three concepts coincide.
 * YES. If the source is a ...
-  			 * lvalue $\implies$ Deep copy is the safest despite the computational cost. In certain scenarios, shallow copy plus extra measures is also safe (See `shared_ptr`). Move is dangerous as the source is left with a `nullptr` (See `auto_ptr`).
-      * rvalue. $\implies$ Move is the best option due to its efficiency and safety. Deep copy is OK but may be expensive. Shallow copy should be reconsidered depending on how the source handles the resource as it dies.
+    * lvalue $\implies$ Deep copy is the safest despite the computational cost. In certain scenarios, shallow copy plus extra measures is also safe (See `shared_ptr`). Move is dangerous as the source is left with a `nullptr` (See `auto_ptr`).
+    * rvalue. $\implies$ Move is the best option due to its efficiency and safety. Deep copy is OK but may be expensive. Shallow copy should be reconsidered depending on how the source handles the resource as it dies.
      
 
 In C++, move semantics is implemeted via rvalue references (vs. copy semantics via lvalue reference)

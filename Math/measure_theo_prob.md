@@ -208,3 +208,128 @@ $$
 &= \int_S x f_X(x) \,\mathrm dx && \text{ML notation} \\
 \end{align}
 $$
+
+## Equality of Random Variables
+
+There are several notions of "equality" between two random variables. From the strongest to the weakest:
+
+### Sure Equality
+
+Let $X, Y: \Omega \to S$ be two random variables on the same probability space $(\Omega, \mathcal A, \mathbb P)$. We say $X$ and $Y$ are **surely equal**, denoted by $X = Y$, iff
+
+$$
+\begin{align}
+\forall \omega \in \Omega, \quad X(\omega) = Y(\omega)
+\end{align}
+$$
+
+This is simply equality of functions. It is too strict for probability theory since it also cares about outcomes which never happen.
+
+### Almost-Sure Equality
+
+Let $X, Y: \Omega \to S$ be two random variables on the same probability space $(\Omega, \mathcal A, \mathbb P)$. We say $X$ and $Y$ are **almost surely equal**, denoted by $X \overset{\text{a.s.}}{=} Y$, iff
+
+$$
+\begin{align}
+\mathbb P(\{ \omega: X(\omega) \neq Y(\omega) \}) = 0
+\end{align}
+$$
+
+or equivalently, $\mathbb P(X = Y) = 1$.
+
+Remarks:
+
+* Intuitively, $X$ and $Y$ may only differ on a null event, i.e. an event with zero probability.
+* Almost-sure equality is the "almost everywhere" equality from measure theory, specialized to the probability measure $\mathbb P$.
+* For standard state spaces (e.g. countable $S$ or $S = \mathbb R^n$), $\{ \omega: X(\omega) \neq Y(\omega) \}$ is guaranteed to be in $\mathcal A$. Hence, its probability is well-defined.
+
+Example: Let $\Omega = [0,1]$, $\mathcal A = \mathcal B([0,1])$ and $\mathbb P = \lambda$. Consider
+
+$$
+\begin{align*}
+X(\omega) = \omega, \quad
+Y(\omega) =
+\begin{cases}
+0 & \omega \in \mathbb Q \\
+\omega & \omega \notin \mathbb Q
+\end{cases}
+\end{align*}
+$$
+
+Then, $\{ \omega: X(\omega) \neq Y(\omega) \} \subseteq \mathbb Q \cap [0,1]$, which is countable and thus has Lebesgue measure zero. Hence, $X \overset{\text{a.s.}}{=} Y$ although $X \neq Y$.
+
+### Equality in Distribution
+
+Let $X: \Omega \to S$ and $Y: \Omega' \to S$ be two random variables on probability spaces $(\Omega, \mathcal A, \mathbb P)$ and $(\Omega', \mathcal A', \mathbb P')$ respectively, with the same state space $(S, \mathcal B)$. We say $X$ and $Y$ are **equal in distribution**, denoted by $X \overset{d}{=} Y$, iff
+
+$$
+\begin{align}
+\mathbb P_X = \mathbb P'_Y
+\end{align}
+$$
+
+which means
+
+$$
+\begin{align}
+\forall B \in \mathcal B, \quad
+\mathbb P(X \in B) = \mathbb P'(Y \in B)
+\end{align}
+$$
+
+Remarks:
+
+* Unlike sure or almost-sure equality, $X$ and $Y$ need not be defined on the same probability space. Only their laws on $(S, \mathcal B)$ are compared.
+* For real-valued random variables or random vectors, $X \overset{d}{=} Y$ iff $F_X = F_Y$.
+* If $\mathbb P_X \ll \mu$ and $\mathbb P'_Y \ll \mu$, then $X \overset{d}{=} Y$ iff $f_X = f_Y$ $\mu$-a.e. Note that the density is only unique up to $\mu$-a.e. equality.
+* By LOTUS, the expectation depends only on the distribution. Hence, for any measurable $g: S \to \mathbb R$,
+    $$
+    \begin{align*}
+    X \overset{d}{=} Y \implies \mathbb E[g(X)] = \mathbb E[g(Y)]
+    \end{align*}
+    $$
+    as long as the expectations exist.
+
+Example: Toss a fair coin with $\Omega = \{H, T\}$ and $\mathbb P(\{H\}) = \mathbb P(\{T\}) = \frac{1}{2}$. Consider
+
+$$
+\begin{align*}
+X(H) = 1, \; X(T) = 0, \quad
+Y(H) = 0, \; Y(T) = 1
+\end{align*}
+$$
+
+Both $X$ and $Y$ are $\text{Bernoulli}(\frac{1}{2})$. Hence, $X \overset{d}{=} Y$. However, $X(\omega) \neq Y(\omega)$ for every $\omega$, i.e. $\mathbb P(X \neq Y) = 1$. Similarly, $X \sim \mathcal N(0,1)$ and $Y = -X$ are equal in distribution but not almost surely equal.
+
+### Relations
+
+$$
+\begin{align}
+X = Y
+\implies X \overset{\text{a.s.}}{=} Y
+\implies X \overset{d}{=} Y
+\end{align}
+$$
+
+The converses do not hold in general (see the examples above).
+
+*Proof* of $X \overset{\text{a.s.}}{=} Y \implies X \overset{d}{=} Y$: Let $N = \{ \omega: X(\omega) \neq Y(\omega) \}$ with $\mathbb P(N) = 0$. For any $B \in \mathcal B$, the events $\{X \in B\}$ and $\{Y \in B\}$ can only differ within $N$, i.e.
+
+$$
+\begin{align*}
+\{X \in B\} \,\triangle\, \{Y \in B\} \subseteq N
+\end{align*}
+$$
+
+By monotonicity,
+
+$$
+\begin{align*}
+\vert \mathbb P(X \in B) - \mathbb P(Y \in B) \vert
+\le \mathbb P(\{X \in B\} \,\triangle\, \{Y \in B\})
+\le \mathbb P(N)
+= 0
+\end{align*}
+$$
+
+Hence, $\mathbb P_X = \mathbb P_Y$. $\quad\blacksquare$

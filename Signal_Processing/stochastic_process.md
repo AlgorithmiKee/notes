@@ -118,7 +118,7 @@ $$
 Since a multivariate Gaussian is determined by its mean vector and covariance matrix, a Gaussian process is fully described by its mean function and auto-covariance:
 
 $$
-\mu_X(t) = \mathbb E[X_t], \quad C_{XX}(t_1, t_2) = \mathbb E\left[(X_{t_1} - \mu_X(t_1)) (X_{t_2} - \mu_X(t_2))\right]
+\mu_X(t) = \mathbb E[X_t], \quad k_X(t_1, t_2) = \mathbb E\left[(X_{t_1} - \mu_X(t_1)) (X_{t_2} - \mu_X(t_2))\right]
 $$
 
 ## Moments
@@ -144,7 +144,7 @@ Given a stochastic process $\{ X_t \}_{t\in \mathbb T}$,
     $$
     \begin{equation}
     \fbox{$\displaystyle
-        R_{XX}(t_1, t_2) = \mathbb E\left[X_{t_1}X_{t_2}\right]
+        r_X(t_1, t_2) = \mathbb E\left[X_{t_1}X_{t_2}\right]
     $}
     \end{equation}
     $$
@@ -153,19 +153,19 @@ Given a stochastic process $\{ X_t \}_{t\in \mathbb T}$,
 
     $$
     \begin{split}
-        C_{XX}(t_1, t_2)
+        k_X(t_1, t_2)
         &= \mathbb E\left[(X_{t_1} - \mu_X(t_1)) (X_{t_2} - \mu_X(t_2))\right] \\
-        &= R_{XX}(t_1, t_2) - \mu_X(t_1)\mu_X(t_2)
+        &= r_X(t_1, t_2) - \mu_X(t_1)\mu_X(t_2)
     \end{split}
     $$
 
 Remarks:
 
-* In general, both $R_{XX}(t_1, t_2)$ and $C_{XX}(t_1, t_2)$ depend on two time indices. Later, we will see that the dependency reduces to the time difference only for weakly stationary signals.
-* The signal power coincides with $R_{XX}(t_1, t_2)$ when $t_1=t_2$.
-* Both are symmetric, i.e. $R_{XX}(t_1, t_2) = R_{XX}(t_2, t_1)$ and $C_{XX}(t_1, t_2) = C_{XX}(t_2, t_1)$.
-* For any $t_1, \cdots, t_n\in\mathbb T$, the matrix $[C_{XX}(t_i, t_j)]_{i,j}$ is the covariance matrix of $(X_{t_1}, \cdots, X_{t_n})^\top$ and hence positive semi-definite.
-* For complex-valued processes, the second factor is conjugated, e.g. $R_{XX}(t_1, t_2) = \mathbb E\left[X_{t_1}\overline{X_{t_2}}\right]$.
+* In general, both $r_X(t_1, t_2)$ and $k_X(t_1, t_2)$ depend on two time indices. Later, we will see that the dependency reduces to the time difference only for weakly stationary signals.
+* The signal power coincides with $r_X(t_1, t_2)$ when $t_1=t_2$.
+* Both are symmetric, i.e. $r_X(t_1, t_2) = r_X(t_2, t_1)$ and $k_X(t_1, t_2) = k_X(t_2, t_1)$.
+* For any $t_1, \cdots, t_n\in\mathbb T$, the matrix $[k_X(t_i, t_j)]_{i,j}$ is the covariance matrix of $(X_{t_1}, \cdots, X_{t_n})^\top$ and hence positive semi-definite.
+* For complex-valued processes, the second factor is conjugated, e.g. $r_X(t_1, t_2) = \mathbb E\left[X_{t_1}\overline{X_{t_2}}\right]$.
 
 ### Cross-Correlation and Cross-Covariance
 
@@ -173,18 +173,18 @@ Given two stochastic processes $\{ X_t \}_{t\in \mathbb T}$ and $\{ Y_t \}_{t\in
 
 * The **cross-correlation** as
     $$
-        R_{XY}(t_1, t_2) = \mathbb E\left[X_{t_1}Y_{t_2}\right]
+        r_{XY}(t_1, t_2) = \mathbb E\left[X_{t_1}Y_{t_2}\right]
     $$
 * The **cross-covariance** as
     $$
     \begin{split}
-        C_{XY}(t_1, t_2)
+        k_{XY}(t_1, t_2)
         &= \mathbb E\left[ (X_{t_1} - \mu_X(t_1))  (Y_{t_2} - \mu_Y(t_2))\right] \\
-        &= R_{XY}(t_1, t_2) - \mu_X(t_1)\mu_Y(t_2)
+        &= r_{XY}(t_1, t_2) - \mu_X(t_1)\mu_Y(t_2)
     \end{split}
     $$
 
-Remark: $R_{XY}(t_1, t_2) = R_{YX}(t_2, t_1)$.
+Remark: $r_{XY}(t_1, t_2) = r_{YX}(t_2, t_1)$.
 
 ## Stationarity
 
@@ -231,7 +231,7 @@ where $\stackrel{d}{=}$ denotes equality in distribution (see [Appendix](#equali
 
 3. If $X$ is 2nd order stationary with finite power, then in addition, the auto-correlation is shift-invariant
     $$
-        \forall t_1, t_2, \tau \in\mathbb T, \quad R_{XX}(t_1 + \tau, t_2 + \tau) = R_{XX}(t_1, t_2)
+        \forall t_1, t_2, \tau \in\mathbb T, \quad r_X(t_1 + \tau, t_2 + \tau) = r_X(t_1, t_2)
     $$
     since $(X_{t_1+\tau}, X_{t_2+\tau}) \stackrel{d}{=} (X_{t_1}, X_{t_2})$
 
@@ -276,14 +276,14 @@ $X$ is called **weakly stationary** (also known as wide-sense stationary) if
     $$
 3. The auto-correlation is **shift-invariant**
     $$
-        \forall \tau, t_1, t_2 \in \mathbb T, \quad R_{XX}(t_1+\tau, t_2+\tau) = R_{XX}(t_1, t_2)
+        \forall \tau, t_1, t_2 \in \mathbb T, \quad r_X(t_1+\tau, t_2+\tau) = r_X(t_1, t_2)
     $$
 
 Remarks:
 
 * In particular, setting $t_1 = t_2 = t$ and $\tau = -t$ in the 3rd condition shows that a weakly stationary process has **constant power**
     $$
-        \forall t \in \mathbb T, \quad \mathbb E[X_t^2] = R_{XX}(0, 0) = \mathbb E[X_0^2]
+        \forall t \in \mathbb T, \quad \mathbb E[X_t^2] = r_X(0, 0) = \mathbb E[X_0^2]
     $$
 * Unlike 2nd order stationarity, weak stationarity only constrains the first and second moments, not the FDDs. Hence, it is a weaker notion of stationarity and easier to verify in practice.
 * 2nd order stationarity always implies weak stationarity, but not vice versa. However, for Gaussian processes, the two notions coincide since the FDDs are fully determined by the mean and auto-covariance.
@@ -307,7 +307,7 @@ Additional properties of weakly stationary processes and their applications in s
 
 A stochastic process $\{ X_t \}_{t\in \mathbb Z}$ is called a **white noise** if
 $$
-    \forall t, t_1, t_2\in\mathbb Z, \quad \mathbb E[X_t]=0 \: \land \: R_{XX} (t_1, t_2) =  \sigma^2 \delta(t_1 - t_2)
+    \forall t, t_1, t_2\in\mathbb Z, \quad \mathbb E[X_t]=0 \: \land \: r_X (t_1, t_2) =  \sigma^2 \delta(t_1 - t_2)
 $$
 where $\delta(\cdot)$ is the Kronecker delta.
 
@@ -341,12 +341,12 @@ The random walk $X$ has following properties
 1. $X$ has zero mean.  $$ \forall t>0, \mathbb E[X_t] =0 $$
 1. $X$ has the auto-correlation
     $$
-        \forall t_1, t_2 > 0, \quad R_{XX}(t_1, t_2) = \sigma^2 \min(t_1, t_2)
+        \forall t_1, t_2 > 0, \quad r_X(t_1, t_2) = \sigma^2 \min(t_1, t_2)
     $$
 
     *Proof:*
     $$
-        R_{XX}(t_1, t_2)
+        r_X(t_1, t_2)
         = \sum_{k=1}^{t_1} \sum_{l=1}^{t_2} \mathbb E[W_k W_l]
         = \sum_{k=1}^{t_1} \sum_{l=1}^{t_2} \sigma^2 \delta(k-l)
         = \sigma^2 \min(t_1, t_2)

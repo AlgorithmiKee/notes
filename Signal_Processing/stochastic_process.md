@@ -19,12 +19,14 @@ Note: we often use the following terms interchangeably.
 A **stochastic process** is a family of random variables $\{ X_t \}_{t\in \mathbb T}$, all defined on the same probability space $(\Omega, \mathcal F, \mathbb P)$ and taking values in the same set $\mathbb S$.
 
 * $\mathbb T$ is called the **index set** or **time horizon**.
-* $\mathbb S$ is called the **state space**, which can be $\mathbb R$, $\mathbb C$ or $\mathbb R^n$.
+* $\mathbb S$ is called the **state space**, which can be $\mathbb R$, $\mathbb C$ or $\mathbb R^d$.
 
-Depending on the time horizon, we distinguish
+Depending on the time horizon, a stochastic process becomes:
 
-* **discrete-time** processes: $\mathbb T = \mathbb Z$ or $\mathbb T = \mathbb N$. e.g. sampled signals, daily stock prices.
-* **continuous-time** processes: $\mathbb T = \mathbb R$ or $\mathbb T = [0, \infty)$. e.g. thermal noise in a resistor, Brownian motion.
+* a **random vector**: $\mathbb T = \{1, \cdots, n\}$ for some $n\in\mathbb N$. e.g. a finite collection of random variables.
+* a **discrete-time** process: $\mathbb T = \mathbb Z$ or $\mathbb N$. e.g. sampled signals, daily stock prices.
+* a **continuous-time** process: $\mathbb T = \mathbb R$ or $[0, \infty)$. e.g. thermal noise in a resistor, Brownian motion of a particle.
+* a **stochastic field**: $\mathbb T = \mathbb R^n$. e.g. random fields in spatial statistics.
 
 The theory below applies to both cases unless stated otherwise. Only the time horizon $\mathbb T$ changes. For simplicity, we consider real-valued processes, i.e. $\mathbb S = \mathbb R$.
 
@@ -40,17 +42,65 @@ This leads to two interpretations of $X$:
 
 In engineering, we do not define the sample space explicitly and simply write $X_t$ or $X(t)$.
 
-**Example:** Let $X_0 \in \{-1, 1 \}$ with $\mathbb P(X_0 = -1) = \mathbb P(X_0 = 1) = \frac{1}{2}$. Define $X_t = X_0, \forall t \in\mathbb T$. This process has only two sample paths: the constant functions $-1$ and $1$.
+**Example** (Trivial stochastic process):
+Let $X_0 \in \{-1, 1 \}$ with $\mathbb P(X_0 = -1) = \mathbb P(X_0 = 1) = \frac{1}{2}$. Define $X_t = X_0, \forall t \in\mathbb T$. This process has only two sample paths: the constant functions $-1$ and $1$. For any $t \in \mathbb T$, $X_t$ is equally likely to be $-1$ or $1$.
+
+**Example** (Random line):
+Let $A \sim \mathcal N(0, 1)$ and $B \sim \mathcal N(0, 1)$ be independent standard normal random variables. Define the stochastic process
+$$
+X_t = At + B, \quad t \in \mathbb R.
+$$
+This process represents a random line with random intercept $A$ and random slope $B$. Each sample path is a straight line:
+
+$$
+x_t = at + b, \quad t \in \mathbb R.
+$$
+
+By additivity of the normal distribution, $X_t$ is also normally distributed for each fixed $t$:
+$$
+X_t \sim \mathcal N(0, 1 + t^2).
+$$
+
+**Example** (Discrete-time Markov chain with two states):
+Let $X_t \in \{1, 2\}$ for $t \in \mathbb N$, with transition probability matrix
+$$
+P = \begin{bmatrix}
+0.8 & 0.4 \\
+0.2 & 0.6
+\end{bmatrix}
+$$
+
+where $P_{ij} = \mathbb P(X_{t+1} = j \mid X_t = i)$ and $X_0 = 1$ almost surely.
+
+One possible sample path of this Markov chain could be $1, 1, 2, 1, \cdots$.
+
+The distribution of $X_t$ is determined by
+
+$$
+\begin{bmatrix}
+\mathbb P(X_t = 1) \\ \mathbb P(X_t = 2)
+\end{bmatrix} = 
+\begin{bmatrix}
+0.8 & 0.2 \\
+0.4 & 0.6
+\end{bmatrix}^t
+\begin{bmatrix}
+1 \\
+0
+\end{bmatrix}
+$$
 
 ## Finite Dimensional Distributions
 
-To fully describe a stochastic process $X$, we need the joint distribution of all possible finite combinations of random variables in $X$.
+The distributions of $X_t$ for all $t \in \mathbb T$ alone do not fully characterise the stochastic process because they do not capture the dependencies between different time instances. To fully describe a stochastic process $X$, we need the joint distribution of all possible finite combinations of random variables in $X$.
 
 For $n\ge 1$ and $t_1, \cdots, t_n \in\mathbb T$, the joint CDF
 $$
     F_{t_1, \cdots, t_n}(x_1, \cdots, x_n) = \mathbb P\left(X_{t_1} \le x_1, \cdots, X_{t_n} \le x_n\right)
 $$
-is called an **$n$-th order distribution** of $X$. The collection of all of them
+is called an **$n$-th order distribution** of $X$ where the inequalities are taken component-wise if $\mathbb S = \mathbb R^d$.
+
+The collection of all of them
 $$
     \left\{ F_{t_1, \cdots, t_n} \:\middle\vert\: n\ge 1, \: t_1, \cdots, t_n\in\mathbb T \right\}
 $$
@@ -164,8 +214,38 @@ Remarks:
 * In general, both $r_X(t_1, t_2)$ and $k_X(t_1, t_2)$ depend on two time indices. Later, we will see that the dependency reduces to the time difference only for weakly stationary signals.
 * The signal power coincides with $r_X(t_1, t_2)$ when $t_1=t_2$.
 * Both are symmetric, i.e. $r_X(t_1, t_2) = r_X(t_2, t_1)$ and $k_X(t_1, t_2) = k_X(t_2, t_1)$.
-* For any $t_1, \cdots, t_n\in\mathbb T$, the matrix $[k_X(t_i, t_j)]_{i,j}$ is the covariance matrix of $(X_{t_1}, \cdots, X_{t_n})^\top$ and hence positive semi-definite.
 * For complex-valued processes, the second factor is conjugated, e.g. $r_X(t_1, t_2) = \mathbb E\left[X_{t_1}\overline{X_{t_2}}\right]$.
+* The auto-covariance satisfies all properties of a valid kernel function in standard ML contexts.
+
+For any $t_1, \cdots, t_n\in\mathbb T$, the covariance matrix (or kernel matrix) is defined as
+
+$$
+K_X = \begin{bmatrix}
+k_X(t_1, t_1) & \cdots & k_X(t_1, t_n) \\
+\vdots & \ddots & \vdots \\
+k_X(t_n, t_1) & \cdots & k_X(t_n, t_n)
+\end{bmatrix}.
+$$
+
+Given a stochastic process $X$, we can compute its covariance matrix $K_X$ for any finite set of time instances $t_1, \cdots, t_n \in \mathbb T$ by definition. Remarkably, the converse also holds: any valid kernel function can be used to construct a stochastic process.
+
+More precisely, given a valid kernel function $k: \mathbb T \times \mathbb T \to \mathbb R$, there exists a stochastic process $X$ whose auto-covariance function is exactly $k$, i.e.
+$$
+k_X(t_1, t_2) = k(t_1, t_2), \quad \forall t_1, t_2 \in \mathbb T.
+$$
+
+*Proof*: We construct a Gaussian process with zero mean and covariance function $k$. Specifically, for any finite set of time instances $t_1, \cdots, t_n \in \mathbb T$, we let
+
+$$
+\left(X_{t_1}, \cdots, X_{t_n}\right) \sim \mathcal{N}\left(\mathbf{0}, 
+\begin{bmatrix}
+k(t_1, t_1) & \cdots & k(t_1, t_n) \\
+\vdots & \ddots & \vdots \\
+k(t_n, t_1) & \cdots & k(t_n, t_n)
+\end{bmatrix}
+\right).
+\tag*{$\blacksquare$}
+$$
 
 ### Cross-Correlation and Cross-Covariance
 

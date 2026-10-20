@@ -16,7 +16,7 @@ Note: we often use the following terms interchangeably.
 
 ## Basic Definitions
 
-A **stochastic process** is a family of random variables $\{ X_t \}_{t\in \mathbb T}$, all defined on the same probability space $(\Omega, \mathcal F, P)$ and taking values in the same set $\mathbb S$.
+A **stochastic process** is a family of random variables $\{ X_t \}_{t\in \mathbb T}$, all defined on the same probability space $(\Omega, \mathcal F, \mathbb P)$ and taking values in the same set $\mathbb S$.
 
 * $\mathbb T$ is called the **index set** or **time horizon**.
 * $\mathbb S$ is called the **state space**, which can be $\mathbb R$, $\mathbb C$ or $\mathbb R^n$.
@@ -40,7 +40,7 @@ This leads to two interpretations of $X$:
 
 In engineering, we do not define the sample space explicitly and simply write $X_t$ or $X(t)$.
 
-**Example:** Let $X_0 \in \{-1, 1 \}$ with $P(X_0 = -1) = P(X_0 = 1) = \frac{1}{2}$. Define $X_t = X_0, \forall t \in\mathbb T$. This process has only two sample paths: the constant functions $-1$ and $1$.
+**Example:** Let $X_0 \in \{-1, 1 \}$ with $\mathbb P(X_0 = -1) = \mathbb P(X_0 = 1) = \frac{1}{2}$. Define $X_t = X_0, \forall t \in\mathbb T$. This process has only two sample paths: the constant functions $-1$ and $1$.
 
 ## Finite Dimensional Distributions
 
@@ -48,7 +48,7 @@ To fully describe a stochastic process $X$, we need the joint distribution of al
 
 For $n\ge 1$ and $t_1, \cdots, t_n \in\mathbb T$, the joint CDF
 $$
-    F_{t_1, \cdots, t_n}(x_1, \cdots, x_n) = P\left(X_{t_1} \le x_1, \cdots, X_{t_n} \le x_n\right)
+    F_{t_1, \cdots, t_n}(x_1, \cdots, x_n) = \mathbb P\left(X_{t_1} \le x_1, \cdots, X_{t_n} \le x_n\right)
 $$
 is called an **$n$-th order distribution** of $X$. The collection of all of them
 $$
@@ -103,7 +103,7 @@ where $\Phi$ is the standard normal CDF and the noise power $\sigma^2$ grows wit
 
 Note: The process $X_t = X_0$ from the first example is **not** iid, since all $X_t$ are identical (fully dependent). Its FDDs are
 $$
-    P(X_{t_1} = \cdots = X_{t_n} = 1) = P(X_{t_1} = \cdots = X_{t_n} = -1) = \frac{1}{2}
+    \mathbb P(X_{t_1} = \cdots = X_{t_n} = 1) = \mathbb P(X_{t_1} = \cdots = X_{t_n} = -1) = \frac{1}{2}
 $$
 
 ### Gaussian Processes
@@ -372,7 +372,7 @@ Let $X$ and $Y$ be random variables. There are two common notions of "$X$ equals
 
 * $X$ and $Y$ are **equal almost surely (a.s.)**, written $X = Y$ a.s., if they are defined on the same probability space and
     $$
-        P\left(\{ \omega\in\Omega : X(\omega) = Y(\omega) \}\right) = 1
+        \mathbb P\left(\{ \omega\in\Omega : X(\omega) = Y(\omega) \}\right) = 1
     $$
     i.e. $X$ and $Y$ take the same value for almost every random outcome.
 
@@ -386,11 +386,11 @@ Let $X$ and $Y$ be random variables. There are two common notions of "$X$ equals
 
 1. $X = Y$ a.s. $\implies$ $X \stackrel{d}{=} Y$
 
-    *Proof:* Let $N = \{ X \neq Y \}$ with $P(N) = 0$. Then $\{ X \le x \} \subseteq \{ Y \le x \} \cup N$. Hence, $F_X(x) \le F_Y(x) + P(N) = F_Y(x)$. By symmetry, $F_Y(x) \le F_X(x)$.
+    *Proof:* Let $N = \{ X \neq Y \}$ with $\mathbb P(N) = 0$. Then $\{ X \le x \} \subseteq \{ Y \le x \} \cup N$. Hence, $F_X(x) \le F_Y(x) + \mathbb P(N) = F_Y(x)$. By symmetry, $F_Y(x) \le F_X(x)$.
 
 2. The converse is false in general.
 
-    **Example:** Let $X$ be uniformly distributed on $\{-1, 1\}$ and $Y = -X$. Then $X \stackrel{d}{=} Y$, but $P(X = Y) = 0$.
+    **Example:** Let $X$ be uniformly distributed on $\{-1, 1\}$ and $Y = -X$. Then $X \stackrel{d}{=} Y$, but $\mathbb P(X = Y) = 0$.
 
 Remarks:
 
